@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Math with THREE.js Template</title>
+  <link rel="stylesheet" href="main.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        elParent.innerHTML = "<b>&oplus; Info</b>" ;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = "<b>&otimes; Info</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+  </script>
+</head>
+<body>
+
+
+      <canvas id="c"></canvas>
+      
+<div id="infocontainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>Inject some info here about the display. 
+    </p>
+    </div>
+  </div>
+</div>
+
+</body>
+<script type="module" src="./three-math.js"></script>
+</html>
