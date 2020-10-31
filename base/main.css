@@ -1,0 +1,50 @@
+html, body {
+    margin: 0;
+    height: 100%;
+ }
+  
+#c { 
+    height: 100%;
+    width: 100%;
+    display: block;
+}
+
+h1 {
+    position: absolute;
+    top: 2em;
+    left: 2em;
+    font-family: 'Montserrat';
+    font-size: 7em;
+    text-transform: uppercase;
+    width: auto;
+    line-height: .8em;
+    border: 5px solid black;
+    padding: .2em;
+  }
+
+  #info {
+    background-color: #8a8a8a;
+    background-color: rgba(128, 128, 128, 0.5);
+    position: absolute;
+    left: 10px;
+	top: 10px;
+    width: fit-content;
+    height: auto;
+    transition: height 1s, width 1s;
+    text-align: left;
+    font-size: 2em;
+	z-index: 100;
+    display:block;
+    border:1px solid black;
+    padding: 10px;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
+  }
