@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Integrating in Polar Coordinates</title>
+  <link rel="stylesheet" href="main.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        elParent.innerHTML = "<b>&oplus; Info</b>" ;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = "<b>&otimes; Info</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+
+  </script>
+  <script type="module" src="./polar.js"></script>
+
+</head>
+<body>
+
+
+      <canvas id="c"></canvas>
+      
+<div id="infocontainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>Polar coordinates \((r,\theta)\) specify a point in the plane by the formula: \begin{align*} x &= r \cos \theta \\ y &=r \sin \theta \end{align*}
+    </p><p>That is, \(r\) measures distance from the origin and \(\theta\) measures angle in radians off the positive \(x\)-axis counterclockwise. We thus have the important relation $$r^2 = x^2 + y^2.$$ </p>
+    <p>A <span style="color: #990000; font-size: 1.1;">polar rectangle</span> is a region with coordinate bounds \(r_1 \leq r \leq r_2\) and \(\theta_1 \leq \theta \leq \theta_2\). Its area is given by $$\Delta A = \frac12 (\theta_2-\theta_1)(r_2^2 - r_1^2) = \overline{r}\, \Delta r\, \Delta \theta $$
+    where \(\overline{r} = (r_2 + r_1)/2\) is the average radius and \(\Delta r = (r_2^2 - r_1^2), \Delta \theta = (\theta_2^2 - \theta_1^2)\). 
+    </p><p>This gives the important result $$dA = r\,dr\,d\theta$$ for writing double integrals in polar coordinates. </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
