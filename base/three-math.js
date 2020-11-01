@@ -2,7 +2,7 @@
 
 import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
-import {GUI} from './dat.gui.module.js';
+import {GUI} from '../base/dat.gui.module.js';
 
 /* Some constants */
 let nX = 30; // resolution for surfaces
