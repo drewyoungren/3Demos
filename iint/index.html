@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Riemann Sums</title>
-  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="../base/main.css">
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script>
@@ -51,7 +51,7 @@
 
 import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
-import {GUI} from './dat.gui.module.js';
+import {GUI} from '../base/dat.gui.module.js';
 
 /* Some constants */
 const nX = 30; // resolution for surfaces
@@ -159,7 +159,7 @@ var axesText = [];
 var loader = new THREE.FontLoader();
 var font = loader.load(
 	// resource URL
-	'fonts/P052_Italic.json',
+	'../fonts/P052_Italic.json',
   function (font) {
     var xyz = ['x','y','z'];
     var tPos = 1.7*gridMax;

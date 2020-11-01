@@ -129,7 +129,7 @@ var axesText = [];
 var loader = new THREE.FontLoader();
 var font = loader.load(
 	// resource URL
-	'fonts/P052_Italic.json',
+	'../fonts/P052_Italic.json',
   function (font) {
     var xyz = ['x','y','z'];
     var tPos = 1.7*gridMax;
