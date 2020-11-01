@@ -664,13 +664,17 @@ function render() {
 
 render();
 
-export function clearAllButPie() {
+function clearAllButPie() {
   graphMesh.visible = false;
   graphSkin.visible = false;
   pieManHolder.visible = false;
   pieMesh.visible = true;
   render();
 }
+
+
+const polarRectElement = document.querySelector("#polarRectangle");
+polarRectElement.onclick = clearAllButPie;
 
 // clearAllButPie();
 // requestAnimationFrame(render);
