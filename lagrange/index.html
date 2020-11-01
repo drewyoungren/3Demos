@@ -19,7 +19,7 @@
 <div id="info"> <span class="noselect" onclick="javascript:(() => {var el = document.querySelector('#infop'); if (el.style.display == 'block') { console.log('Block found'); el.style.display = 'none'} else {el.style.display = 'block';} } )();"><b>Info</b></span>
       <p id="infop" style="display: block;">Minimize the surface area of a lidless box with fixed volume. 
         <span style="color: #FF0F17;">$$ V = xyz = 32000 \text{cm}^3 $$</span>
-        <span id="salevel" style="color: #FFF717;">$$ SA = xy + 2xz + 2yz = 6800 \text{cm}^2$$</span>  Use the controls at right to change the dimensions. Gradients \(\nabla V\) and \(\nabla SA\) are plotted (not to scale) as are the relevant level surfaces.</p>
+        <span id="salevel" style="color: #FFF717;">$$ SA = xy + 2xz + 2yz = 6800 \text{cm}^2$$</span>  Hold down Shift to select a point on the constraint surface (or use the controls at right) to change the dimensions. Gradients \(\nabla V\) and \(\nabla SA\) are plotted (not to scale) as are the relevant level surfaces.</p>
     </div>
 
 </body>
@@ -166,8 +166,8 @@ function updateBoxData() {
 }
 
 var folder = gui.addFolder( 'Box dimensions' );
-folder.add(boxData,'x',20,60).onChange(updateBoxData);
-folder.add(boxData,'y',20,60).onChange(updateBoxData);
+folder.add(boxData,'x',20,60).onChange(updateBoxData).listen();
+folder.add(boxData,'y',20,60).onChange(updateBoxData).listen();
 
 //surface area
 
@@ -274,14 +274,63 @@ function generateGeometry() {
 
 // generateGeometry();
 
-var render = function() {
+
+const raycaster = new THREE.Raycaster();
+
+let mouseVector = new THREE.Vector2();
+
+function onMouseMove( e ) {
+		// normalized mouse coordinates
+		mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+		mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+	
+	}
+
+
+let selectNewPoint = false;
+
+const render = function() {
+
+    const time = Date.now() * 0.001;
+
     controls.update();
+
+    raycaster.setFromCamera( mouseVector, camera );
+
+    // console.log(mouseVector);
+
+    if ( selectNewPoint ) {
+
+    const intersects = raycaster.intersectObject( volMesh );
+
+    if ( intersects.length > 0 ) {
+      let intersect = intersects[0];
+      // console.log(intersect.point);
+      boxData.x = intersect.point.z;
+      boxData.y = intersect.point.x;
+    }
     
+    updateBoxData();
+
+    }
+
+
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 };
 
-requestAnimationFrame(render);
 
+window.addEventListener('mousemove',onMouseMove,false);
+window.addEventListener('keydown',(e) => {
+  if (e.key === "Shift") {
+    selectNewPoint = true;
+  }
+},false);
+window.addEventListener('keyup',(e) => {
+  if (e.key === "Shift") {
+    selectNewPoint = false;
+  }
+},false);
+requestAnimationFrame(render);
 </script>
 </html>
