@@ -238,11 +238,12 @@ console.log(Object.keys(functionData));
 
 var data = {f: "wave",
             tSlice: 0,
-            axis: 'None'};
+            axis: 'None',
+            N: 10};
 
 var graphHolder = new THREE.Object3D();
 scene.add(graphHolder);
-var graphMaterial = new THREE.MeshPhongMaterial({color: 0x555562,shininess: 80, side: THREE.DoubleSide, transparent: true, opacity: 1});
+var graphMaterial = new THREE.MeshPhongMaterial({color: 0x555562, shininess: 80, side: THREE.DoubleSide, transparent: true, opacity: 1});
 var materialBack = new THREE.MeshLambertMaterial({color: 0xFFF717, side: THREE.DoubleSide, transparent: true, opacity: 1});
 var graph = new THREE.Mesh(new THREE.Geometry(),graphMaterial);
 graphHolder.add(graph);
@@ -273,12 +274,10 @@ function updateGraph(val) {
 
 var graphFolder = gui.addFolder("Graph");
 graphFolder.add(data,'f',Object.keys(functionData)).onChange((val) => {
-  updateBoxData(); updateGraph(val); updateSlice(data.tSlice);
+  updateBoxes(); updateGraph(val); updateSlice(data.tSlice);
   });
 graphFolder.add(graph,'visible').name("Show Graph").onChange(updateGraph);
-// graphFolder.add(graph.material,'opacity',0.0,1.0).onChange(()=>{
-//   setTimeout(render,100);
-// });
+
 
 // Lights
 
@@ -297,22 +296,154 @@ controls.autoRotate = false;
 controls.target.set( ymin/2 + ymax/2,0,xmin/2 + xmax/2 );
 
 
+// Riemann sum blocks as 1 geometry
+function disposeArray() {
+  this.array = null;
+}
+
+function blockGeometry(f,a,b,c,d,M=5,N=5,s=0.5,t=0.5) {
+  /* return a geometry of an approximation of f on the rectangle [a,b] \times [c,d] 
+  using M\times N subrectangles and sampling at (s,t) (relative coords) in each.*/
+
+  let points = [];
+  let colors = [];
+  let normals = [];
+  let dx = (b - a)/N;
+  let dy = (d - c)/M;
+  let n = Math.max(b - a,d - c);
+  let color = new THREE.Color();
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < M; j++) {
+      let x,y,z;
+      x = a + i*dx;
+      y = c + j*dy;
+      z = f(x + s*dx,y + t*dy);
+      const sz = (z >= 0) ? 1 : -1;
+      let zup,zdown;
+      if (sz == 1) {
+        zup = z;
+        zdown = 0;
+      } else {
+        zup = 0;
+        zdown = z;
+      }
+
+      let vx = ( x / n );
+      let vy = ( y / n );
+      let vz = ( z / 11 - 0.2 );
+      color.setHSL( vz, 0.56, 0.36 );
+
+      // top
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,0,1);
+        colors.push( color.r, color.g, color.b );
+      }
+      points.push(x,y,zup);
+      points.push(x + dx,y,zup);
+      points.push(x + dx,y+dy,zup);
+      points.push(x,y,zup);
+      points.push(x + dx,y+dy,zup);
+      points.push(x,y + dy,zup);
+
+      // bottom
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,0,-1);
+        colors.push( color.r, color.g, color.b );
+      }
+      points.push(x,y,zdown);
+      points.push(x + dx,y+dy,zdown);
+      points.push(x + dx,y,zdown);
+      points.push(x,y,zdown);
+      points.push(x,y + dy,zdown);
+      points.push(x + dx,y+dy,zdown);
+
+      //south
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,-1,0);
+        colors.push( color.r, color.g, color.b );
+      }
+      points.push(x,y,zdown);
+      points.push(x + dx,y,zdown);
+      points.push(x + dx,y,zup);
+      points.push(x,y,zdown);
+      points.push(x + dx,y,zup);
+      points.push(x,y,zup);
+
+      //north
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,1,0);
+        colors.push( color.r, color.g, color.b );
+      }      
+      points.push(x,y + dy,zdown);
+      points.push(x + dx,y + dy,zup);
+      points.push(x + dx,y + dy,zdown);
+      points.push(x,y + dy,zdown);
+      points.push(x,y + dy,zup);
+      points.push(x + dx,y + dy,zup);
+
+      //west
+      for (let i = 0;i < 6; i++) {
+        normals.push(-sz,0,0);
+        colors.push( color.r, color.g, color.b );
+      }   
+      points.push(x,y,zdown);
+      points.push(x,y,zup);
+      points.push(x,y + dy,zup);
+      points.push(x,y,zdown);
+      points.push(x,y + dy,zup);
+      points.push(x,y + dy,zdown);
+
+      //east
+      for (let i = 0;i < 6; i++) {
+        normals.push(1,0,0);
+        colors.push( color.r, color.g, color.b );
+      }   
+      points.push(x + dx,y,zdown);
+      points.push(x + dx,y + dy,zup);
+      points.push(x + dx,y,zup);
+      points.push(x + dx,y,zdown);
+      points.push(x + dx,y + dy,zdown);
+      points.push(x + dx,y + dy,zup);
+
+
+    }
+  }
+  let geometry = new THREE.BufferGeometry();
+  geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( points, 3 ).onUpload( disposeArray ) );
+  geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
+  geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ).onUpload( disposeArray ) );   
+
+  return geometry;
+}
+
+let graphWorld = new THREE.Object3D();
+graphWorld.rotation.x += Math.PI/2;
+graphWorld.rotation.y += Math.PI;
+graphWorld.rotation.z += Math.PI/2;
+scene.add(graphWorld);
+
+let material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 80,side: THREE.FrontSide,vertexColors: true});
+const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
+
+let graphGeometry = blockGeometry(functionData[data.f].func,-22,22,-22,22,data.N,data.N);
+let graphMesh = new THREE.Mesh(graphGeometry,material);
+graphWorld.add(graphMesh);
+graphMesh.visible = false;
+
+function updateBoxes(val) {
+  graphMesh.geometry.dispose();
+  graphMesh.geometry = blockGeometry(functionData[data.f].func,xmin,xmax,ymin,ymax,data.N,data.N);
+  render();
+}
+
+let boxFolder = gui.addFolder("Boxes on boxes")
+boxFolder.add(graphMesh,'visible').onChange(updateBoxes);
+boxFolder.add(data,"N",1,100,1).name("Resolution").onChange(updateBoxes);
+
 // Make the box. 
 
-var boxData = {N: 4, M: 4};
-var boxHolder = new THREE.Object3D();
-scene.add(boxHolder);
-boxHolder.visible = false;
-
-var boxFolder = gui.addFolder("Reimann Sum")
-boxFolder.add(boxHolder,'visible').name("Show boxes").onChange(updateBoxData);
-boxFolder.add(boxData,'N',1,40,1).onChange(updateBoxData);
-boxFolder.add(boxData,'M',1,40,1).onChange(updateBoxData);
-
-// Update box
-
-var boxes = [];
-var boxMaterials = []
+var boxMaterials = [];
 var boxColors = [0x8383FF,0xFF8383];
 for (let c = 0; c < boxColors.length; c++) {
   const color = boxColors[c];
@@ -320,47 +451,12 @@ for (let c = 0; c < boxColors.length; c++) {
 }
 var boxEdgeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff , linewidth: 2} );
 
-function updateBoxData() {
-  // console.log(data,data.f);
-  var dx = (xmax - xmin)/boxData.N;
-  var dy = (ymax - ymin)/boxData.M;
-  var boxGeometry;
-  // console.log(boxData.N,dx,boxData.M,dy)
 
-  var box;
-  var x,y,z;
-  for (var j = 0; j < boxes.length; j++) {
-    let element = boxes[j];
-    element.geometry.dispose()
-    element.children[0].geometry.dispose()
-    boxHolder.remove(element);
-  }
-  var approxDoubleIntegral = 0;
-  for (var i = 0; i < boxData.N; i++) {
-    for (let j = 0; j < boxData.M; j++) {
-      x = xmin + i*dx;
-      y = ymin + j*dy;
-      // z = functionData[data.f].func(x+dx/2,y+dy/2);
-      z = functionData[data.f].func(x,y); //SW corner sampling.
-      approxDoubleIntegral += z;
-      boxGeometry = new THREE.BoxBufferGeometry(dy,Math.abs(z),dx);
-      box = new THREE.Mesh(boxGeometry,boxMaterials[(z < 0) ? 1 : 0]);
-      box.position.z = x + dx/2;
-      box.position.x = y + dy/2;
-      box.position.y = z /2;
-      boxes.push(box);
-      boxHolder.add(box);
-      var geometry = new THREE.EdgesGeometry( box.geometry );
-      var wireframe = new THREE.LineSegments( geometry, boxEdgeMaterial );
-      box.add(wireframe);
-  // console.log("Box pos", box.position);
-    }
-  }
-  var element = document.querySelector("#approxI");
-  element.innerHTML = "$$ \\approx \\sum_{i = 0}^ {" + (boxData.M-1).toString() + "}\\sum_{j = 0}^{" + (boxData.N-1).toString() + "}f(a + i\\Delta x,c + j\\Delta y) = " + (Math.round(approxDoubleIntegral*dx*dy*100)/100).toString() + "$$";
-  MathJax.typeset();
-  render();
-}
+// var element = document.querySelector("#approxI");
+// element.innerHTML = "$$ \\approx \\sum_{i = 0}^ {" + (boxData.M-1).toString() + "}\\sum_{j = 0}^{" + (boxData.N-1).toString() + "}f(a + i\\Delta x,c + j\\Delta y) = $$ " + (Math.round(approxDoubleIntegral*dx*dy*100)/100).toString();
+// MathJax.typeset();
+// render();
+
 
 //surface area
 
@@ -505,7 +601,7 @@ var render = function() {
 render();
 controls.addEventListener('change',render);
 updateGraph("f");
-updateBoxData();
+updateBoxes();
 updateSlice(data.tSlice);
 
 // requestAnimationFrame(render);
