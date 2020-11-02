@@ -63,13 +63,13 @@ const gridMax = Math.max(...[xmin,xmax,ymin,ymax].map(Math.abs));
 const gridStep = 1;
 // console.log("gridMax = ",gridMax,[xmin,xmax,ymin,ymax].map(Math.abs));
 
-var scene = new THREE.Scene();
-var canvas = document.querySelector("#c");
+const scene = new THREE.Scene();
+const canvas = document.querySelector("#c");
 // var canvas = document.getElementById("canvas-plot-1");
 
 scene.background = new THREE.Color( 0xdddde8 );
 
-var camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
 camera.position.z = 1.2*(xmax - xmin) + xmax;
 camera.position.y = 1 ;
@@ -77,7 +77,7 @@ camera.position.x = ymin - .2*(ymax - ymin);
 camera.lookAt( 0,0,0 );
 
 
-var renderer = new THREE.WebGLRenderer({antialias: true, alpha : true,canvas: canvas});
+const renderer = new THREE.WebGLRenderer({antialias: true, alpha : true,canvas: canvas});
 // renderer.setClearColor("#e5e5f5");
 
 const gui = new GUI();
@@ -96,13 +96,13 @@ window.addEventListener('resize', () => {
     render();
 });
 
-var ii = new THREE.Vector3( 0, 0, 1 );
-var jj = new THREE.Vector3( 1, 0, 0 );
-var kk = new THREE.Vector3( 0, 1, 0 );
+const ii = new THREE.Vector3( 0, 0, 1 );
+const jj = new THREE.Vector3( 1, 0, 0 );
+const kk = new THREE.Vector3( 0, 1, 0 );
 
 //normalize the direction vector (convert to vector of length 1)
 
-var origin = new THREE.Vector3( 0, 0, 0 );
+const origin = new THREE.Vector3( 0, 0, 0 );
 var length = gridMax + .05 * gridMax;
 var hex = 0x330033;
 var axesArray = [ii,jj,kk];
@@ -114,7 +114,7 @@ for (var i = 0; i < arrayLength; i++) {
     scene.add( arrowHelper );
     // gui.add(arrowHelper,'visible').name("Axis ${i}");
 }
-var lineMaterial = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } );
+const lineMaterial = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } );
 
 for (let j = -(10*gridMax); j <= (10*gridMax); j += gridStep) {
   var points = [];
