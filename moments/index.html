@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Moment of Inertia</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        elParent.innerHTML = "<b>&oplus; Info</b>" ;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = "<b>&otimes; Info</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+
+  </script>
+
+</head>
+<body>
+
+
+      <canvas id="c"></canvas>
+      
+<div id="infoContainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>Suppose a mass distribution is given by density function \(\rho(x,y,z)\) over a region \(E\). Mass is density times volume so we can write the "mass element" \(dM = \rho\,dV\) which we integrate to get the total mass. This is the "0th moment." $$ M = \iiint_E \rho(x,y,z)\,dV $$ </p><p>
+      The center of mass is computed from the "1st moments" and are, essentially, weighted averages of each coordinate. \begin{align*} 
+      \bar{x} &= \frac{1}{M} \iiint_E x\,\rho(x,y,z)\,dV \\
+      \bar{y} &= \frac{1}{M} \iiint_E y\,\rho(x,y,z)\,dV \\
+      \bar{z} &= \frac{1}{M} \iiint_E z\,\rho(x,y,z)\,dV \\
+      \end{align*}
+    </p>
+    <p>The <b>moment of inertia</b> relative to an axis of rotation is the integral of the square of the distance to the axis times a mass element. These are "second" moments and measure the "spread" of a distribution. For example, the moment of inertia about the \(z\)-axis is $$I = 
+    </p><p>This gives the important result $$dA = r\,dr\,d\theta$$ for writing double integrals in polar coordinates. </p>
+    </div>
+  </div>
+</div>
+
+</body>
+<script type="module" src="./moments.js"></script>
+
+</html>
