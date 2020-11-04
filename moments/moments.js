@@ -291,21 +291,32 @@ let omega = 0; // angular velocity
 
 
 
-
-gui.add(box.rotation,'y',0,Math.PI).name('tilt').onChange((val) => {
+const boxFolder = gui.addFolder("Box");
+boxFolder.add(box.rotation,'y',0,Math.PI).name('tilt').onChange((val) => {
   momentaArray[spinnerIndex.box] = boxMoment(val);
   colorBufferVertices(boxBox , zDistColor);
-  if (! spinAway) {
+  if (! spinAway && omega == 0) {
     requestAnimationFrame(render);
   }
 });
-gui.add(earth.position,'x',0,4).name('orbit').onChange((val) => {
+boxFolder.add(boxHolder,'visible').name('Show box').onChange(() =>  {
+      if ((! spinAway) && omega == 0) {
+        requestAnimationFrame(render);
+      }
+    });
+const earthFolder = gui.addFolder("Blue Marble");
+earthFolder.add(earth.position,'x',0,4).name('orbit').onChange((val) => {
   momentaArray[spinnerIndex.earth] = 4*Math.PI*Math.pow(2,3)*(2*Math.pow(2,2) + 5*Math.pow(val,2))/15;
   // colorBufferVertices(earth , zDistColor);
-  if (! spinAway) {
+  if ((! spinAway) && omega == 0) {
     requestAnimationFrame(render);
   }
 });
+earthFolder.add(earthFrame,'visible').name('Show box').onChange(() =>  {
+      if ((! spinAway) && omega == 0) {
+        requestAnimationFrame(render);
+      }
+    });
 
 
 
