@@ -6,11 +6,71 @@
 </head>
 <body>
     <h1> Testing, testing, 123</h1>
+
+    <div>
+        <canvas id="c" width="800px" height="600px"></canvas>
+    </div>
 </body>
 
 <script type="module">
-    import { marchingSquares } from "../base/utils.js";
+    import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
+    import { marchingSquares, colorBufferVertices, blueUpRedDown } from "../base/utils.js";
+    import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
+    import {Greens, PuOr} from '../base/js-colormaps.js'
 
-    marchingSquares((x,y) => {return x*y;}, 4, 1, 4, 1, 4);
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer({canvas});
+
+    const fov = 75;
+    const aspect = canvas.clientWidth / canvas.clientHeight;  // the canvas default
+    const near = 0.1;
+    const far = 5;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.z = 2;
+
+    const scene = new THREE.Scene();
+
+    {
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+    }
+
+
+    {
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.AmbientLight(color, intensity);
+        // light.position.set(1, -2, -4);
+        scene.add(light);
+    }
+
+    // marchingSquares((x,y) => {return x*y;}, 4, 1, 4, 1, 4);
+
+    const geometry = new THREE.SphereBufferGeometry(1,15,15);
+    const material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.FrontSide, vertexColors: true});  // white
+
+
+    colorBufferVertices( geometry , (x,y,z) => blueUpRedDown(x));
+
+    const sphere = new THREE.Mesh( geometry, material );
+
+    scene.add(sphere);
+    renderer.render( scene, camera );
+
+    const lut = new Lut();
+    lut.colorMap = lut.setColorMap("cooltowarm");
+
+    function cutOff(x) {
+        return Math.max(0,Math.min(1,x));
+    }
+
+    console.log("br ",blueUpRedDown(-1.5));
+    
+
+
+
 </script>
 </html>

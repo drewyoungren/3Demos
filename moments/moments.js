@@ -4,10 +4,11 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import {color, GUI} from '../base/dat.gui.module.js';
+import { colorBufferVertices, blueUpRedDown } from "../base/utils.js";
 
 /* Some constants */
 let nX = 30; // resolution for surfaces
-let xmin = 10; // domain of function
+let xmin = -5; // domain of function
 let xmax = 4;
 let ymin = -1;
 let ymax = 3;
@@ -24,9 +25,9 @@ scene.background = new THREE.Color( 0xddddef );
 
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
-camera.position.z = 20;
-camera.position.y = 15 ;
-camera.position.x = 10;
+camera.position.z = gridMax*1.5;
+camera.position.y = gridMax/2 ;
+camera.position.x = gridMax/5;
 camera.lookAt( 0,0,0 );
 
 // Lights
@@ -48,8 +49,8 @@ scene.add(light);
 
 const controls = new OrbitControls (camera, renderer.domElement);
 controls.autoRotate = false;
-controls.target.set( ymin/2 + ymax/2,0,xmin/2 + xmax/2 );
-
+controls.target.set( 0,0,0 );
+controls.addEventListener('change',() => {renderer.render(scene, camera);});
 
 
 // window.addEventListener('resize', render);
@@ -78,8 +79,9 @@ function drawGrid(coords='rect') {
         points.push( new THREE.Vector3( j, 0, (10*gridMax) ) );
 
         let geometry = new THREE.BufferGeometry().setFromPoints( points );
-        gridMeshes.add(new THREE.Line(geometry,lineMaterial));
+        gridMeshes.add(new THREE.LineSegments(geometry,lineMaterial));
         
+        points = [];
         points.push( new THREE.Vector3( -(10*gridMax), 0, j ) );
         points.push( new THREE.Vector3( (10*gridMax), 0, j ) );
 
@@ -96,11 +98,11 @@ function drawGrid(coords='rect') {
       }
     }
     geometry = new THREE.BufferGeometry().setFromPoints( points );
-    gridMeshes.add(new THREE.Line(geometry,lineMaterial));
+    gridMeshes.add(new THREE.LineSegments(geometry,lineMaterial));
 }
 
 scene.add(gridMeshes);
-drawGrid('polar');
+drawGrid('rect');
 
 // Axes
 const axesHolder = new THREE.Object3D();
@@ -150,7 +152,7 @@ var font = loader.load(
       textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
 
       if (i == 0) { textHolder.position.z = tPos; } else {
-        if (i ==1) {
+        if (i == 1) {
           textHolder.position.x = tPos;
         } else { textHolder.position.y = tPos; }
       }
@@ -159,13 +161,13 @@ var font = loader.load(
 
       axesText.push(textHolder);
       // console.log("pushed: ",'xyz'[i])
-      controls.addEventListener('change',() => {
-        for (let index = 0; index < axesText.length; index++) {
-          const element = axesText[index];
-          element.lookAt(camera.position);
-        }
-      });
     }
+    controls.addEventListener('change',() => {
+      for (let index = 0; index < axesText.length; index++) {
+        const element = axesText[index];
+        element.lookAt(camera.position);
+      }
+    });
   },
   // onProgress callback
 	function ( xhr ) {
@@ -182,55 +184,6 @@ function disposeArray() {
   this.array = null;
 }
 
-
-let functionData = {
-  wave: {
-    func: (x,y) =>  {return 1 - Math.sin(x*Math.PI/6) + Math.cos(y*y/33);},
-    latex: "1-\\sin (\\pi x) + \\frac{\\cos(y^2)}{33}",
-    vmax: 3,
-    vmin: -3,
-  },
-  poly: {
-    func: (x,y) =>  {return 13 - x*x/13 - y*y/13;},
-    latex: "13 - \\frac{x^2 + y^2}{13}",
-    vmax: 13,
-    vmin: 0,
-  },
-  plane: {
-    func: (x,y) =>  {return x/3-y/5 + 3;},
-    latex: "\\fracx3 - \\fracy5 + 3",
-    vmax: 10,
-    vmin: -4
-  },
-  gaussian: {
-    func: (x,y) =>  {return Math.exp(-x*x - y*y);},
-    latex: "e^{-x^2 - y^2}",
-    vmax: 1,
-    vmin: 0,
-  },
-};
-
-
-let regionData = {
-  disk: {r: (u,v) => {
-    return [13*u*Math.cos(2*Math.PI*v),13*u*Math.sin(2*Math.PI*v)];
-  }},
-  wedge: {r: (u,v) => {
-    return [13*u*Math.cos(2*Math.PI/3*v),13*u*Math.sin(2*Math.PI/3*v)];
-  }},
-  cardioid: {r: (u,v) => {
-    return [3*u*(3 - 2*Math.cos(2*Math.PI*v))*Math.cos(2*Math.PI*v),3*u*(3 - 2*Math.cos(2*Math.PI*v))*Math.sin(2*Math.PI*v)];
-  }}
-};
-
-let data = {
-  f: 'wave',
-  N: 10,
-  seg: 12,
-  region: 'disk',
-  nX:60
-};
-
 // let skel = new THREE.LineSegments(new THREE.EdgesGeometry( graphGeometry ),whiteLineMaterial);
 // graphMesh.add(skel);
 
@@ -242,7 +195,7 @@ graphWorld.rotation.y += Math.PI;
 graphWorld.rotation.z += Math.PI/2;
 scene.add(graphWorld);
 
-let material = new THREE.MeshPhongMaterial({color: 0xb45555,shininess: 80,side: THREE.FrontSide,vertexColors: false});
+let material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 80,side: THREE.FrontSide,vertexColors: true});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 
 
@@ -262,7 +215,7 @@ let boxData = {
   a: 1.5,
   b: 1.5,
   c: 4
-}
+};
 
 const boxHolder = new THREE.Object3D();
 graphWorld.add(boxHolder);
@@ -270,9 +223,13 @@ spinnerHolders.push(boxHolder);
 let momentaArray = [];
 let spinnerIndex = {};
 
+// tilting box
+
 const box = new THREE.Object3D();
 boxHolder.add(box);
 const boxBox = new THREE.Mesh( new THREE.BoxBufferGeometry(boxData.a,boxData.b,boxData.c),material);
+const zDistColor = (u,v,w) => blueUpRedDown(Math.sqrt( Math.pow(u,2) + Math.pow(v,2) ) / 5);
+// box.rotation.y = 0;
 box.add(boxBox);
 
 function boxMoment(theta) {
@@ -282,10 +239,72 @@ function boxMoment(theta) {
 
 spinnerIndex.box = momentaArray.length;
 momentaArray.push(boxMoment(0));
-boxBox.position.z += boxData.c/2;
-gui.add(box.rotation,'y',0,Math.PI).name('extend').onChange((val) => {
+boxBox.position.z += boxData.c/2; 
+
+// sphere
+const earthFrame = new THREE.Object3D();
+graphWorld.add(earthFrame);
+spinnerHolders.push(earthFrame);
+spinnerIndex.earth = spinnerHolders.length - 1;
+momentaArray.push(3/10*4/3*Math.PI*Math.pow(2,4));
+
+// instantiate a loader
+const textureLoader = new THREE.TextureLoader();
+
+let earthMaterial = new THREE.MeshPhongMaterial( { color: 0x1212ff, side: THREE.FrontSide , shininess: 80});
+const earth = new THREE.Mesh( new THREE.SphereGeometry(2, 15, 15), earthMaterial);
+earthFrame.add(earth);
+earth.position.z += 6;
+earth.rotation.x += Math.PI/2;
+
+
+// load a resource
+textureLoader.load(
+	// resource URL
+	'../textures/land_ocean_ice_2048.jpg',
+
+	// onLoad callback
+	function ( texture ) {
+		// texture courtesy https://visibleearth.nasa.gov/images/57730/the-blue-marble-land-surface-ocean-color-and-sea-ice
+		earthMaterial = new THREE.MeshBasicMaterial( {
+			map: texture
+     } );
+    earth.material = earthMaterial;
+    renderer.render( scene, camera);
+	},
+
+	// onProgress callback currently not supported
+	undefined,
+
+	// onError callback
+	function ( err ) {
+		console.error( 'An error happened.' );
+	}
+);
+// earthMaterial.map = THREE.ImageUtils.loadTexture('../textures/earth_8k.jpg');
+
+
+let last = 0; // last time updated
+let spinAway = false;
+let alpha = 0; // angular acceleration
+let omega = 0; // angular velocity
+
+
+
+
+gui.add(box.rotation,'y',0,Math.PI).name('tilt').onChange((val) => {
   momentaArray[spinnerIndex.box] = boxMoment(val);
-  console.log(boxMoment(val));
+  colorBufferVertices(boxBox , zDistColor);
+  if (! spinAway) {
+    requestAnimationFrame(render);
+  }
+});
+gui.add(earth.position,'x',0,4).name('orbit').onChange((val) => {
+  momentaArray[spinnerIndex.earth] = 4*Math.PI*Math.pow(2,3)*(2*Math.pow(2,2) + 5*Math.pow(val,2))/15;
+  // colorBufferVertices(earth , zDistColor);
+  if (! spinAway) {
+    requestAnimationFrame(render);
+  }
 });
 
 
@@ -302,21 +321,48 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize;
   }
 
-let last = 0; // last time updated
+// window.addEventListener('resize',() => resizeRendererToDisplaySize(renderer));
 
-function render(time=0) {
-    time *= 0.001;
-    controls.update();
+window.addEventListener('keydown', ( e ) => {
+  if (e.key === 'Shift') {
+    last = e.timeStamp*0.001;
+    console.log("Keydown timestamp: ",last,omega);
+    spinAway = true;
+    requestAnimationFrame((time) => {
+      last = time*0.001;
+      requestAnimationFrame(render);
+    });
+  }
+});
+
+window.addEventListener('keyup', ( e ) => {
+  if (e.key === 'Shift') {
+    spinAway = false;
+  }
+});
+
+window.addEventListener('mouseleave', () => {spinAway = false;});
+
+function render(timestamp) {
+    const time = timestamp * 0.001;
+    // controls.update();
     let dt = time - last;
-    last = time;
-
-
-
-
+    let omegaNew;
+    console.log("Render omega", omega);
+    if (spinAway) {
+      omegaNew = Math.min(1,omega + dt/2);
+      console.log("Spinup",last,time,dt,omega,omegaNew);
+    } else {
+      omegaNew = Math.max(0,omega - dt/2);
+      console.log("Spindown",last,time,dt,omega,omegaNew);
+    }
+    
     for (let i = 0; i < spinnerHolders.length; i++) {
       const element = spinnerHolders[i];
-      element.rotation.z += 32*Math.PI*dt/momentaArray[i]
+      element.rotation.z += 50*Math.PI*dt*((omegaNew + omega)/2)/momentaArray[i];
     }
+    last = time;
+    omega = omegaNew;
 
     if (resizeRendererToDisplaySize(renderer)) {
         const canvas = renderer.domElement;
@@ -325,8 +371,10 @@ function render(time=0) {
       }
     
     renderer.render(scene, camera);
-    requestAnimationFrame(render);
+    if (omega > 0) {
+      requestAnimationFrame(render);
+    }
   }
 
 requestAnimationFrame(render);
-
+colorBufferVertices(boxBox , zDistColor);

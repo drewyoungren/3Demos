@@ -269,7 +269,7 @@ function updateGraph() {
   },data.nX,data.nX);
 
   let positions = graphGeometry.getAttribute('position');
-  console.log(positions.count, "positions", positions.getZ(234));
+  // console.log(positions.count, "positions", positions.getZ(234));
   let colors = [];
   for (let i = 0; i < positions.count; i++) {
     const z = positions.getZ(i);
