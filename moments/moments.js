@@ -252,9 +252,10 @@ momentaArray.push(3/10*4/3*Math.PI*Math.pow(2,4));
 const textureLoader = new THREE.TextureLoader();
 
 let earthMaterial = new THREE.MeshPhongMaterial( { color: 0x1212ff, side: THREE.FrontSide , shininess: 80});
-const earth = new THREE.Mesh( new THREE.SphereGeometry(2, 15, 15), earthMaterial);
+const earth = new THREE.Mesh( new THREE.SphereBufferGeometry(2, 15, 15), earthMaterial);
 earthFrame.add(earth);
-earth.position.z += 6;
+earthFrame.visible = false;
+earth.position.z += 2;
 earth.rotation.x += Math.PI/2;
 
 
@@ -289,34 +290,46 @@ let spinAway = false;
 let alpha = 0; // angular acceleration
 let omega = 0; // angular velocity
 
+const data = {
+  object: 'box',
+  parameter: 0,
+  map: true
+};
 
-
-const boxFolder = gui.addFolder("Box");
-boxFolder.add(box.rotation,'y',0,Math.PI).name('tilt').onChange((val) => {
-  momentaArray[spinnerIndex.box] = boxMoment(val);
-  colorBufferVertices(boxBox , zDistColor);
+const selectView = function(val)  {
+  for (let index = 0; index < spinnerHolders.length; index++) {
+    const spinner = spinnerHolders[index];
+    if (spinnerIndex[val] == index) {
+      spinner.visible = true;
+    } else {
+      spinner.visible = false;
+    }
+  }
   if (! spinAway && omega == 0) {
     requestAnimationFrame(render);
   }
-});
-boxFolder.add(boxHolder,'visible').name('Show box').onChange(() =>  {
-      if ((! spinAway) && omega == 0) {
-        requestAnimationFrame(render);
-      }
-    });
-const earthFolder = gui.addFolder("Blue Marble");
-earthFolder.add(earth.position,'x',0,4).name('orbit').onChange((val) => {
-  momentaArray[spinnerIndex.earth] = 4*Math.PI*Math.pow(2,3)*(2*Math.pow(2,2) + 5*Math.pow(val,2))/15;
-  // colorBufferVertices(earth , zDistColor);
+};
+
+gui.add(data,'object',Object.keys(spinnerIndex)).name("Select object").onChange(selectView);
+gui.add(data,'parameter',0,1).onChange( (val) => {
+  box.rotation.y = val*Math.PI/2;
+  momentaArray[spinnerIndex.box] = boxMoment(val*Math.PI/2);
+  colorBufferVertices(boxBox , zDistColor);
+  earth.position.x = 4*val;
+  momentaArray[spinnerIndex.earth] = 4*Math.PI*Math.pow(2,3)*(2*Math.pow(2,2) + 5*Math.pow(val*4,2))/15;
+  colorBufferVertices(earth , zDistColor);
   if ((! spinAway) && omega == 0) {
     requestAnimationFrame(render);
   }
 });
-earthFolder.add(earthFrame,'visible').name('Show box').onChange(() =>  {
-      if ((! spinAway) && omega == 0) {
-        requestAnimationFrame(render);
-      }
-    });
+gui.add(data,'map',["distance to z","map"]).name("color").onChange( (val) => {
+  if (val == "distance to z" ) {
+    earth.material = material;
+  } else {
+    earth.material = earthMaterial;
+  }
+});
+
 
 
 
@@ -388,4 +401,5 @@ function render(timestamp) {
   }
 
 requestAnimationFrame(render);
+boxBox.updateWorldMatrix(true,true);
 colorBufferVertices(boxBox , zDistColor);
