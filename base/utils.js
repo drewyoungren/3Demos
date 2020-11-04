@@ -58,10 +58,10 @@ export function colorBufferVertices( mesh , f ) {
     for (let i = 0; i < points.length; i += 3) {
         vec.set(points[i],points[i+1],points[i+2]);
         // vec.add(mesh.position);
-        console.log(vec);
+        // console.log(vec);
         let {x,y,z} = mesh.localToWorld(vec);
         let {r,g,b} = f(z,x,y);
-        console.log([x,y,z]);
+        // console.log([x,y,z]);
         colors.push(r,g,b);
     }
     mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute( colors, 3 ));
