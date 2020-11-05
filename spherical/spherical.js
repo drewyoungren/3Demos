@@ -504,6 +504,7 @@ function spherePiece({ rho = 1,
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
         }
         // outer
+        if ((dp > 0) && (dt > 0)) {
         points.push(...corners[4]);
         points.push(...corners[6]);
         points.push(...corners[5]);
@@ -523,79 +524,85 @@ function spherePiece({ rho = 1,
         colors.push(color.r,color.g,color.b);
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-        colors.push(color.r,color.g,color.b);
+        colors.push(color.r,color.g,color.b);}
     
         // right
-        points.push(...corners[0]);
-        points.push(...corners[4]);
-        points.push(...corners[5]);
-        points.push(...corners[0]);
-        points.push(...corners[5]);
-        points.push(...corners[1]);
-        
-        for (let k = 0; k < 6; k++) {
-          normals.push(rightVec.x,rightVec.y,rightVec.z);
-          colors.push(color.r,color.g,color.b);
+        if ((i == 0) && (dphi > 0) && (drho > 0)) {
+          points.push(...corners[0]);
+          points.push(...corners[4]);
+          points.push(...corners[5]);
+          points.push(...corners[0]);
+          points.push(...corners[5]);
+          points.push(...corners[1]);
+          
+          for (let k = 0; k < 6; k++) {
+            normals.push(rightVec.x,rightVec.y,rightVec.z);
+            colors.push(color.r,color.g,color.b);
+          }
         }
     
         // left
-        points.push(...corners[2]);
-        points.push(...corners[3]);
-        points.push(...corners[7]);
-        points.push(...corners[2]);
-        points.push(...corners[7]);
-        points.push(...corners[6]);
-        
-        for (let k = 0; k < 6; k++) {
-          normals.push(leftVec.x,leftVec.y,leftVec.z);
-          colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        if ((i == segments - 1) && (dphi > 0) && (drho > 0)){
+          points.push(...corners[2]);
+          points.push(...corners[3]);
+          points.push(...corners[7]);
+          points.push(...corners[2]);
+          points.push(...corners[7]);
+          points.push(...corners[6]);
+          
+          for (let k = 0; k < 6; k++) {
+            normals.push(leftVec.x,leftVec.y,leftVec.z);
+            colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+          }
         }
     
     
         // top
-        points.push(...(corners[1]));
-        points.push(...corners[5]);
-        points.push(...corners[3]);
-        points.push(...corners[3]);
-        points.push(...corners[5]);
-        points.push(...corners[7]);
-    
-        colors.push(color.r,color.g,color.b);
-        colors.push(color.r,color.g,color.b);
-        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-        colors.push(color.r,color.g,color.b);
-        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-        
-        normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
-        normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
-        normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
-        normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
-        normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
-        normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
-        
+        if ((j == segments - 1) && (dtheta > 0) && (drho > 0)) {
+          points.push(...(corners[1]));
+          points.push(...corners[5]);
+          points.push(...corners[3]);
+          points.push(...corners[3]);
+          points.push(...corners[5]);
+          points.push(...corners[7]);
+      
+          colors.push(color.r,color.g,color.b);
+          colors.push(color.r,color.g,color.b);
+          colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+          colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+          colors.push(color.r,color.g,color.b);
+          colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+          
+          normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
+          normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
+          normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
+          normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
+          normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
+          normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
+        }
         // bottom
-        points.push(...corners[0]);
-        points.push(...corners[2]);
-        points.push(...corners[4]);
-        points.push(...corners[4]);
-        points.push(...corners[2]);
-        points.push(...corners[6]);
+        if ((j == 0) && (dtheta > 0) && (drho > 0)){
+            points.push(...corners[0]);
+            points.push(...corners[2]);
+            points.push(...corners[4]);
+            points.push(...corners[4]);
+            points.push(...corners[2]);
+            points.push(...corners[6]);
+            
+            colors.push(color.r,color.g,color.b);
+            colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+            colors.push(color.r,color.g,color.b);
+            colors.push(color.r,color.g,color.b);
+            colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+            colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
         
-        colors.push(color.r,color.g,color.b);
-        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-        colors.push(color.r,color.g,color.b);
-        colors.push(color.r,color.g,color.b);
-        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
-    
-        normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
-        normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
-        normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
-        normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
-        normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
-        normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
-    
+            normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
+            normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
+            normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
+            normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
+            normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
+            normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
+        }
       }    
     }
   
@@ -619,9 +626,18 @@ let sphereData = {
 };
 
 const testSP = new THREE.Mesh( spherePiece( sphereData ), materialRandom);
+const skeletonSP = new THREE.LineSegments( new THREE.EdgesGeometry( testSP.geometry), whiteLineMaterial );
+testSP.add(skeletonSP);
 function updateSpherical() {
+  if (testSP.geometry) {
   testSP.geometry.dispose();
+  }
   testSP.geometry = spherePiece( sphereData );
+  if (skeletonSP.geometry) {
+  skeletonSP.geometry.dispose();
+  }
+  skeletonSP.geometry = new THREE.EdgesGeometry( testSP.geometry, 30);
+
   render();
 }
 graphWorld.add(testSP);
