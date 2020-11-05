@@ -449,6 +449,7 @@ function spherePiece({ rho = 1,
           vec.normalize();
           inVec.push(vec);
         }
+
         const rightVec = new THREE.Vector3(-inVec[0].y,inVec[0].x,0);
         rightVec.normalize();
 
@@ -457,16 +458,16 @@ function spherePiece({ rho = 1,
 
         const upVec = [];
         for (let k = 0; k <= 1; k++) {
-          let {x,y,z} = -inVec[1+2*k];
-          let vec = (z == 0) ? new THREE.Vector3(0,0,1) : new THREE.Vector3( -x, -y, (x*x + y*y) / z);
+          let {x,y,z} = inVec[1+2*k].multiplyScalar(-1);
+          let vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,1) : new THREE.Vector3( -x, -y, (x*x + y*y) / z);
           vec.normalize();
           upVec.push(vec);
         }
 
         const downVec = [];
         for (let k = 0; k <= 1; k++) {
-          let {x,y,z} = -inVec[2*k];
-          let vec = (z == 0) ? new THREE.Vector3(0,0,-1) : new THREE.Vector3( x, y, -(x*x + y*y) / z);
+          let {x,y,z} = inVec[2*k].multiplyScalar(-1);
+          let vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,-1) : new THREE.Vector3( x, y, -(x*x + y*y) / z);
           vec.normalize();
           downVec.push(vec);
         }
@@ -587,10 +588,7 @@ function spherePiece({ rho = 1,
         normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
         normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
     
-        for (let k = 0; k < 6; k++){
-          normals.push(0,0,-1);
-        }
-        
+
         if ( j == 1) {
           console.log("i,j",i,j,corners,inVec);
           console.log("right",rightVec);
@@ -658,7 +656,7 @@ function thetaCoordinate(x,y,z) {
   }
 }
 
-
+console.log(testSP.geometry.attributes.normal.array);
 
 
 
