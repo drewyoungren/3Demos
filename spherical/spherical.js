@@ -2,8 +2,9 @@
 
 import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
-import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
-import {color, GUI} from '../base/dat.gui.module.js';
+// import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
+import { GUI} from '../base/dat.gui.module.js';
+import { colorBufferVertices, blueUpRedDown } from "../base/utils.js";
 
 /* Some constants */
 const nX = 30; // resolution for surfaces
@@ -622,7 +623,8 @@ let sphereData = {
   dtheta: Math.PI/2,
   phi: Math.PI/4,
   dphi: Math.PI/2,
-  segments: 2 
+  segments: 2,
+  f: "z"
 };
 
 const testSP = new THREE.Mesh( spherePiece( sphereData ), materialRandom);
@@ -638,6 +640,28 @@ function updateSpherical() {
   }
   skeletonSP.geometry = new THREE.EdgesGeometry( testSP.geometry, 30);
 
+  switch(sphereData.f){
+    case 'none':
+      break;
+    case 'x':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(x/10));
+      testSP.material = material;
+      break;
+    case 'y':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(y/10));
+      testSP.material = material;
+      break;
+    case 'z':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(z/10));
+      testSP.material = material;
+      break;
+    case 'rho':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(Math.sqrt(x*x + y*y + z*z)/10));
+      testSP.material = material;
+      break;
+
+  }
+
   render();
 }
 graphWorld.add(testSP);
@@ -650,6 +674,7 @@ sphereFolder.add(sphereData,'dtheta',0,2*Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'phi',0,Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'dphi',0,Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'segments',1,20,1).onChange(updateSpherical);
+sphereFolder.add(sphereData,'f',['none','x','y','z','rho']).onChange(updateSpherical);
 
 
 
