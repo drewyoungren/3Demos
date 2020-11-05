@@ -705,7 +705,7 @@ function thetaCoordinate(x,y,z,positive=true) {
       }
     }
   }
-  return t
+  return t;
   // if (t < 0 && positive) {
   //   return 2*Math.PI + t;
   // } else {
