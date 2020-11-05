@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Integrating in Cylindrical/Spherical Coordinates</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        elParent.innerHTML = "<b>&oplus; Info</b>" ;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = "<b>&otimes; Info</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+
+  </script>
+  <script type="module" src="./spherical.js"></script>
+
+</head>
+<body>
+
+
+      <canvas id="c"></canvas>
+      
+<div id="infocontainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>Rectangular \(x,y,z\), Cylindrical \((r,\theta,z)\), and spherical coordinates \((\rho,\theta,\phi)\) specify a point in 3-space by the formulae: 
+      \begin{align*} 
+        x &= r \cos \theta &= \rho \sin \phi \cos \theta \\ 
+        y &= r \sin \theta &= \rho \sin \phi \sin \theta \\ 
+        z &= z &= \rho \cos \phi \\ 
+      \end{align*}
+    </p><p>That is, <ol>
+      <li>\(r\) measures distance from the $z$-axis,</li>
+      <li> \(\rho\) measures distance from the origin,</li>
+      <li>\(\theta\) measures angle in radians off the positive \(x\)-axis counterclockwise around the $z$-axis, and</li>
+      <li>\(\phi\) measures angle off the positive $z$-axis.</li>
+    </ol> 
+    
+    We thus have the important relations $r^2 = x^2 + y^2$ and $\rho^2 = x^2 + y^2 + z^2$. </p>
+    <p>A <span style="color: #990000; font-size: 1.1;" id="sphereRectangle">region</span> described by small intervals $\Delta \rho, \Delta \theta, \Delta \phi$ of coordinate values has a volume roughly
+      $$\Delta \rho (\rho \sin \phi \Delta \theta) (\rho \Delta \phi).$$
+    </p><p>This gives the important result $$dV = \rho^2\sin \theta\,d\rho\,d\theta\,d\phi$$ for writing triple integrals in spherical coordinates. </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
