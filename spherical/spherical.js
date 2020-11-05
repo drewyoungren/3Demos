@@ -6,13 +6,13 @@ import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import {color, GUI} from '../base/dat.gui.module.js';
 
 /* Some constants */
-let nX = 30; // resolution for surfaces
-let xmin = 10; // domain of function
-let xmax = 4;
-let ymin = -1;
-let ymax = 3;
-let gridMax = Math.max(...[xmin,xmax,ymin,ymax].map(Math.abs));
-let gridStep = 1;
+const nX = 30; // resolution for surfaces
+const xmin = 10; // domain of function
+const xmax = 4;
+const ymin = -1;
+const ymax = 3;
+const gridMax = Math.max(...[xmin,xmax,ymin,ymax].map(Math.abs));
+const gridStep = 1;
 
 
 
@@ -80,6 +80,8 @@ function drawGrid(coords='rect') {
         let geometry = new THREE.BufferGeometry().setFromPoints( points );
         gridMeshes.add(new THREE.Line(geometry,lineMaterial));
         
+        points = [];
+
         points.push( new THREE.Vector3( -(10*gridMax), 0, j ) );
         points.push( new THREE.Vector3( (10*gridMax), 0, j ) );
 
@@ -177,57 +179,6 @@ function disposeArray() {
 }
 
 
-let functionData = {
-  wave: {
-    func: (x,y) =>  {return 1 - Math.sin(x*Math.PI/6) + Math.cos(y*y/33);},
-    latex: "1-\\sin (\\pi x) + \\frac{\\cos(y^2)}{33}",
-    vmax: 3,
-    vmin: -3,
-  },
-  poly: {
-    func: (x,y) =>  {return 13 - x*x/13 - y*y/13;},
-    latex: "13 - \\frac{x^2 + y^2}{13}",
-    vmax: 13,
-    vmin: 0,
-  },
-  plane: {
-    func: (x,y) =>  {return x/3-y/5 + 3;},
-    latex: "\\fracx3 - \\fracy5 + 3",
-    vmax: 10,
-    vmin: -4
-  },
-  gaussian: {
-    func: (x,y) =>  {return Math.exp(-x*x - y*y);},
-    latex: "e^{-x^2 - y^2}",
-    vmax: 1,
-    vmin: 0,
-  },
-};
-
-
-let regionData = {
-  disk: {r: (u,v) => {
-    return [13*u*Math.cos(2*Math.PI*v),13*u*Math.sin(2*Math.PI*v)];
-  }},
-  wedge: {r: (u,v) => {
-    return [13*u*Math.cos(2*Math.PI/3*v),13*u*Math.sin(2*Math.PI/3*v)];
-  }},
-  cardioid: {r: (u,v) => {
-    return [3*u*(3 - 2*Math.cos(2*Math.PI*v))*Math.cos(2*Math.PI*v),3*u*(3 - 2*Math.cos(2*Math.PI*v))*Math.sin(2*Math.PI*v)];
-  }}
-};
-
-let data = {
-  f: 'wave',
-  N: 10,
-  seg: 12,
-  region: 'disk',
-  nX:60
-};
-
-// let skel = new THREE.LineSegments(new THREE.EdgesGeometry( graphGeometry ),whiteLineMaterial);
-// graphMesh.add(skel);
-
 let gui = new GUI();
 
 let graphWorld = new THREE.Object3D();
@@ -237,79 +188,14 @@ graphWorld.rotation.z += Math.PI/2;
 scene.add(graphWorld);
 
 let material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 80,side: THREE.FrontSide,vertexColors: true});
+let materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 100,side: THREE.FrontSide,vertexColors: false});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 
 
-// graph of function over region.
-
-// For color gradient
-
-
-let lut = new Lut();
-lut.setColorMap("cooltowarm");
-
-let graphHolder = new THREE.Object3D();
-graphWorld.add(graphHolder);
-let graphMaterial = new THREE.MeshPhongMaterial({ color: 0xaea3af, side: THREE.DoubleSide, shininess: 85,vertexColors: true });
-let graphMesh,graphSkin;
-
-function updateGraph() {
-  let color;
-  lut.setMin(functionData[data.f].vmin);
-  lut.setMax(functionData[data.f].vmax);
-  for (let i = graphHolder.children.length - 1; i >= 0; i--) {
-    const element = graphHolder.children[i];
-    element.geometry.dispose();
-  }
-  let graphGeometry = new THREE.ParametricBufferGeometry((u,v,vec) => {
-    let xy = regionData[data.region].r(u,v);
-    let x = xy[0];
-    let y = xy[1];
-    vec.set(x,y,functionData[data.f].func(x,y));
-  },data.nX,data.nX);
-
-  let positions = graphGeometry.getAttribute('position');
-  // console.log(positions.count, "positions", positions.getZ(234));
-  let colors = [];
-  for (let i = 0; i < positions.count; i++) {
-    const z = positions.getZ(i);
-    color = lut.getColor(z);
-    if ( color === undefined ) {
-
-      console.log( 'Unable to determine color for value:', z );
-
-    } else {
-      colors.push(color.r,color.g,color.b);
-    }
-  }
-  
-  if (graphMesh == undefined) {
-    graphMesh = new THREE.Mesh( graphGeometry, graphMaterial);
-    graphSkin = new THREE.LineSegments(new THREE.WireframeGeometry( graphMesh.geometry ), lineMaterial );
-    graphHolder.add(graphSkin);
-    graphHolder.add(graphMesh);
-  } else {
-    graphMesh.geometry = graphGeometry;
-    graphSkin.geometry = new THREE.WireframeGeometry( graphMesh.geometry );
-  }
-  graphGeometry.setAttribute('color', new THREE.Float32BufferAttribute( colors, 3 ));
-
-  render();
-}
-
-updateGraph();
-
-let graphFolder = gui.addFolder("Graph");
-graphFolder.add(graphMesh,'visible').name("Show graph").onChange(render).listen();
-graphFolder.add(graphSkin,'visible').name("Show mesh").onChange(render).listen();
-graphFolder.add(data,'f',Object.keys(functionData)).name("function").onChange(updatePieMan);
-graphFolder.add(data,'region',Object.keys(regionData)).name("region").onChange(updatePieMan);
 
 
 
-
-
-function piePiece(innerRadius,thickness,thetaStart=0,angle=Math.PI/3,height=1,segments=12) {
+function piePiece({innerRadius,thickness,thetaStart=0,angle=Math.PI/3,height=1,segments=12,startHeight=0}) {
   let t = thetaStart;
   let dt = angle/segments;
 
@@ -468,6 +354,8 @@ function piePiece(innerRadius,thickness,thetaStart=0,angle=Math.PI/3,height=1,se
 
 }
 
+
+
 let pieData = {
   innerRadius: 7,
   thickness: 7,
@@ -480,16 +368,9 @@ let pieData = {
   texture: 'glossy'
 };
 
-let pieGeometry = piePiece(
-  pieData.innerRadius,
-  pieData.thickness,
-  pieData.thetaStart,
-  pieData.angle,
-  pieData.height,
-  pieData.segments
-);
-let pieMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false});
-let materialColor = new THREE.Color();
+let pieGeometry = piePiece( pieData );
+const pieMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false});
+const materialColor = new THREE.Color();
 materialColor.setRGB(0.8, 0.2, 0.5 );
 
 let wireMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, wireframe: true } );
@@ -503,15 +384,7 @@ graphWorld.add(pieMesh);
 
 function updatePie() {
   pieMesh.geometry.dispose();
-  pieMesh.geometry = piePiece(   
-    pieData.innerRadius,
-    pieData.thickness,
-    pieData.thetaStart,
-    pieData.angle,
-    pieData.height,
-    pieData.segments,
-    pieData.material
-  );
+  pieMesh.geometry = piePiece( pieData );
   render();
 }
 
@@ -521,25 +394,249 @@ function updatePie() {
 pieMesh.visible = false;
 let pieFolder = gui.addFolder('Pie');
 pieFolder.add(pieMesh,'visible').onChange(render).listen();
-pieFolder.add(pieData,"innerRadius",0,20.0).onChange(() => {setTimeout(updatePie,100);});
-pieFolder.add(pieData,"thickness",0,20.0).onChange(() => {setTimeout(updatePie,100);});
-pieFolder.add(pieData,"thetaStart",0,2*Math.PI).onChange(() => {setTimeout(updatePie,100);});
-pieFolder.add(pieData,"angle",0,2*Math.PI).onChange(() => {setTimeout(updatePie,100);});
-pieFolder.add(pieData,"height",0,10).onChange(() => {setTimeout(updatePie,100);});
-pieFolder.add(pieData,"segments",1,25,1).onChange(() => {setTimeout(updatePie,100);});
+// pieFolder.add(pieData,"innerRadius",0,20.0).onChange(() => {setTimeout(updatePie,100);});
+pieFolder.add(pieData,"innerRadius",0,20.0).onChange(updatePie);
+pieFolder.add(pieData,"thickness",0,20.0).onChange(updatePie);
+pieFolder.add(pieData,"thetaStart",0,2*Math.PI).onChange(updatePie);
+pieFolder.add(pieData,"angle",0,2*Math.PI).onChange(updatePie);
+pieFolder.add(pieData,"height",0,10).onChange(updatePie);
+pieFolder.add(pieData,"segments",1,25,1).onChange(updatePie);
 pieFolder.add(pieData,"texture",['flat','wire','glossy']).onChange((val) => {pieMesh.material = (val == 'flat') ? flatMaterial : pieMaterial; render();});
 // pieFolder.addColor(pieData,"other").onChange((val) => {console.log(val); pieData.color.setRGB(val.r/256,val.g/256,val.b/256); pieMaterial.setValues( {color: pieData.color }); setTimeout(updatePie,100);});
 
 
-// piemann sums
+// Sphere piece
 
-let pieManData = {
-  rSegments: 5,
-  thetaSegments: 5,
-  color: 'z'
+function spherePiece({ rho = 1, 
+  drho = 0.5, 
+  theta = 0, 
+  dtheta = Math.PI/4, 
+  phi = Math.PI/6,
+  dphi = Math.PI/6,
+  segments = 4
+}) {
+    let t = theta;
+    let dt = dtheta/segments;
+    let p = phi, dp = dphi/segments;
+  
+    let points = [];
+    let normals = []; 
+    let color = new THREE.Color();
+    let colorLeft = new THREE.Color();
+    let colors = [];
+    color.setHSL(2/10, 0.9, 0.66);
+    colorLeft.setHSL(0, 0.9, 0.66);
+  
+  
+    
+    for (let i = 0; i < segments; i++) {
+      for (let j = 0; j < segments; j++) {
+        let corners = [];
+    
+        for (let k = 0; k < 2; k++) {
+          for (let l = 0; l < 2; l++) {
+            for (let m = 0; m < 2; m++) {
+              corners.push([(rho + k*drho)*Math.sin(p + dphi - (j + m)*dp)*Math.cos(t + (l + i)*dt),
+                (rho + k*drho)*Math.sin(p + dphi - (j + m)*dp)*Math.sin(t + (l + i)*dt),
+                (rho + k*drho)*Math.cos(p + dphi - (j + m)*dp)]);
+            }
+          }
+        }
+        let inVec = [];
+        for (let k = 4; k < 8; k++) {
+          const vec = new THREE.Vector3(...corners[k]);
+          vec.multiplyScalar(-1);
+          vec.normalize();
+          inVec.push(vec);
+        }
+        const rightVec = new THREE.Vector3(-inVec[0].y,inVec[0].x,0);
+        rightVec.normalize();
+
+        const leftVec = new THREE.Vector3(inVec[2].y,-inVec[2].x,0);
+        leftVec.normalize();
+
+        const upVec = [];
+        for (let k = 0; k <= 1; k++) {
+          let {x,y,z} = -inVec[1+2*k];
+          let vec = (z == 0) ? new THREE.Vector3(0,0,1) : new THREE.Vector3( -x, -y, (x*x + y*y) / z);
+          vec.normalize();
+          upVec.push(vec);
+        }
+
+        const downVec = [];
+        for (let k = 0; k <= 1; k++) {
+          let {x,y,z} = -inVec[2*k];
+          let vec = (z == 0) ? new THREE.Vector3(0,0,-1) : new THREE.Vector3( x, y, -(x*x + y*y) / z);
+          vec.normalize();
+          downVec.push(vec);
+        }
+        
+        if ( rho > 0) {
+        // inner
+        points.push(...corners[0]);
+        points.push(...corners[1]);
+        points.push(...corners[2]);
+        points.push(...corners[2]);
+        points.push(...corners[1]);
+        points.push(...corners[3]);
+    
+        normals.push(inVec[0].x,inVec[0].y,inVec[0].z);
+        normals.push(inVec[1].x,inVec[1].y,inVec[1].z);
+        normals.push(inVec[2].x,inVec[2].y,inVec[2].z);
+        normals.push(inVec[2].x,inVec[2].y,inVec[2].z);
+        normals.push(inVec[1].x,inVec[1].y,inVec[1].z);
+        normals.push(inVec[3].x,inVec[3].y,inVec[3].z);
+    
+        colors.push(color.r,color.g,color.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        }
+        // outer
+        points.push(...corners[4]);
+        points.push(...corners[6]);
+        points.push(...corners[5]);
+        points.push(...corners[6]);
+        points.push(...corners[7]);
+        points.push(...corners[5]);
+    
+        normals.push(-inVec[0].x,-inVec[0].y,-inVec[0].z);
+        normals.push(-inVec[2].x,-inVec[2].y,-inVec[2].z);
+        normals.push(-inVec[1].x,-inVec[1].y,-inVec[1].z);
+        normals.push(-inVec[2].x,-inVec[2].y,-inVec[2].z);
+        normals.push(-inVec[3].x,-inVec[3].y,-inVec[3].z);
+        normals.push(-inVec[1].x,-inVec[1].y,-inVec[1].z);
+    
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(color.r,color.g,color.b);
+    
+        // right
+        points.push(...corners[0]);
+        points.push(...corners[4]);
+        points.push(...corners[5]);
+        points.push(...corners[0]);
+        points.push(...corners[5]);
+        points.push(...corners[1]);
+        
+        for (let k = 0; k < 6; k++) {
+          normals.push(rightVec.x,rightVec.y,rightVec.z);
+          colors.push(color.r,color.g,color.b);
+        }
+    
+        // left
+        points.push(...corners[2]);
+        points.push(...corners[3]);
+        points.push(...corners[7]);
+        points.push(...corners[2]);
+        points.push(...corners[7]);
+        points.push(...corners[6]);
+        
+        for (let k = 0; k < 6; k++) {
+          normals.push(leftVec.x,leftVec.y,leftVec.z);
+          colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        }
+    
+    
+        // top
+        points.push(...(corners[1]));
+        points.push(...corners[5]);
+        points.push(...corners[3]);
+        points.push(...corners[3]);
+        points.push(...corners[5]);
+        points.push(...corners[7]);
+    
+        colors.push(color.r,color.g,color.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        
+        normals.push(upVec[0].x,upVec[0].y,upVec[0].z);
+        normals.push(upVec[0].x,upVec[0].y,upVec[0].z);
+        normals.push(upVec[1].x,upVec[1].y,upVec[1].z);
+        normals.push(upVec[1].x,upVec[1].y,upVec[1].z);
+        normals.push(upVec[0].x,upVec[0].y,upVec[0].z);
+        normals.push(upVec[1].x,upVec[1].y,upVec[1].z);
+        
+        // bottom
+        points.push(...corners[0]);
+        points.push(...corners[2]);
+        points.push(...corners[4]);
+        points.push(...corners[4]);
+        points.push(...corners[2]);
+        points.push(...corners[6]);
+        
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(color.r,color.g,color.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+        colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
+    
+        normals.push(downVec[0].x,downVec[0].y,downVec[0].z);
+        normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
+        normals.push(downVec[0].x,downVec[0].y,downVec[0].z);
+        normals.push(downVec[0].x,downVec[0].y,downVec[0].z);
+        normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
+        normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
+    
+        for (let k = 0; k < 6; k++){
+          normals.push(0,0,-1);
+        }
+        
+        if ( j == 1) {
+          console.log("i,j",i,j,corners,inVec);
+          console.log("right",rightVec);
+        }
+      }    
+    }
+  
+    let geometry = new THREE.BufferGeometry();
+    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( points, 3 ).onUpload( disposeArray ) );
+    geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
+    // geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ).onUpload( disposeArray ) );
+  
+    return geometry;
+  
+  }
+
+let sphereData = {
+  rho: 9,
+  drho: 5,
+  theta: 0,
+  dtheta: Math.PI/2,
+  phi: Math.PI/4,
+  dphi: Math.PI/2,
+  segments: 2 
 };
 
-function arg(x,y) {
+const testSP = new THREE.Mesh( spherePiece( sphereData ), materialRandom);
+function updateSpherical() {
+  testSP.geometry.dispose();
+  testSP.geometry = spherePiece( sphereData );
+  render();
+}
+graphWorld.add(testSP);
+
+const sphereFolder = gui.addFolder("Spherical");
+sphereFolder.add(sphereData,'rho',0,20).onChange(updateSpherical);
+sphereFolder.add(sphereData,'drho',0,10).onChange(updateSpherical);
+sphereFolder.add(sphereData,'theta',0,2*Math.PI).onChange(updateSpherical);
+sphereFolder.add(sphereData,'dtheta',0,2*Math.PI).onChange(updateSpherical);
+sphereFolder.add(sphereData,'phi',0,Math.PI).onChange(updateSpherical);
+sphereFolder.add(sphereData,'dphi',0,Math.PI).onChange(updateSpherical);
+sphereFolder.add(sphereData,'segments',1,20,1).onChange(updateSpherical);
+
+
+
+function thetaCoordinate(x,y,z) {
   let t;
   if (x > 0) {
     t = Math.atan(y/x);
@@ -561,73 +658,7 @@ function arg(x,y) {
   }
 }
 
-for (let i=0; i < 12; i++) {
-  let r = Math.random() + 1;
-  console.log(-1 % (2*Math.PI),arg(r*Math.cos(i/12*Math.PI*2),r*Math.sin(i/12*Math.PI*2)));
-}
 
-let pieManHolder = new THREE.Object3D();
-pieManHolder.visible = false;
-graphWorld.add(pieManHolder);
-
-function updatePieMan() {
-  updateGraph();
-  for (let i = pieManHolder.children.length - 1; i >= 0; i--) {
-    const element = pieManHolder.children[i];
-    element.geometry.dispose();
-    pieManHolder.remove(element);
-  }
-
-  for (let i = 0; i < pieManData.rSegments; i++) {
-    for (let j = 0; j < pieManData.thetaSegments; j++) {
-      const u = i/pieManData.rSegments;
-      const du = 1/pieManData.rSegments;
-      const v = j/pieManData.thetaSegments;
-      const dv = 1/pieManData.thetaSegments;
-
-      const xy = regionData[data.region].r(u,v);
-      const x = xy[0];
-      const y = xy[1];
-      const xy1 = regionData[data.region].r(u+du,v);
-      const x1 = xy1[0];
-      const y1 = xy1[1];
-      const xy2 = regionData[data.region].r(u,v + dv);
-      const x2 = xy2[0];
-      const y2 = xy2[1];
-      const xy3 = regionData[data.region].r(u+du,v + dv);
-      const x3 = xy3[0];
-      const y3 = xy3[1];
-      const z = functionData[data.f].func(...regionData[data.region].r(u + du/2,v + dv/2));
-
-      const r = Math.sqrt(x*x + y*y);
-      const dr = Math.sqrt((x1-x)*(x1-x) + (y1-y)*(y1-y));
-
-      let t = arg(x1,y1);
-      let dt = (arg(x3,y3) - t) % (2*Math.PI/2);
-
-      let geometry = piePiece(r, dr, t, dt,Math.abs(z),data.seg);
-      let mesh = new THREE.Mesh( geometry , pieMaterial);
-        if (mesh == undefined){
-          console.log("Empty!",r,dr,t,dt,z);
-        }
-      if (z < 0) { 
-        mesh.position.z += z;
-        mesh.material = pieMaterialMinus;
-      }
-      pieManHolder.add( mesh );
-    }
-
-  }
-  render();
-}
-
-updatePieMan();
-// updatePieMan();
-
-const pieManFolder = gui.addFolder("Polar Riemann");
-pieManFolder.add(pieManHolder,'visible').name("Show Reimann").onChange(render).listen();
-pieManFolder.add(pieManData,'rSegments',1,30,1).onChange(updatePieMan);
-pieManFolder.add(pieManData,'thetaSegments',1,30,1).onChange(updatePieMan);
 
 
 
@@ -673,8 +704,8 @@ function clearAllButPie() {
 }
 
 
-const polarRectElement = document.querySelector("#polarRectangle");
-polarRectElement.onclick = clearAllButPie;
+const rectElement = document.querySelector("#sphereRectangle");
+rectElement.onclick = clearAllButPie;
 
 // clearAllButPie();
 // requestAnimationFrame(render);

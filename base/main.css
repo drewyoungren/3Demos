@@ -68,3 +68,11 @@ h1 {
     padding: 2px 4px;
     white-space: nowrap;
    }
+
+   /* scrollbar
+::-webkit-scrollbar-track {
+    color: rgba(0.2, 0.2, 0.2, 0);
+  }
+::-webkit-scrollbar-button {
+    background: rgba(208, 142, 142, 1);
+  } */
