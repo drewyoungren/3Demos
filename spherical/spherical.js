@@ -38,10 +38,13 @@ scene.add( new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 ) );
 
 //something to make shiny things shine
 let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(0,50,0);
+light.position.set(0,30,0);
 scene.add(light);
 light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(50,-10,50);
+light.position.set(0,0,-10);
+scene.add(light);
+light = new THREE.PointLight(0xFFFFFF, 1, 1000);
+light.position.set(30,30,5);
 scene.add(light);
 
 // controls 
@@ -415,6 +418,7 @@ function spherePiece({ rho = 1,
   dphi = Math.PI/6,
   segments = 4
 }) {
+    dphi = Math.min(dphi,Math.PI - phi);
     let t = theta;
     let dt = dtheta/segments;
     let p = phi, dp = dphi/segments;
@@ -445,31 +449,35 @@ function spherePiece({ rho = 1,
         let inVec = [];
         for (let k = 4; k < 8; k++) {
           const vec = new THREE.Vector3(...corners[k]);
-          vec.multiplyScalar(-1);
+          vec.set(...corners[k]);
           vec.normalize();
-          inVec.push(vec);
+          
+          vec.multiplyScalar(-1);
+          inVec.push([vec.x, vec.y, vec.z]);
         }
 
-        const rightVec = new THREE.Vector3(-inVec[0].y,inVec[0].x,0);
+        const rightVec = new THREE.Vector3(-(inVec[0][1]),inVec[0][0],0);
         rightVec.normalize();
 
-        const leftVec = new THREE.Vector3(inVec[2].y,-inVec[2].x,0);
+        const leftVec = new THREE.Vector3(inVec[2][1],-(inVec[2][0]),0);
         leftVec.normalize();
 
         const upVec = [];
         for (let k = 0; k <= 1; k++) {
-          let {x,y,z} = inVec[1+2*k].multiplyScalar(-1);
-          let vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,1) : new THREE.Vector3( -x, -y, (x*x + y*y) / z);
+          let [x,y,z] = inVec[1+2*k];
+          [x,y,z] = [-x,-y,-z];
+          const vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,1) : new THREE.Vector3( -x, -y, (x*x + y*y) / z);
           vec.normalize();
-          upVec.push(vec);
+          upVec.push([vec.x, vec.y, vec.z]);
         }
 
         const downVec = [];
         for (let k = 0; k <= 1; k++) {
-          let {x,y,z} = inVec[2*k].multiplyScalar(-1);
+          let [x,y,z] = inVec[2*k];
+          [x,y,z] = [-x,-y,-z];
           let vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,-1) : new THREE.Vector3( x, y, -(x*x + y*y) / z);
           vec.normalize();
-          downVec.push(vec);
+          downVec.push([vec.x, vec.y, vec.z]);
         }
         
         if ( rho > 0) {
@@ -481,12 +489,12 @@ function spherePiece({ rho = 1,
         points.push(...corners[1]);
         points.push(...corners[3]);
     
-        normals.push(inVec[0].x,inVec[0].y,inVec[0].z);
-        normals.push(inVec[1].x,inVec[1].y,inVec[1].z);
-        normals.push(inVec[2].x,inVec[2].y,inVec[2].z);
-        normals.push(inVec[2].x,inVec[2].y,inVec[2].z);
-        normals.push(inVec[1].x,inVec[1].y,inVec[1].z);
-        normals.push(inVec[3].x,inVec[3].y,inVec[3].z);
+        normals.push(inVec[0][0],inVec[0][1],inVec[0][2]);
+        normals.push(inVec[1][0],inVec[1][1],inVec[1][2]);
+        normals.push(inVec[2][0],inVec[2][1],inVec[2][2]);
+        normals.push(inVec[2][0],inVec[2][1],inVec[2][2]);
+        normals.push(inVec[1][0],inVec[1][1],inVec[1][2]);
+        normals.push(inVec[3][0],inVec[3][1],inVec[3][2]);
     
         colors.push(color.r,color.g,color.b);
         colors.push(color.r,color.g,color.b);
@@ -503,12 +511,12 @@ function spherePiece({ rho = 1,
         points.push(...corners[7]);
         points.push(...corners[5]);
     
-        normals.push(-inVec[0].x,-inVec[0].y,-inVec[0].z);
-        normals.push(-inVec[2].x,-inVec[2].y,-inVec[2].z);
-        normals.push(-inVec[1].x,-inVec[1].y,-inVec[1].z);
-        normals.push(-inVec[2].x,-inVec[2].y,-inVec[2].z);
-        normals.push(-inVec[3].x,-inVec[3].y,-inVec[3].z);
-        normals.push(-inVec[1].x,-inVec[1].y,-inVec[1].z);
+        normals.push(-inVec[0][0],-inVec[0][1],-inVec[0][2]);
+        normals.push(-inVec[2][0],-inVec[2][1],-inVec[2][2]);
+        normals.push(-inVec[1][0],-inVec[1][1],-inVec[1][2]);
+        normals.push(-inVec[2][0],-inVec[2][1],-inVec[2][2]);
+        normals.push(-inVec[3][0],-inVec[3][1],-inVec[3][2]);
+        normals.push(-inVec[1][0],-inVec[1][1],-inVec[1][2]);
     
         colors.push(color.r,color.g,color.b);
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
@@ -559,12 +567,12 @@ function spherePiece({ rho = 1,
         colors.push(color.r,color.g,color.b);
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
         
-        normals.push(upVec[0].x,upVec[0].y,upVec[0].z);
-        normals.push(upVec[0].x,upVec[0].y,upVec[0].z);
-        normals.push(upVec[1].x,upVec[1].y,upVec[1].z);
-        normals.push(upVec[1].x,upVec[1].y,upVec[1].z);
-        normals.push(upVec[0].x,upVec[0].y,upVec[0].z);
-        normals.push(upVec[1].x,upVec[1].y,upVec[1].z);
+        normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
+        normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
+        normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
+        normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
+        normals.push(upVec[0][0],upVec[0][1],upVec[0][2]);
+        normals.push(upVec[1][0],upVec[1][1],upVec[1][2]);
         
         // bottom
         points.push(...corners[0]);
@@ -581,18 +589,13 @@ function spherePiece({ rho = 1,
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
         colors.push(colorLeft.r,colorLeft.g,colorLeft.b);
     
-        normals.push(downVec[0].x,downVec[0].y,downVec[0].z);
-        normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
-        normals.push(downVec[0].x,downVec[0].y,downVec[0].z);
-        normals.push(downVec[0].x,downVec[0].y,downVec[0].z);
-        normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
-        normals.push(downVec[1].x,downVec[1].y,downVec[1].z);
+        normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
+        normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
+        normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
+        normals.push(downVec[0][0],downVec[0][2],downVec[0][2]);
+        normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
+        normals.push(downVec[1][0],downVec[1][2],downVec[1][2]);
     
-
-        if ( j == 1) {
-          console.log("i,j",i,j,corners,inVec);
-          console.log("right",rightVec);
-        }
       }    
     }
   
@@ -655,8 +658,6 @@ function thetaCoordinate(x,y,z) {
     return t ;
   }
 }
-
-console.log(testSP.geometry.attributes.normal.array);
 
 
 
