@@ -191,8 +191,8 @@ graphWorld.rotation.y += Math.PI;
 graphWorld.rotation.z += Math.PI/2;
 scene.add(graphWorld);
 
-let material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 80,side: THREE.FrontSide,vertexColors: true});
-let materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 100,side: THREE.FrontSide,vertexColors: false});
+let material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 60,side: THREE.FrontSide,vertexColors: true});
+let materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 70,side: THREE.FrontSide,vertexColors: false});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 
 
@@ -469,7 +469,13 @@ function spherePiece({ rho = 1,
           for (let k = 0; k <= 1; k++) {
             let [x,y,z] = inVec[1+2*k];
             [x,y,z] = [-x,-y,-z];
-            const vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,1) : new THREE.Vector3( -x, -y, (x*x + y*y) / z);
+            let vec = new THREE.Vector3(0,0,1);
+            if (z > 1e-10) {
+              vec.set( -x, -y, (x*x + y*y) / z);
+            } else { if (z < -1e-10) {
+                vec.set( x, y, -(x*x + y*y) / z);
+              }
+            }
             vec.normalize();
             upVec.push([vec.x, vec.y, vec.z]);
           }
@@ -478,7 +484,13 @@ function spherePiece({ rho = 1,
           for (let k = 0; k <= 1; k++) {
             let [x,y,z] = inVec[2*k];
             [x,y,z] = [-x,-y,-z];
-            let vec = (Math.abs(z) < 1e-10) ? new THREE.Vector3(0,0,-1) : new THREE.Vector3( x, y, -(x*x + y*y) / z);
+            let vec = new THREE.Vector3(0,0,-1);
+            if (z > 1e-10) {
+              vec.set( x, y, -(x*x + y*y) / z);
+            } else { if (z < -1e-10) {
+                vec.set( -x, -y, (x*x + y*y) / z);
+              }
+            }
             vec.normalize();
             downVec.push([vec.x, vec.y, vec.z]);
           }
@@ -633,6 +645,10 @@ let sphereData = {
 const testSP = new THREE.Mesh( spherePiece( sphereData ), materialRandom);
 const skeletonSP = new THREE.LineSegments( new THREE.EdgesGeometry( testSP.geometry), whiteLineMaterial );
 testSP.add(skeletonSP);
+
+const frameBall = new THREE.Mesh( new THREE.SphereBufferGeometry( sphereData.rho, 15, 15), wireMaterial);
+testSP.add(frameBall);
+
 function updateSpherical() {
   if (testSP.geometry) {
   testSP.geometry.dispose();
@@ -713,7 +729,61 @@ function thetaCoordinate(x,y,z,positive=true) {
   // }
 }
 
+// Select a point. 
 
+const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
+const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/4, 10,10),pointMaterial);
+
+frameBall.add(point);
+
+point.position.set(5,5,-5);
+
+const raycaster = new THREE.Raycaster();
+
+let mouseVector = new THREE.Vector2();
+
+
+
+function onMouseMove( e ) {
+    // normalized mouse coordinates
+    if (selectNewPoint) {
+      mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+      mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+    
+      raycaster.setFromCamera( mouseVector, camera );
+
+      const intersects = raycaster.intersectObjects( [frameBall ], true );
+
+      if ( intersects.length > 0 ) {
+        let intersect = intersects[0];
+        // console.log(intersect.point);
+        point.position.x = intersect.point.z;
+        point.position.y = intersect.point.x;
+        point.position.z = intersect.point.y;
+      }
+
+      requestAnimationFrame(render);
+    
+    }
+	}
+
+
+let selectNewPoint = false;
+
+
+window.addEventListener('mousemove',onMouseMove,false);
+window.addEventListener('keydown',(e) => {
+  if (e.key === "Shift") {
+    selectNewPoint = true;
+    frameBall.visible = true;
+  }
+},false);
+window.addEventListener('keyup',(e) => {
+  if (e.key === "Shift") {
+    selectNewPoint = false;
+    frameBall.visible = false;
+  }
+},false);
 
 
 
