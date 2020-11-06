@@ -68,13 +68,14 @@ export function colorBufferVertices( mesh , f ) {
     // const points = geometry.attributes.position.array;
 }
 
-export const blueUpRedDown = function(x,purpleness=0.05) {
+export const blueUpRedDown = function(x,grayness=0.8) {
+    // blue-red too traumatic
     let color = new THREE.Color();
     x = Math.max(-1,Math.min(1,x));
-    if (x < 0) {
-        color.setRGB(-x*(1-purpleness) + purpleness, 0, purpleness);
+    if (x >= 0) {
+        color.setRGB((1 - 0.3*x)*grayness, (1-0.9*x)*grayness, (1-x)*grayness);
     } else {
-        color.setRGB(purpleness, 0 , purpleness + (1- purpleness)*x);
+        color.setRGB((1+0.7*x)*grayness, (1 + x)*grayness , (1 + 0.7*x)*grayness);
     }
     return color;
 };
