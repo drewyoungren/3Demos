@@ -35,18 +35,27 @@ camera.lookAt( 0,0,0 );
 
 // soft white light
 scene.add( new THREE.AmbientLight( 0x404040 ) );
-scene.add( new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 ) );
-
+let directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+scene.add( directionalLight );
+directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set(0,-1,0)
+scene.add( directionalLight );
+directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set(1,0,1)
+scene.add( directionalLight );
+directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set(-1,0,-1)
+scene.add( directionalLight );
 //something to make shiny things shine
-let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(0,30,0);
-scene.add(light);
-light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(0,0,-10);
-scene.add(light);
-light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(30,30,5);
-scene.add(light);
+// let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
+// light.position.set(0,30,0);
+// scene.add(light);
+// let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
+// light.position.set(0,0,-10);
+// scene.add(light);
+// light = new THREE.PointLight(0xFFFFFF, 1, 1000);
+// light.position.set(30,30,5);
+// scene.add(light);
 
 // controls 
 
@@ -417,7 +426,7 @@ function spherePiece({ rho = 1,
   dtheta = Math.PI/4, 
   phi = Math.PI/6,
   dphi = Math.PI/6,
-  segments = 4
+  segments = 8
 }) {
     dphi = Math.min(dphi,Math.PI - phi);
     let t = theta;
@@ -632,13 +641,13 @@ function spherePiece({ rho = 1,
   }
 
 let sphereData = {
-  rho: 9,
-  drho: 5,
+  rho: 0.5,
+  drho: 1,
   theta: 0,
-  dtheta: Math.PI/2,
-  phi: Math.PI/4,
+  dtheta: Math.PI,
+  phi: 0,
   dphi: Math.PI/2,
-  segments: 2,
+  segments: 16,
   f: "none"
 };
 
@@ -683,6 +692,26 @@ function updateSpherical() {
       colorBufferVertices( testSP, (x,y,z) => blueUpRedDown((thetaCoordinate(x,y) )/Math.PI));
       testSP.material = material;
       break;
+    case 'x^2yz':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(x*x*y*z));
+      testSP.material = material;
+      break;
+    case 'xy^2z^2':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(x*y*y*z*z));
+      testSP.material = material;
+      break;
+    case '1-z':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown((9-z)/9));
+      testSP.material = material;
+      break;
+    case 'sin(x)':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(Math.sin(x/9)));
+      testSP.material = material;
+      break;
+    case 'cos(y)':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(Math.cos(y/9)));
+      testSP.material = material;
+      break;
 
   }
 
@@ -697,8 +726,8 @@ sphereFolder.add(sphereData,'theta',0,2*Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'dtheta',0,2*Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'phi',0,Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'dphi',0,Math.PI).onChange(updateSpherical);
-sphereFolder.add(sphereData,'segments',1,20,1).onChange(updateSpherical);
-sphereFolder.add(sphereData,'f',['none','x','y','z','rho','theta']).onChange(updateSpherical);
+sphereFolder.add(sphereData,'segments',1,40,1).onChange(updateSpherical);
+sphereFolder.add(sphereData,'f',['none','x','y','z','rho','theta','x^2yz','xy^2z^2','1-z','sin(x)','cos(y)']).onChange(updateSpherical);
 
 
 
@@ -815,6 +844,8 @@ function render() {
     renderer.render(scene, camera);
     // requestAnimationFrame(render);
   }
+
+frameBall.visible = false;
 
 render();
 
