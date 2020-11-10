@@ -1,0 +1,26 @@
+.canvas-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    height: 100%;
+}
+
+.canvas-container-child {
+    border: 2px;
+    border-color: black;
+    height: 100%;
+}
+
+.comparison-container {
+    display: grid;
+    grid-template-columns: 3fr 1fr 3fr;
+    gap: 1px;
+}
+
+.green {
+    background-color: green;
+}
+
+.blue {
+    background-color: blue;
+}

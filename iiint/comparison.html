@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Comparing Triple Integrals</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./split.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        elParent.innerHTML = "<b>&oplus; Compare</b>" ;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = "<b>&otimes; Compare</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+
+  </script>
+  <script type="module" src="./comparison.js"></script>
+
+</head>
+<body>
+
+<div class="canvas-container">
+  <div class="canvas-container-child blue">
+    <canvas  id="c1"></canvas>
+  </div>
+  <div class="canvas-container-child green">
+    <canvas id="c2"></canvas>
+  </div>
+</div>
+      
+<div id="infocontainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>Compare the quantities below. Enter <kbd>&gt;</kbd>, <kbd>&lt;</kbd>, or <kbd>&Equal;</kbd> only.
+    </p>
+    
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
