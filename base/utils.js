@@ -131,3 +131,30 @@ export function addColorBar(vMin=-1, vMax=1) {
     // context.fillText("Hello Lorem Ipsum How are you?", canvas.width/2, canvas.height/2);
     container.style.display = 'block';
 }
+
+export function thetaCoordinate(x,y,z,positive=true) {
+    let t;
+    if (x > 0) {
+      t = Math.atan(y/x);
+    } else {
+      if (x < 0) {
+        if (y >= 0) {
+          t = Math.PI + Math.atan(y/x);
+        } else {
+          t = -Math.PI + Math.atan(y/x);
+        }
+      } else {
+        if (y >= 0) {
+          t = Math.PI/2;
+        } else {
+          t = -Math.PI/2;
+        }
+      }
+    }
+    return t;
+    // if (t < 0 && positive) {
+    //   return 2*Math.PI + t;
+    // } else {
+    //   return t ;
+    // }
+  }
