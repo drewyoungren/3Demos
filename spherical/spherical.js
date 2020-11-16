@@ -4,7 +4,7 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown } from "../base/utils.js";
+import { colorBufferVertices, blueUpRedDown, addColorBar } from "../base/utils.js";
 
 /* Some constants */
 const nX = 30; // resolution for surfaces
@@ -25,27 +25,35 @@ scene.background = new THREE.Color( 0xddddef );
 
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
-camera.position.z = 20;
-camera.position.y = 15 ;
-camera.position.x = 10;
+camera.position.z = 15;
+camera.position.y = 6 ;
+camera.position.x = 15;
 camera.lookAt( 0,0,0 );
 
 // Lights
 
 
 // soft white light
-scene.add( new THREE.AmbientLight( 0x404040 ) );
-let directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+scene.add( new THREE.AmbientLight( 0xA0A0A0 ) );
+let directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+directionalLight.position.set(0,50,0)
 scene.add( directionalLight );
-directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-directionalLight.position.set(0,-1,0)
+directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+directionalLight.position.set(0,-50,0)
 scene.add( directionalLight );
-directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-directionalLight.position.set(1,0,1)
+directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+directionalLight.position.set(50,0,50)
 scene.add( directionalLight );
-directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-directionalLight.position.set(-1,0,-1)
+directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+directionalLight.position.set(-50,0,-50)
 scene.add( directionalLight );
+directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+directionalLight.position.set(50,0,-50)
+scene.add( directionalLight );
+directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+directionalLight.position.set(-50,0,50)
+scene.add( directionalLight );
+
 //something to make shiny things shine
 // let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
 // light.position.set(0,30,0);
@@ -61,7 +69,7 @@ scene.add( directionalLight );
 
 const controls = new OrbitControls (camera, renderer.domElement);
 controls.autoRotate = false;
-controls.target.set( ymin/2 + ymax/2,0,xmin/2 + xmax/2 );
+controls.target.set( 0,0,0);
 controls.addEventListener('change',render);
 
 
@@ -641,8 +649,8 @@ function spherePiece({ rho = 1,
   }
 
 let sphereData = {
-  rho: 0.5,
-  drho: 1,
+  rho: 0,
+  drho: 9,
   theta: 0,
   dtheta: Math.PI,
   phi: 0,
@@ -652,7 +660,7 @@ let sphereData = {
 };
 
 const testSP = new THREE.Mesh( spherePiece( sphereData ), materialRandom);
-const skeletonSP = new THREE.LineSegments( new THREE.EdgesGeometry( testSP.geometry), whiteLineMaterial );
+const skeletonSP = new THREE.LineSegments( new THREE.EdgesGeometry( testSP.geometry, 30), whiteLineMaterial );
 testSP.add(skeletonSP);
 
 const frameBall = new THREE.Mesh( new THREE.SphereBufferGeometry( sphereData.rho, 15, 15), wireMaterial);
@@ -712,6 +720,10 @@ function updateSpherical() {
       colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(Math.cos(y/9)));
       testSP.material = material;
       break;
+    case 'x^2':
+      colorBufferVertices( testSP, (x,y,z) => blueUpRedDown(x*x/81));
+      testSP.material = material;
+      break;
 
   }
 
@@ -727,7 +739,7 @@ sphereFolder.add(sphereData,'dtheta',0,2*Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'phi',0,Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'dphi',0,Math.PI).onChange(updateSpherical);
 sphereFolder.add(sphereData,'segments',1,40,1).onChange(updateSpherical);
-sphereFolder.add(sphereData,'f',['none','x','y','z','rho','theta','x^2yz','xy^2z^2','1-z','sin(x)','cos(y)']).onChange(updateSpherical);
+sphereFolder.add(sphereData,'f',['none','x','y','z','rho','theta','x^2yz','xy^2z^2','1-z','sin(x)','cos(y)','x^2']).onChange(updateSpherical);
 
 
 
@@ -839,6 +851,10 @@ function render() {
         const canvas = renderer.domElement;
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
         camera.updateProjectionMatrix();
+
+        const colorBarCanvas = document.querySelector("#colorbar");
+        colorBarCanvas.width = colorBarCanvas.clientWidth;
+        colorBarCanvas.height = colorBarCanvas.clientHeight;
       }
     
     renderer.render(scene, camera);
@@ -861,5 +877,43 @@ function clearAllButPie() {
 const rectElement = document.querySelector("#sphereRectangle");
 rectElement.onclick = clearAllButPie;
 
+// {
+//   const colorBarCanvas = document.createElement("canvas");
+//   colorBarCanvas.classList.add("colorBar");
+//   document.body.appendChild(colorBarCanvas);
+//   colorBarCanvas.width = colorBarCanvas.clientWidth;
+//   colorBarCanvas.height = colorBarCanvas.clientHeight;
+//   let context = colorBarCanvas.getContext('2d');
+//   // context.rect(0, 0, colorBarCanvas.clientWidth, colorBarCanvas.clientHeight);
+
+//   // colorBarCanvas.style.width = "1100px";
+
+//   // add linear gradient
+//   let grd = context.createLinearGradient( 0, colorBarCanvas.height,0,0);
+
+//   for (let x = 0; x <= 1; x += 0.1) {
+//     const hexString = blueUpRedDown(x*2 - 1).getHexString();
+//     console.log("#" + hexString);
+//     grd.addColorStop(x, "#" + hexString);   
+//   }
+//   // grd.addColorStop(0,"#3D003D");
+//   // grd.addColorStop(0.5,"#FFFFFF")
+//   // grd.addColorStop(1,"#8E1400");
+//   console.log(grd,colorBarCanvas.width,colorBarCanvas.height,colorBarCanvas.clientHeight);
+//   // light blue
+//   // dark blue
+//   // grd.addColorStop(1, '#004CB3');
+//   context.fillStyle = grd;
+//   context.fillRect(0,0,colorBarCanvas.width/2,colorBarCanvas.height);
+//   context.font = "20pt Monaco, monospace";
+//   context.fillStyle = "black";
+//   context.textAlign = "center";
+//   context.fillText("Hello Lorem Ipsum How are you?", colorBarCanvas.width/2, colorBarCanvas.height/2);
+//   colorBarCanvas.style.display = 'block';
+// }
+
+addColorBar(-1,1);
+
+gui.domElement.style.zIndex = 2000;
 // clearAllButPie();
 // requestAnimationFrame(render);

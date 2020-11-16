@@ -69,6 +69,28 @@ h1 {
     white-space: nowrap;
    }
 
+.colorBar {
+  display: block;
+  height: 60%;
+  width: 50px;
+  position: fixed;
+  right: 20px;
+  top: 20%;
+  z-index: 50;
+}
+
+.colorBarTextContainer {
+  position: absolute;
+  width: 50%;
+  top: 0%;
+  right: 0px;
+  height: 100%;
+}
+
+.colorBarText {
+  font: 8pt Monaco, monospace;
+  position: absolute;
+}
    /* scrollbar
 ::-webkit-scrollbar-track {
     color: rgba(0.2, 0.2, 0.2, 0);

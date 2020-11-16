@@ -79,3 +79,55 @@ export const blueUpRedDown = function(x,grayness=0.8) {
     }
     return color;
 };
+
+export function addColorBar(vMin=-1, vMax=1) {
+    const container = document.createElement("div");
+    container.classList.add("colorBar");
+    document.body.append(container);
+    const canvas = document.createElement("canvas");
+    container.appendChild(canvas);
+    canvas.width = container.clientWidth/2;
+    canvas.height = container.clientHeight;
+    canvas.style.height = "100%";
+    console.log(container.clientHeight,canvas.height,canvas.width,canvas.style.height);
+
+    const labels = document.createElement("div");
+    labels.classList.add("colorBarTextContainer");
+    container.appendChild(labels);
+
+    const context = canvas.getContext('2d');
+    // context.rect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+    // canvas.style.width = "1100px";
+
+    // add linear gradient
+    const grd = context.createLinearGradient( 0, canvas.height,0,0);
+
+    const vRange = vMax - vMin;
+    for (let x = 0; x <= 1; x += 0.125) {
+        const hexString = blueUpRedDown(x*2 - 1).getHexString();
+        grd.addColorStop(x, "#" + hexString);  
+        const textLabel = document.createElement("div");
+        labels.appendChild(textLabel);
+        textLabel.classList.add("colorBarText");
+        textLabel.innerHTML = '<span class="colorBarText" style="vertical-align:text-top">' + (vMin + x*vRange).toString() + '</span>';
+        textLabel.style.bottom = (100 * x).toString() + "%";
+        textLabel.style.left = "0px";
+        // textLabel.style.textAlign = "right";
+        // console.log(textLabel.style,canvas.height,textLabel.style.bottom);
+    }
+    // grd.addColorStop(0,"#3D003D");
+    // grd.addColorStop(0.5,"#FFFFFF")
+    // grd.addColorStop(1,"#8E1400");
+    console.log(grd,canvas.width,canvas.height,canvas.clientHeight);
+    // light blue
+    // dark blue
+    // grd.addColorStop(1, '#004CB3');
+    context.fillStyle = grd;
+    context.fillRect(0,0,canvas.width,canvas.height);
+    // context.font = "20pt Monaco, monospace";
+    // context.fillStyle = "black";
+    // context.textAlign = "center";
+    // context.fillText("Hello Lorem Ipsum How are you?", canvas.width/2, canvas.height/2);
+    container.style.display = 'block';
+}
