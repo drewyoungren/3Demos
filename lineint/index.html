@@ -28,7 +28,26 @@
       } 
     }
 
+
   </script>
+
+  <style>
+    #t-formula {
+      display: none;
+    }
+
+    .button {
+      border: 1px solid #000;
+      border-radius: 5px;
+      padding: 5px;
+      font-size: medium;
+    }
+
+    .button.active {
+      background-color: #323232;
+      color: #ddd;
+    }
+  </style>
 
 </head>
 <body>
@@ -61,7 +80,7 @@
       <div class="choices noselect"> <span class="choices" id="dx">$dx$</span> &nbsp; | &nbsp; <span class="choices" id="dy">$dy$</span> &nbsp; | &nbsp;  <span class="choices" id="ds">$ds$</span></div>
       </p> 
 
-      <p><B>Integral:</B> Putting it together.
+      <p><B>Integral:</B> <span class="button noselect" id="formula-button">Show formula</span>
 
         <span id="t-formula"></span>
       </p>

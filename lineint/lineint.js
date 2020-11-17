@@ -712,43 +712,20 @@ render();
 
 
 
-// {
-//   const colorBarCanvas = document.createElement("canvas");
-//   colorBarCanvas.classList.add("colorBar");
-//   document.body.appendChild(colorBarCanvas);
-//   colorBarCanvas.width = colorBarCanvas.clientWidth;
-//   colorBarCanvas.height = colorBarCanvas.clientHeight;
-//   let context = colorBarCanvas.getContext('2d');
-//   // context.rect(0, 0, colorBarCanvas.clientWidth, colorBarCanvas.clientHeight);
 
-//   // colorBarCanvas.style.width = "1100px";
+function showIntegral() {
+  const element = document.getElementById("formula-button");
+  const form = document.getElementById("t-formula");
+  if (element.classList.contains("active")) {
+    element.classList.remove("active");
+    form.style.display = 'none';
+  } else {
+    element.classList.add("active");
+    form.style.display = 'block';
+  }
+}
 
-//   // add linear gradient
-//   let grd = context.createLinearGradient( 0, colorBarCanvas.height,0,0);
+document.getElementById("formula-button").onclick = showIntegral;
 
-//   for (let x = 0; x <= 1; x += 0.1) {
-//     const hexString = blueUpRedDown(x*2 - 1).getHexString();
-//     console.log("#" + hexString);
-//     grd.addColorStop(x, "#" + hexString);   
-//   }
-//   // grd.addColorStop(0,"#3D003D");
-//   // grd.addColorStop(0.5,"#FFFFFF")
-//   // grd.addColorStop(1,"#8E1400");
-//   console.log(grd,colorBarCanvas.width,colorBarCanvas.height,colorBarCanvas.clientHeight);
-//   // light blue
-//   // dark blue
-//   // grd.addColorStop(1, '#004CB3');
-//   context.fillStyle = grd;
-//   context.fillRect(0,0,colorBarCanvas.width/2,colorBarCanvas.height);
-//   context.font = "20pt Monaco, monospace";
-//   context.fillStyle = "black";
-//   context.textAlign = "center";
-//   context.fillText("Hello Lorem Ipsum How are you?", colorBarCanvas.width/2, colorBarCanvas.height/2);
-//   colorBarCanvas.style.display = 'block';
-// }
 
-// addColorBar(-1,1);
-
-gui.domElement.style.zIndex = 2000;
-// clearAllButPie();
-// requestAnimationFrame(render);
+// gui.domElement.style.zIndex = 2000;
