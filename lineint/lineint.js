@@ -395,7 +395,7 @@ function updateFormula() {
   element.innerHTML = "$" + a + "\\leq t \\leq " + b + "$";
   // element.innerHTML = "$ f(x,y) = ";
   // element.innerHTML += zFunctions[data.f].tex
-
+  updateFormulaT();
   MathJax.typeset();
 }
 
@@ -404,20 +404,48 @@ function updateFormulaF() {
   let {tex} = zFunctions[data.f];
   element.innerHTML = "$$ f(x,y) = " + tex + " .$$";
 
+  updateFormulaT();
+  MathJax.typeset();
+}
 
-  element = document.getElementById("t-formula");
-  let form = "$$ = \\int_a^b \\left(" + tex + "\\right) \\,ds $$ ";
-  const vars = "xy";
+function updateFormulaT() {
+  const element = document.getElementById("t-formula");
+  let {tex} = zFunctions[data.f];
 
+  let dSymbol, dExpI, dExpT;
+
+  switch (data.tMode) {
+    case 0:
+      [dSymbol,dExpI] = [" \\,ds "," \\sqrt{(x'(t))^2 + (y'(t))^2}\\,dt "];
+      break;
+    case 1:
+      [dSymbol,dExpI] = [" \\,dx "," x'(t) \\,dt "];
+      break;
+    case -1:
+      [dSymbol,dExpI] = [" \\,dy "," y'(t) \\,dt "];
+      break;
+    default:
+      [dSymbol,dExpI] = [" \\,ds "," \\sqrt{(x'(t))^2 + (y'(t))^2}\\,dt "];
+      break;
+  }
+
+  dExpT = dExpI.replace(new RegExp("\\(?x'\\(t\\)\\)?"), "(" + curves[data.r].tex.xPrime + ")");
+  dExpT = dExpT.replace(new RegExp("\\(?y'\\(t\\)\\)?"), "(" + curves[data.r].tex.yPrime + ")");
+
+  let formI = "$$ \\int_C f " + dSymbol + " = \\int_{a}^{b} f(x(t),y(t)) " + dExpI +" $$\n";
+  let form = "$$ = \\int_{ a }^{ b } \\left(" + tex + "\\right) " + dExpT + " $$ ";
+  const vars = "xyab";
   let regex;
+
+
+
   for (let i = 0; i < vars.length; i++) {
     const el = vars[i];
     regex = new RegExp(el,"g");
-    form = form.replace(regex, "(" + curves[data.r].tex[el] + ")");
+    const expr = curves[data.r].tex[el] ? curves[data.r].tex[el] : curves[data.r][el].toString();
+    form = i < 2 ? form.replace(regex, "(" + expr + ")") : form.replace(regex, expr );
   } 
-  element.innerHTML = form;
-
-  MathJax.typeset();
+  element.innerHTML = formI + form;
 }
 
 let walls = [new THREE.Mesh( new THREE.BufferGeometry(), plusMaterial),new THREE.Mesh( new THREE.BufferGeometry(), minusMaterial)];
@@ -500,7 +528,9 @@ function animateToDx(time) {
     updateWall();
     if (data.tMode < 1) {
       myReq = requestAnimationFrame(animateToDx);
-    } 
+    } else {
+      updateFormula();
+    }
   }
 
 const dxElement = document.getElementById("dx");
@@ -522,7 +552,9 @@ function animateToDy(time) {
     updateWall();
     if (data.tMode > -1) {
       myReq = requestAnimationFrame(animateToDy);
-    } 
+    } else {
+      updateFormula();
+    }
   }
 
 const dyElement = document.getElementById("dy");
@@ -548,7 +580,9 @@ function animateToDs(time) {
   updateWall();
   if (Math.abs(data.tMode) > 0) {
     myReq = requestAnimationFrame(animateToDs);
-  } 
+  } else {
+    updateFormula();
+  }
 }
 
 const dsElement = document.getElementById("ds");

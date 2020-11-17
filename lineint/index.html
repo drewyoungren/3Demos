@@ -42,13 +42,16 @@
   <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Line Integrals</b></span>
     <div id="infop" style="display: none; width: 800px;">
     <p><b>Where: </b>
-      Let $C$ be a curve in $\mathbb{R}^2$ parametrized by <span id="r-formula">$$\mathbf{r}(t) = \langle x(t), y(t) \rangle$$</span> for <span id="r-range">$a \leq t \leq b$</span>. 
+      Let $C$ be a curve in $\mathbb{R}^2$ parametrized by 
+      <div style="height: 2em;"><span id="r-formula">$$\mathbf{r}(t) = \langle x(t), y(t) \rangle$$</span></div>
+       for <span id="r-range">$a \leq t \leq b$</span>. 
       <div class="choices noselect">
         <span class="choices" id="parabola">parabola</span> &nbsp; | &nbsp; <span class="choices" id="line">line</span> &nbsp; | &nbsp;  <span class="choices" id="circle">circle</span> &nbsp; | &nbsp;  <span class="choices" id="swirl">swirl</span>
       </div></p>
 
       <p><b>What:</b> 
-        The integrand is a continuous function <span id="f-formula">$f(x,y)$.</span>
+        The integrand is a continuous function 
+        <div style="height: 2em;"><span id="f-formula">$$f(x,y)$$</span></div>
         <div class="choices noselect">
           <span class="choices" id="paraboloid">paraboloid</span> &nbsp; | &nbsp; <span class="choices" id="plane">plane</span> &nbsp; | &nbsp;  <span class="choices" id="wave">wave</span>
         </div>
@@ -58,7 +61,7 @@
       <div class="choices noselect"> <span class="choices" id="dx">$dx$</span> &nbsp; | &nbsp; <span class="choices" id="dy">$dy$</span> &nbsp; | &nbsp;  <span class="choices" id="ds">$ds$</span></div>
       </p> 
 
-      <p><B>$t$-Integral</B> <span id="i-formula">$$\int_C f\,ds = \int_a^b f(x(t),y(t))\sqrt{(x'(t))^2 + (y'(t))^2}\,dt$$</span>
+      <p><B>Integral:</B> Putting it together.
 
         <span id="t-formula"></span>
       </p>
