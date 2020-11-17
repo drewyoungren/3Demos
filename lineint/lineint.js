@@ -448,6 +448,59 @@ function updateFormulaT() {
   element.innerHTML = formI + form;
 }
 
+
+// update Running total of integral
+
+function dsSelect(tMode) {
+  if (tMode < -1/2) {
+    return (x,y) => y;
+  } else {
+    if (tMode > 1/2) {
+      return (x,y) => x;
+    } else {
+      return (x,y) => Math.sqrt(x*x + y*y)
+    }
+  }
+}
+
+function updateRunningIntegral() {
+  const s = data.sMode;
+  const N = 2*Math.round(s / 2 * 100);
+  const {a,b,func} = curves[data.r];
+  const f = zFunctions[data.f].func;
+  const ds = dsSelect(data.tMode);
+  let r,dr,xp,yp;
+
+  let total = 0, dt = s/N*(b - a);
+
+  if (N > 0) {
+  for (let i = 1; i < N; i++) {
+    r = func(a + i * dt);
+    dr = func(a + (i + 1)*dt).sub(r);
+    xp = dr.x; 
+    yp = dr.y;
+    total += (3 - Math.pow(-1,i))*f(r.x,r.y)*ds(xp,yp);
+  }
+
+  // end points
+  r = func(a);
+  dr = func(a + dt).sub(r);
+  xp = dr.x; 
+  yp = dr.y;
+  total += f(r.x,r.y)*ds(xp,yp); 
+
+  r = func(b);
+  dr = func(b + dt).sub(r);
+  xp = dr.x; 
+  yp = dr.y;
+  total += f(r.x,r.y)*ds(xp,yp);
+
+  total *= 1/3;
+  }
+  // if (! (total)) {console.log(N,dt,total)}
+  document.getElementById("running-score").innerText = (Math.round(1000*total)/1000).toString()
+}
+
 let walls = [new THREE.Mesh( new THREE.BufferGeometry(), plusMaterial),new THREE.Mesh( new THREE.BufferGeometry(), minusMaterial)];
 
 graphWorld.add(walls[0]);
@@ -485,31 +538,11 @@ function updateWall() {
       walls.push( wall )
     }
   });
-
+  updateRunningIntegral();
   render();
 }
 
 updateWall();
-
-// const wallGeometry = new THREE.ParametricBufferGeometry(  );
-
-/*
-{
-  const points = []
-
-  const a = -2, b = 2;
-  const dx = (b - a) / 100;
-
-
-  for (let i = 0; i < 100; i ++) {
-    points.push(r1(a + i*dx));
-    points.push(r1(a + i*dx + dx));
-  }
-
-  const lineGeometry = new THREE.BufferGeometry().setFromPoints( points );
-  graphWorld.add( new THREE.LineSegments( lineGeometry, redLineMaterial));
-}
-*/
 
 // gui.add(data,'r',Object.keys(curves)).listen().name("where").onChange(updateWall);
 // gui.add(data,'f',Object.keys(zFunctions)).listen().name("what").onChange(updateWall);
@@ -518,7 +551,12 @@ gui.add(data,'sMode',0.0,1.0).listen().name("fill").onChange(() => {
   if (myReq) {
     cancelAnimationFrame(myReq);
   }
-  myReq = requestAnimationFrame(updateWall);
+  myReq = requestAnimationFrame(
+    () => {
+      // updateRunningIntegral();
+      updateWall();
+    }
+  );
 });
 gui.add(zMesh,'visible').listen().name("graph of f").onChange(updateWall);
 

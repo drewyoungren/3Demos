@@ -118,3 +118,12 @@ h1 {
     border: 1px solid #333;
     border-radius: 5px;
   }
+
+  #score-container {
+    font-family: 'Courier New', Courier, monospace;
+    position: fixed;
+    text-align: left;
+    font-size: large;
+    top: 10px;
+    left: 76%;
+  }
