@@ -22,27 +22,33 @@ h1 {
     padding: .2em;
   }
 
+  #infocontainer {
+    max-height: max-content;
+  }
+
+
+
   #info {
     background-color: #8a8a8a;
     background-color: rgba(128, 128, 128, 0.5);
     position: absolute;
     left: 10px;
-	top: 10px;
+	  top: 10px;
     width: fit-content;
-    height: auto;
-    max-height: 90%;
+    height: fit-content;
+    max-height: 100%;
     transition: height 1s, width 1s;
     text-align: left;
     font-size: 2em;
-	z-index: 100;
+	  z-index: 100;
     display:block;
     border:1px solid black;
     padding: 10px;
-    overflow-y: auto;
+    overflow-y: hidden;
 }
 
 #infop {
-    height: 90%
+    height: 90%;
 }
 
 .noselect {

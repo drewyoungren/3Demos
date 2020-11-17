@@ -257,29 +257,63 @@ const curves = {
   parabola: {
     func: (t) => new THREE.Vector3(t,t*t - 1,0),
     a: -1,
-    b: 2
+    b: 2,
+    tex: {
+      x: "t",
+      y: "t^2 -1",
+      xPrime: "1",
+      yPrime: "2t"
+    }
   },
   swirl: {
     func: (t) => new THREE.Vector3((1+t/4)*Math.cos(4*pi*t),2*t - Math.sin(8*t)/2,0),
     a: 0,
-    b: 1
+    b: 1,
+    tex: {
+      x: "(1+t/4)\\cos(4 \\pi t)",
+      y: "2t - \\sin(8t)/2",
+      xPrime: "\\cos(4 \\pi t)/4 - (1+t/4)\\sin(4 \\pi t)4\\pi",
+      yPrime: "2 - 4\\sin(8t)"
+    }
   },
   line: {
     func: (t) => new THREE.Vector3(-1+ 2*t,-1 + 3*t,0),
     a: 0,
-    b: 1
+    b: 1,
+    tex: {
+      x: "2t - 1",
+      y: "3t -1",
+      xPrime: "2",
+      yPrime: "3"
+    }
   },
   circle: {
     func: (t) => new THREE.Vector3(Math.cos(t),Math.sin(t),0),
     a: 0,
-    b: 2*Math.PI
+    b: 2*Math.PI,
+    tex: {
+      x: "\\cos t",
+      y: "\\sin t",
+      xPrime: "-\\sin t",
+      yPrime: "\\cos t",
+      b: "2\\pi",
+    }
   },
 }
 
 const zFunctions = {
-  'wave': (x,y) => 1 + Math.sin((x + y)*2)/3,
-  'paraboloid': (x,y) => x*x/2 + y * y/2,
-  'plane': (x,y) => x/10 + y /7 + 1
+  'wave': {
+    func: (x,y) => 1 + Math.sin((x + y)*2)/3,
+    tex: "1 + \\sin(2(x+y))/3",
+  },
+  'paraboloid': {
+    func: (x,y) => x*x/2 + y * y/2,
+    tex: "x^2/2 + y^2/2",
+  },
+  'plane': {
+    func: (x,y) => x/10 + y/7 + 1,
+    tex: "x/10 + y/7 + 1",
+  },
 }
 
 const data = {
@@ -304,7 +338,7 @@ function updateCurve() {
   }
   if (data.sMode > 0) {
     path = new ParametricCurve( 1 , 
-      (t) => new THREE.Vector3(func(t).x,func(t).y,zFunctions[data.f](func(t).x,func(t).y)),
+      (t) => new THREE.Vector3(func(t).x,func(t).y,zFunctions[data.f].func(func(t).x,func(t).y)),
       a, data.sMode*(b - a) + a);
     geometry = new THREE.TubeBufferGeometry( path, Math.round(500*data.sMode), gridStep/10, 8, false );
     if ( topTube ) {
@@ -314,6 +348,12 @@ function updateCurve() {
       topTube = new THREE.Mesh( geometry, material );
       graphWorld.add( topTube );
       colorBufferVertices( topTube, (x,y,z) => blueUpRedDown(1));
+    }
+  } else {
+    if (topTube) {
+      topTube.geometry.dispose();
+      graphWorld.remove(topTube);
+      topTube = undefined;
     }
   }
 }
@@ -325,7 +365,7 @@ function updateCurve() {
 
 let zMesh;
 function updateZMesh() {
-  const func = zFunctions[data.f];
+  const {func} = zFunctions[data.f];
   const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) =>{
     const x = -2*gridMax + u*(4*gridMax);
     const y = -2*gridMax + v*(4*gridMax);
@@ -338,6 +378,46 @@ function updateZMesh() {
     zMesh = new THREE.Mesh( geometry, wireMaterial );
     graphWorld.add( zMesh );
   }
+}
+
+
+//
+function updateFormula() {
+  let element = document.getElementById("r-formula");
+  element.innerHTML = "$$ \\mathbf{r}(t) = \\langle ";
+  element.innerHTML += curves[data.r].tex.x + ",";
+  element.innerHTML += curves[data.r].tex.y;
+  element.innerHTML += "\\rangle $$";
+
+  element = document.getElementById("r-range");
+  const a = curves[data.r].tex.a ? curves[data.r].tex.a : curves[data.r].a.toString();
+  const b = curves[data.r].tex.b ? curves[data.r].tex.b : curves[data.r].b.toString();
+  element.innerHTML = "$" + a + "\\leq t \\leq " + b + "$";
+  // element.innerHTML = "$ f(x,y) = ";
+  // element.innerHTML += zFunctions[data.f].tex
+
+  MathJax.typeset();
+}
+
+function updateFormulaF() {
+  let element = document.getElementById("f-formula");
+  let {tex} = zFunctions[data.f];
+  element.innerHTML = "$$ f(x,y) = " + tex + " .$$";
+
+
+  element = document.getElementById("t-formula");
+  let form = "$$ = \\int_a^b \\left(" + tex + "\\right) \\,ds $$ ";
+  const vars = "xy";
+
+  let regex;
+  for (let i = 0; i < vars.length; i++) {
+    const el = vars[i];
+    regex = new RegExp(el,"g");
+    form = form.replace(regex, "(" + curves[data.r].tex[el] + ")");
+  } 
+  element.innerHTML = form;
+
+  MathJax.typeset();
 }
 
 let walls = [new THREE.Mesh( new THREE.BufferGeometry(), plusMaterial),new THREE.Mesh( new THREE.BufferGeometry(), minusMaterial)];
@@ -354,7 +434,7 @@ function updateWall() {
       const {a,b,func} = curves[data.r];
       const t = a + data.sMode*u*(b - a);
       const {x,y} = func(t);
-      const z = v*zFunctions[data.f](x,y);
+      const z = v*zFunctions[data.f].func(x,y);
       if (data.tMode < 0){
         const s = -data.tMode;
         vec.set(x*(1-s) + s*u*0.001,y,z);
@@ -403,8 +483,8 @@ updateWall();
 }
 */
 
-gui.add(data,'r',Object.keys(curves)).listen().name("where").onChange(updateWall);
-gui.add(data,'f',Object.keys(zFunctions)).listen().name("what").onChange(updateWall);
+// gui.add(data,'r',Object.keys(curves)).listen().name("where").onChange(updateWall);
+// gui.add(data,'f',Object.keys(zFunctions)).listen().name("what").onChange(updateWall);
 gui.add(data,'tMode',-1.0,1.0).listen().name("how").onChange(updateWall);
 gui.add(data,'sMode',0.0,1.0).listen().name("fill").onChange(updateWall);
 gui.add(zMesh,'visible').listen().name("graph of f").onChange(updateWall);
@@ -488,6 +568,7 @@ for (let i = 0; i < surfs.length; i++) {
 
   element.onclick = () => {
     data.f = surf;
+    updateFormulaF();
     updateWall();
     for (let j = 0; j < surfs.length; j++) {
       const el = document.getElementById(surfs[j]);
@@ -503,6 +584,7 @@ for (let i = 0; i < paths.length; i++) {
 
   element.onclick = () => {
     data.r = name;
+    updateFormula();
     updateWall();
     for (let j = 0; j < paths.length; j++) {
       const el = document.getElementById(paths[j]);
