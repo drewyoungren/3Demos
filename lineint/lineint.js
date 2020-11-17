@@ -476,7 +476,7 @@ function updateRunningIntegral() {
   if (N > 0) {
   for (let i = 1; i < N; i++) {
     r = func(a + i * dt);
-    dr = func(a + (i + 1)*dt).sub(r);
+    dr = func(a + (i + 1/2)*dt).sub(func(a + (i - 1/2)*dt));
     xp = dr.x; 
     yp = dr.y;
     total += (3 - Math.pow(-1,i))*f(r.x,r.y)*ds(xp,yp);
@@ -484,13 +484,13 @@ function updateRunningIntegral() {
 
   // end points
   r = func(a);
-  dr = func(a + dt).sub(r);
+  dr = func(a + dt/2).sub(func(a - dt/2));
   xp = dr.x; 
   yp = dr.y;
   total += f(r.x,r.y)*ds(xp,yp); 
 
   r = func(b);
-  dr = func(b + dt).sub(r);
+  dr = func(b + dt/2).sub(func(b - dt/2));
   xp = dr.x; 
   yp = dr.y;
   total += f(r.x,r.y)*ds(xp,yp);
