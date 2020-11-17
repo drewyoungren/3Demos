@@ -7,5 +7,5 @@ subtitle: Visualizations for Multivariable Calculus
   - [Double Integrals](iint/index.html)
   - [Integration in Polar Coordinates](polar/index.html)
   - [Angular Momentum](moments/index.html)
-  - [Spherical coordinates](spherical/index.html)
-    
+  - [Spherical Coordinates](spherical/index.html)
+  - [Line Integrals](lineint/index.html)
