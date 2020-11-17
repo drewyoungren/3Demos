@@ -25,9 +25,9 @@ scene.background = new THREE.Color( 0xddddef );
 
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
-camera.position.z = gridMax*3;
-camera.position.y = gridMax/2 ;
-camera.position.x = gridMax*2;
+camera.position.z = gridMax/2;
+camera.position.y = gridMax*4 ;
+camera.position.x = -gridMax*2;
 camera.lookAt( 0,0,0 );
 
 // Lights
@@ -72,7 +72,6 @@ controls.autoRotate = false;
 controls.target.set( 0,0,0);
 controls.addEventListener('change',render);
 
-
 window.addEventListener('resize', render);
 
 //axes
@@ -82,7 +81,7 @@ const jj = new THREE.Vector3( 1, 0, 0 );
 const kk = new THREE.Vector3( 0, 1, 0 );
 const axesArray = [ii,jj,kk];
 
-const lineMaterial = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } );
+const lineMaterial = new THREE.LineBasicMaterial( { color: 0x551122, transparent: true, opacity: 0.8 } );
 
 let gridMeshes = new THREE.Object3D();
 function drawGrid(coords='rect') {
@@ -214,7 +213,7 @@ const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth
 const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 14});
 
 
-const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true } );
+const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe: true } );
 const minusMaterial = new THREE.MeshPhongMaterial({color: 0xff3232, shininess: 80, side: THREE.BackSide,vertexColors: false, transparent: true, opacity: 0.4});
 const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false, transparent: true, opacity: 0.4});
 
@@ -264,25 +263,37 @@ const curves = {
     func: (t) => new THREE.Vector3((1+t/4)*Math.cos(4*pi*t),2*t - Math.sin(8*t)/2,0),
     a: 0,
     b: 1
-  }
+  },
+  line: {
+    func: (t) => new THREE.Vector3(-1+ 2*t,-1 + 3*t,0),
+    a: 0,
+    b: 1
+  },
+  circle: {
+    func: (t) => new THREE.Vector3(Math.cos(t),Math.sin(t),0),
+    a: 0,
+    b: 2*Math.PI
+  },
 }
 
 const zFunctions = {
   'wave': (x,y) => 1 + Math.sin((x + y)*2)/3,
-  'paraboloid': (x,y) => x*x/2 + y * y/2
+  'paraboloid': (x,y) => x*x/2 + y * y/2,
+  'plane': (x,y) => x/10 + y /7 + 1
 }
 
 const data = {
   r: 'parabola',
   f: 'wave',
-  tMode: 0 // interpolate between dy (-1), ds (0), and dx (1)
+  tMode: 0, // interpolate between dy (-1), ds (0), and dx (1)
+  sMode: 0, // fill in wall from 0 to 1
 }
 
-let tube;
+let tube,topTube;
 function updateCurve() {
   const {a,b,func} = curves[data.r];
-  const path = new ParametricCurve( 1 , func, a, b);
-  const geometry = new THREE.TubeBufferGeometry( path, 500, gridStep/10, 8, false );
+  let path = new ParametricCurve( 1 , func, a, b);
+  let geometry = new THREE.TubeBufferGeometry( path, 500, gridStep/10, 8, false );
   if ( tube ) {
     tube.geometry.dispose();
     tube.geometry = geometry;
@@ -290,6 +301,42 @@ function updateCurve() {
     tube = new THREE.Mesh( geometry, material );
     graphWorld.add( tube );
     colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
+  }
+  if (data.sMode > 0) {
+    path = new ParametricCurve( 1 , 
+      (t) => new THREE.Vector3(func(t).x,func(t).y,zFunctions[data.f](func(t).x,func(t).y)),
+      a, data.sMode*(b - a) + a);
+    geometry = new THREE.TubeBufferGeometry( path, Math.round(500*data.sMode), gridStep/10, 8, false );
+    if ( topTube ) {
+      topTube.geometry.dispose();
+      topTube.geometry = geometry;
+    } else {
+      topTube = new THREE.Mesh( geometry, material );
+      graphWorld.add( topTube );
+      colorBufferVertices( topTube, (x,y,z) => blueUpRedDown(1));
+    }
+  }
+}
+
+
+
+// graph of zFunction
+
+
+let zMesh;
+function updateZMesh() {
+  const func = zFunctions[data.f];
+  const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) =>{
+    const x = -2*gridMax + u*(4*gridMax);
+    const y = -2*gridMax + v*(4*gridMax);
+    vec.set(x,y,func(x,y));
+  },nX/2,nX/2);
+  if ( zMesh ) {
+    zMesh.geometry.dispose();
+    zMesh.geometry = geometry;
+  } else {
+    zMesh = new THREE.Mesh( geometry, wireMaterial );
+    graphWorld.add( zMesh );
   }
 }
 
@@ -301,10 +348,11 @@ graphWorld.add(walls[1]);
 
 function updateWall() {
   updateCurve();
+  updateZMesh();
   const geometry = new THREE.ParametricBufferGeometry( 
     function(u,v,vec) {
       const {a,b,func} = curves[data.r];
-      const t = a + u*(b - a);
+      const t = a + data.sMode*u*(b - a);
       const {x,y} = func(t);
       const z = v*zFunctions[data.f](x,y);
       if (data.tMode < 0){
@@ -355,18 +403,112 @@ updateWall();
 }
 */
 
-gui.add(data,'tMode',-1.0,1.0).listen().onChange(updateWall);
-gui.add(data,'r',Object.keys(curves)).listen().onChange(updateWall);
-gui.add(data,'f',Object.keys(zFunctions)).listen().onChange(updateWall);
+gui.add(data,'r',Object.keys(curves)).listen().name("where").onChange(updateWall);
+gui.add(data,'f',Object.keys(zFunctions)).listen().name("what").onChange(updateWall);
+gui.add(data,'tMode',-1.0,1.0).listen().name("how").onChange(updateWall);
+gui.add(data,'sMode',0.0,1.0).listen().name("fill").onChange(updateWall);
+gui.add(zMesh,'visible').listen().name("graph of f").onChange(updateWall);
 
-let last = 0;
-function animateToDx() {
-  if (last == 0) {
-    requestAnimationFrame((time) => {last = time});
+let last = 0,myReq;
+function animateToDx(time) {
+    data.tMode = Math.min(1,data.tMode + (time*0.001 - last)/2);
+    updateWall();
+    if (data.tMode < 1) {
+      myReq = requestAnimationFrame(animateToDx);
+    } 
   }
 
+const dxElement = document.getElementById("dx");
+dxElement.onclick = () => {
+  requestAnimationFrame((time) => {
+    last = time*0.001;
+    if ( myReq ) {
+      cancelAnimationFrame(myReq);
+    }
+    myReq = requestAnimationFrame(animateToDx);
+  });
+  dsElement.classList.remove("choices-selected");
+  dxElement.classList.add("choices-selected");
+  dyElement.classList.remove("choices-selected"); 
+}
+
+function animateToDy(time) {
+    data.tMode = Math.max(-1,data.tMode - (time*0.001 - last)/2);
+    updateWall();
+    if (data.tMode > -1) {
+      myReq = requestAnimationFrame(animateToDy);
+    } 
+  }
+
+const dyElement = document.getElementById("dy");
+dyElement.onclick = () => {
+  requestAnimationFrame((time) => {
+    last = time*0.001;
+    if ( myReq ) {
+      cancelAnimationFrame(myReq);
+    }
+    myReq = requestAnimationFrame(animateToDy);
+  });
+  dsElement.classList.remove("choices-selected");
+  dxElement.classList.remove("choices-selected");
+  dyElement.classList.add("choices-selected");
+}
+
+function animateToDs(time) {
+  if (data.tMode > 0) {
+    data.tMode = Math.max(0,data.tMode - (time*0.001 - last)/2);
+  } else {
+    data.tMode = Math.min(0,data.tMode + (time*0.001 - last)/2);
+  }
+  updateWall();
+  if (Math.abs(data.tMode) > 0) {
+    myReq = requestAnimationFrame(animateToDs);
+  } 
+}
+
+const dsElement = document.getElementById("ds");
+dsElement.onclick = () => {
+requestAnimationFrame((time) => {
+  last = time*0.001;
+  if ( myReq ) {
+    cancelAnimationFrame(myReq);
+  }
+  myReq = requestAnimationFrame(animateToDs);
+});
+dsElement.classList.add("choices-selected");
+dxElement.classList.remove("choices-selected");
+dyElement.classList.remove("choices-selected");
+}
 
 
+const surfs = ["paraboloid","plane","wave"];
+for (let i = 0; i < surfs.length; i++) {
+  const surf = surfs[i];
+  const element = document.getElementById(surf);
+
+  element.onclick = () => {
+    data.f = surf;
+    updateWall();
+    for (let j = 0; j < surfs.length; j++) {
+      const el = document.getElementById(surfs[j]);
+      i == j ? el.classList.add("choices-selected") : el.classList.remove("choices-selected");
+    }
+  }
+}
+
+const paths = ["parabola","line","circle","swirl"];
+for (let i = 0; i < paths.length; i++) {
+  const name = paths[i];
+  const element = document.getElementById(name);
+
+  element.onclick = () => {
+    data.r = name;
+    updateWall();
+    for (let j = 0; j < paths.length; j++) {
+      const el = document.getElementById(paths[j]);
+      i == j ? el.classList.add("choices-selected") : el.classList.remove("choices-selected");
+    }
+  }
 }
 
 
@@ -403,6 +545,7 @@ function render() {
     // requestAnimationFrame(render);
   }
 
+zMesh.visible = false;
 
 render();
 
@@ -445,7 +588,7 @@ render();
 //   colorBarCanvas.style.display = 'block';
 // }
 
-addColorBar(-1,1);
+// addColorBar(-1,1);
 
 gui.domElement.style.zIndex = 2000;
 // clearAllButPie();

@@ -98,3 +98,17 @@ h1 {
 ::-webkit-scrollbar-button {
     background: rgba(208, 142, 142, 1);
   } */
+
+  .choices {
+    text-align: center;
+    /* font-size: 2em ; */
+    padding: 3px;
+    border: 1px solid transparent;
+  }
+
+  .choices-selected {
+    font-size: 1em;
+    padding: 3px;
+    border: 1px solid #333;
+    border-radius: 5px;
+  }

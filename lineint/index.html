@@ -18,12 +18,12 @@
       var el = document.querySelector('#infop'); 
       var elParent = document.querySelector('#infobutton'); 
       if (el.style.display == 'block') { 
-        elParent.innerHTML = "<b>&oplus; Info</b>" ;
+        elParent.innerHTML = "<b>&oplus; Line Integrals</b>" ;
         el.style.display = 'none';
         elParent.style.height = '1em';
       } else {
         el.style.display = 'block';
-        elParent.innerHTML = "<b>&otimes; Info</b>" ;
+        elParent.innerHTML = "<b>&otimes; Line Integrals</b>" ;
         elParent.style.height = 'fit-content';
       } 
     }
@@ -39,13 +39,25 @@
       
 <div id="infocontainer" style="width: 800px;">
 
-  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Line Integrals</b></span>
     <div id="infop" style="display: none; width: 800px;">
-    <p>
-      Let $C$ be a curve in $\mathbb{R}^2$ paratmetrized by $$\mathbf{r}(t) = \langle x(t), y(t) \rangle$$ for $a \leq t \leq b$. 
+    <p><b>Where?</b><br>
+      Let $C$ be a curve in $\mathbb{R}^2$ parametrized by <span id="r-formula">$$\mathbf{r}(t) = \langle x(t), y(t) \rangle$$</span> for <span id="r-range">$a \leq t \leq b$</span>. 
+      <div class="choices noselect">
+        <span class="choices" id="parabola">parabola</span> &nbsp; | &nbsp; <span class="choices" id="line">line</span> &nbsp; | &nbsp;  <span class="choices" id="circle">circle</span> &nbsp; | &nbsp;  <span class="choices" id="swirl">swirl</span>
+      </div></p>
 
+      <p><b>What?</b><br>
+        The integrand is a continuous function $f(x,y).$
+        <div class="choices noselect">
+          <span class="choices" id="paraboloid">paraboloid</span> &nbsp; | &nbsp; <span class="choices" id="plane">plane</span> &nbsp; | &nbsp;  <span class="choices" id="wave">wave</span>
+        </div>
+      </p>
 
-    </p>
+      <p><b>How?</b><br>
+      <div class="choices noselect"> <span class="choices" id="dx">$dx$</span> &nbsp; | &nbsp; <span class="choices" id="dy">$dy$</span> &nbsp; | &nbsp;  <span class="choices" id="ds">$ds$</span></div>
+      </p> 
+
     </div>
   </div>
 </div>
