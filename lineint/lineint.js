@@ -485,8 +485,13 @@ updateWall();
 
 // gui.add(data,'r',Object.keys(curves)).listen().name("where").onChange(updateWall);
 // gui.add(data,'f',Object.keys(zFunctions)).listen().name("what").onChange(updateWall);
-gui.add(data,'tMode',-1.0,1.0).listen().name("how").onChange(updateWall);
-gui.add(data,'sMode',0.0,1.0).listen().name("fill").onChange(updateWall);
+// gui.add(data,'tMode',-1.0,1.0).listen().name("how").onChange(updateWall);
+gui.add(data,'sMode',0.0,1.0).listen().name("fill").onChange(() => {
+  if (myReq) {
+    cancelAnimationFrame(myReq);
+  }
+  myReq = requestAnimationFrame(updateWall);
+});
 gui.add(zMesh,'visible').listen().name("graph of f").onChange(updateWall);
 
 let last = 0,myReq;
