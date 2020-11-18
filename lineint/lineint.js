@@ -207,7 +207,7 @@ graphWorld.rotation.y += Math.PI;
 graphWorld.rotation.z += Math.PI/2;
 scene.add(graphWorld);
 
-const material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 60,side: THREE.FrontSide,vertexColors: true});
+const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
 const materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 70,side: THREE.FrontSide,vertexColors: false});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 14});
@@ -334,7 +334,7 @@ function updateCurve() {
   } else {
     tube = new THREE.Mesh( geometry, material );
     graphWorld.add( tube );
-    colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
+    // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
   }
   if (data.sMode > 0) {
     path = new ParametricCurve( 1 , 
