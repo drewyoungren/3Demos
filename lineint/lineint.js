@@ -625,16 +625,16 @@ function animateToDs(time) {
 
 const dsElement = document.getElementById("ds");
 dsElement.onclick = () => {
-requestAnimationFrame((time) => {
-  last = time*0.001;
-  if ( myReq ) {
-    cancelAnimationFrame(myReq);
-  }
-  myReq = requestAnimationFrame(animateToDs);
-});
-dsElement.classList.add("choices-selected");
-dxElement.classList.remove("choices-selected");
-dyElement.classList.remove("choices-selected");
+  requestAnimationFrame((time) => {
+    last = time*0.001;
+    if ( myReq ) {
+      cancelAnimationFrame(myReq);
+    }
+    myReq = requestAnimationFrame(animateToDs);
+  });
+  dsElement.classList.add("choices-selected");
+  dxElement.classList.remove("choices-selected");
+  dyElement.classList.remove("choices-selected");
 }
 
 
