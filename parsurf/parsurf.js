@@ -34,7 +34,7 @@ const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientH
 
 camera.position.x = gridMax*2/2;
 camera.position.y = -gridMax*3/2 ;
-camera.position.z = gridMax*4/2;
+camera.position.z = gridMax*4.5/2;
 camera.up.set(0,0,1);
 camera.lookAt( 0,0,0 );
 
@@ -102,7 +102,7 @@ function drawGrid(coords='rect') {
     gridMeshes.remove(element);
   }
   let geometry;
-  if (coords == 'rect'){
+  if (coords === 'rect'){
     for (let j = -(10*gridMax); j <= (10*gridMax); j += gridStep) {
         points.push( new THREE.Vector3( j, -(10*gridMax), 0 ) );
         points.push( new THREE.Vector3( j, (10*gridMax), 0 ) );
@@ -146,9 +146,9 @@ for (let index = 0; index < 3; index++) {
   let cylinder = new THREE.Mesh( geometry, axesMaterial );
   // cylinder.position.y = gridMax*1.1/2;
   let cone = new THREE.Mesh(coneGeometry,axesMaterial);
-  if (index == 0) {
+  if (index === 0) {
     cylinder.rotation.x = Math.PI/2;
-  } else { if (index == 2) {
+  } else { if (index === 2) {
     cylinder.rotation.z = -Math.PI/2;
   }}
   cone.position.y = gridMax*3/2 + gridStep/6;
@@ -182,8 +182,8 @@ var font = loader.load(
       textGeo.computeBoundingBox();
       textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
 
-      if (i == 0) { textHolder.position.x = tPos; } else {
-        if (i ==1) {
+      if (i === 0) { textHolder.position.x = tPos; } else {
+        if (i === 1) {
           textHolder.position.y = tPos;
         } else { textHolder.position.z = tPos; }
       }
@@ -192,6 +192,7 @@ var font = loader.load(
 
       axesText.push(textHolder);
       // console.log("pushed: ",'xyz'[i])
+      if (render) {render();}
     }
   },
   // onProgress callback
@@ -326,10 +327,15 @@ const surfaces = {
 
 const data = {
   r: 'revolutions',
-  f: 'wave',
-  tMode: 0, // interpolate between dy (-1), ds (0), and dx (1)
-  sMode: 0, // fill in wall from 0 to 1
+  nX: 30,
+  rNum: 10,
+  cNum: 10,
 }
+
+const gui = new GUI();
+gui.add(data,'nX',2,60,1).name("Segments").onChange(updateSurface);
+gui.add(data,'rNum',2,60,1).name("u-Meshes").onChange(updateSurface);
+gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(updateSurface);
 
 let surfaceMesh;
 function updateSurface() {
@@ -338,8 +344,8 @@ function updateSurface() {
     const s = surf.a + (surf.b - surf.a)*u;
     const t = surf.c + (surf.d - surf.c)*v;
     vec.copy(surf.func(s,t));
-  }, nX, nX);
-  const meshGeometry = meshLines( surf );
+  }, data.nX, data.nX);
+  const meshGeometry = meshLines( surf , data.rNum, data.cNum);
   if (surfaceMesh) {
     for (let i = 0; i < surfaceMesh.children.length; i++) {
       const mesh = surfaceMesh.children[i];
@@ -365,7 +371,7 @@ updateSurface();
 function meshLines( surfObject , rNum=10, cNum=10, nX=30 ) {
   const {a,b,c,d,func} = surfObject;
   const du = (b - a)/rNum, dv = (d - c)/cNum;
-  const dx = (b - a)/nX, dy = (d - c)/nX;
+  const dx = (b - a)/data.nX, dy = (d - c)/data.nX;
   const points = [];
   for (let u=a; u <= b; u += du ) {
     points.push(func(u,c))
@@ -399,7 +405,7 @@ for (let i = 0; i < surfs.length; i++) {
     for (let j = 0; j < surfs.length; j++) {
       const el = document.getElementById(surfs[j]);
       const elForm = document.querySelector(`.surface-choices-item#${surfs[j]}-formula`)
-      if (i == j) {
+      if (i === j) {
         el.classList.add("choices-selected");
         elForm.style.display = 'block';
       } else {
@@ -467,7 +473,6 @@ function render() {
     renderer.render(scene, camera);
     // requestAnimationFrame(render);
   }
-
 
 render();
 
