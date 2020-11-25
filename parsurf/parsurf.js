@@ -283,8 +283,8 @@ const surfaces = {
   },
   spheres: {
     func: (u,v) => new THREE.Vector3(Math.sin(u)*Math.cos(v), Math.sin(u)*Math.sin(v),Math.cos(u)),
-    a: 0,
-    b: pi,
+    a: 0.0001,
+    b: pi/2,
     c: 0,
     d: 2*pi,
     tex: {
@@ -345,17 +345,17 @@ function meshLines( surfObject , rNum=10, cNum=10, nX=30 ) {
   const points = [];
   for (let u=a; u <= b; u += du ) {
     points.push(func(u,c))
-    for (let v=c; v < d; v += dy) {
-      points.push(func(u,v + dy));
-      points.push(func(u,v + dy));
+    for (let v=c + dy; v < d; v += dy) {
+      points.push(func(u,v));
+      points.push(func(u,v));
     }
     points.push(func(u,d));
   }
   for (let v=c; v <= d; v += dv) {
   points.push(func(a,v))
-    for (let u=a; u < b; u += dx ) {
-      points.push(func(u + dx,v));
-      points.push(func(u + dx,v));
+    for (let u=a + dx; u < b; u += dx ) {
+      points.push(func(u,v));
+      points.push(func(u,v));
     }
     points.push(func(b,v));
   }
