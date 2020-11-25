@@ -113,7 +113,7 @@ h1 {
   }
 
   .choices-selected {
-    font-size: 1em;
+    font-size: 1.1em;
     padding: 3px;
     border: 1px solid #333;
     border-radius: 5px;
@@ -126,4 +126,8 @@ h1 {
     font-size: large;
     top: 10px;
     left: 76%;
+  }
+
+  .custom-input {
+    font-size: 1em;
   }

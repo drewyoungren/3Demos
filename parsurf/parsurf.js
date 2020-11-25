@@ -2,7 +2,8 @@
 
 import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
-import { TrackballControls } from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/TrackballControls.js';
+
+
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
@@ -31,9 +32,9 @@ scene.background = new THREE.Color( 0xddddef );
 
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
-camera.position.x = gridMax*4;
-camera.position.y = gridMax/2 ;
-camera.position.z = gridMax*2;
+camera.position.x = gridMax*2/2;
+camera.position.y = -gridMax*3/2 ;
+camera.position.z = gridMax*4/2;
 camera.up.set(0,0,1);
 camera.lookAt( 0,0,0 );
 
@@ -61,16 +62,17 @@ scene.add( new THREE.AmbientLight( 0xA0A0A0 ) );
 // directionalLight.position.set(-50,0,50)
 // scene.add( directionalLight );
 
-//something to make shiny things shine
-let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(0,30,0);
-scene.add(light);
-light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(0,0,-10);
-scene.add(light);
-light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-light.position.set(30,30,5);
-scene.add(light);
+//something to make shiny things shine - a chandelier
+const chandelier = new THREE.Object3D();
+const candles = 2;
+for (let i=0; i < candles; i++) {
+  for (let j=0; j < 2; j++) {
+    const light = new THREE.PointLight(0xFFFFFF, .5, 1000);
+    light.position.set(20*Math.cos(i*2*pi/candles + Math.pow(-1,j) * 1/2),20*Math.sin(i*2*pi/candles + Math.pow(-1,j)*1/2),Math.pow(-1,j)*10);
+    chandelier.add(light);
+  }
+}
+scene.add(chandelier);
 
 // controls 
 
@@ -296,6 +298,28 @@ const surfaces = {
       n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
     },
   },
+  customSurf: {
+    func: (u,v) => new THREE.Vector3(
+      surfaces.customSurf.customX.evaluate( {u: u, v: v} ), 
+      surfaces.customSurf.customY.evaluate( {u: u, v: v} ), 
+      surfaces.customSurf.customZ.evaluate( {u: u, v: v} )
+      ),
+    a: -1,
+    b: 1,
+    c: -1,
+    d: 1,
+    customX: math.parse("u").compile(),
+    customY: math.parse("v").compile(),
+    customZ: math.parse("u + v").compile(),
+    tex: {
+      x: "u",
+      y: "v",
+      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
+      ru: "\\vec i + f_u\\,\\vec k",
+      rv: "\\vec j + f_v\\,\\vec k",
+      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
+    },
+  },
 }
 
 
@@ -364,7 +388,7 @@ function meshLines( surfObject , rNum=10, cNum=10, nX=30 ) {
 }
 
 
-const surfs = ["graphs","revolutions","spheres"];
+const surfs = ["graphs","revolutions","spheres","customSurf"];
 for (let i = 0; i < surfs.length; i++) {
   const surf = surfs[i];
   const element = document.getElementById(surf);
@@ -374,8 +398,43 @@ for (let i = 0; i < surfs.length; i++) {
     updateSurface();
     for (let j = 0; j < surfs.length; j++) {
       const el = document.getElementById(surfs[j]);
-      i == j ? el.classList.add("choices-selected") : el.classList.remove("choices-selected");
+      const elForm = document.querySelector(`.surface-choices-item#${surfs[j]}-formula`)
+      if (i == j) {
+        el.classList.add("choices-selected");
+        elForm.style.display = 'block';
+      } else {
+        el.classList.remove("choices-selected");
+        elForm.style.display = 'none';
+      }
     }
+  }
+}
+
+{
+  const XYZ = "XYZABCD";
+  for (let i = 0; i < XYZ.length; i++) {
+    const ch = XYZ[i];
+    const id = `custom${ch}`;
+    const element = document.querySelector(`#${id}`);
+    element.onchange = () => {
+      console.log(element.value, "is the value of" + ch);
+      const form = document.querySelector(`#${id} + .form-warning`);
+      try {
+      const expr = math.parse(element.value).compile();
+      if (XYZ.indexOf(ch) > 2) {
+        const c = ch.toLowerCase();
+        surfaces.customSurf[c] = expr.evaluate();
+      } else {
+        surfaces.customSurf[id] = expr;
+      }
+      form.innerText = '';
+      } catch (e) {
+        console.error( e );
+        form.innerText = ' ' + e.name;
+      }
+      // console.log(expr.evaluate( {u: 2, v: 1} ));
+      updateSurface();
+    };
   }
 }
 

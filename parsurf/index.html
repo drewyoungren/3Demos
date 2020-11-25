@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../base/main.css">
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
   <script>
     window.MathJax = {
       tex: {
@@ -47,6 +48,19 @@
       background-color: #323232;
       color: #ddd;
     }
+
+    .surface-choices-item {
+      display: none;
+    }
+    
+    #customSurf-formula {
+      position: relative;
+      margin: 100px;
+    }
+
+    #custom-table td{
+      padding: 3px;
+    }
   </style>
 
 </head>
@@ -63,24 +77,69 @@
     <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables (parameters). 
 
       $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$ for $(u,v)$ in some domain $D \subset \mathbb{R}^2$. 
-
-      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$
-
-      We concentrate on 3 classes of surfaces. 
+<!-- 
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+      <br><br>
+      Classes of surfaces:
       <div class="choices noselect">
-        <span class="choices" id="graphs">graphs of functions</span> &nbsp; | &nbsp;  <span class="choices" id="revolutions">surfaces of revolution</span> &nbsp; | &nbsp;  <span class="choices" id="spheres">parts of spheres</span>
+        <span class="choices" id="graphs">graphs of functions</span> &nbsp; | &nbsp;  <span class="choices" id="revolutions">surfaces of revolution</span> &nbsp; <br> &nbsp;  <span class="choices" id="spheres">parts of spheres</span> &nbsp; | &nbsp;  <span class="choices" id="customSurf">custom</span>
       </div></p>
 
 
         <div class="surface-choices">
-          <div id="graphs-choice">
+          <div class="surface-choices-item" id="graphs-formula">
             \begin{align} 
-              x(u,v) &= u \\
-              y(u,v) &= v \\
-              z(u,v) &= f(u,v)
+            x(u,v) &= u \\
+            y(u,v) &= v \\
+            z(u,v) &= f(u,v)
             \end{align} 
-
-            $f(u,v) = $ <input type="text" name="function-graph" id="function-graph">
+            <p>$u,v$ are input parameters. $f(u,v)$ gives 3rd coordinate.</p>
+          </div>
+          <div class="surface-choices-item" id="revolutions-formula">
+            
+            \begin{align} 
+            x(u,v) &= u \\
+            y(u,v) &= R(u) \cos(v) \\
+            z(u,v) &= R(u) \sin(v)
+            \end{align} 
+            <p>$u$ tracks position along axis. $R(u)$ is the radius at position $u$.$v$ tracks angle around axis. </p>
+            </div>
+          <div class="surface-choices-item" id="spheres-formula">
+            \begin{align} 
+            x(u,v) &= R\sin(u)\cos(v) \\
+            y(u,v) &= R\sin(u)\sin(v) \\
+            z(u,v) &= R\cos(u)
+            \end{align} 
+            <p>$u$ is angle $\phi$. $v$ is angle $\theta$. $R$ is the fixed radius.</p>
+            </div>
+            <div class="surface-choices-item" id="customSurf-formula">
+              <table id="custom-table">
+                <tr>
+                  <td> $x(u,v) = $ </td>
+                  <td><input class="custom-input" type="text" name="customX" id="customX"><span style="color: red;" class="form-warning"></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td> $y(u,v) = $ </td>
+                  <td><input class="custom-input" type="text" name="customY" id="customY"><span style="color: red;" class="form-warning"></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td> $z(u,v) = $ </td>
+                  <td><input class="custom-input" type="text" name="customZ" id="customZ"><span style="color: red;" class="form-warning"></span>
+                  </td>
+                </tr>
+              </table>
+            
+              <p style="text-align: center;">
+                <input class="custom-input" type="text" name="customA" style="width: 4em;" id="customA"><span style="color: red;" class="form-warning"></span> 
+                $ \leq u \leq $ 
+                <input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"><span style="color: red;" class="form-warning"></span> 
+                <br>
+                <input class="custom-input" type="text" name="customC" style="width: 4em;" id="customC"><span style="color: red;" class="form-warning"></span> 
+                $ \leq v \leq $ 
+                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD"><span style="color: red;" class="form-warning"></span> 
+              </p>
           </div>
         </div>
 
