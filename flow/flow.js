@@ -324,40 +324,49 @@ const data = {
 }
 
 let fieldMesh;
-function updateField() {
+function updateField(T = 0, dt = 1/10) {
+  console.log(T,dt);
   const points = [];
   let start = new THREE.Vector3();
   let vec = new THREE.Vector3();
   let r1 = new THREE.Vector3();
   let r2 = new THREE.Vector3(),u,v;
-  for (let x = -1; x <= 1; x += 0.25) {
-    for (let y = -1; y <= 1; y += 0.25) {
-      for (let z = -1; z <= 1; z += 0.25) {
-      start.set(x,y,z)
-      points.push(x,y,z);
-      vec = fields[data.field].func(x,y,z,vec).multiplyScalar(0.1);
-      points.push(x + vec.x, y + vec.y, z + vec.z);
-      points.push(x + vec.x, y + vec.y, z + vec.z);
-      r1 = vec.clone();
-      r2.set(Math.random(),Math.random(),Math.random());
-      r2 = r2.cross(r1);
-      r1.normalize()
-      r2.normalize()
-      // u = r1.clone()
-      // v = r1.clone()
-      // u = u.multiplyScalar(-Math.sqrt(3)/2).add(r2.multiplyScalar(1/2)).multiplyScalar(1/40);
-      // v = v.multiplyScalar(-Math.sqrt(3)/2).add(r2.multiplyScalar(1/2)).multiplyScalar(1/40);
-      // points.push(x + vec.x + 0, y + vec.y + 0, z + vec.z+ 1);
-      points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
-      points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
-      points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
-      points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
-      points.push(x + vec.x, y + vec.y, z + vec.z);
-
-
-
-      
-      // console.log(start,vec)
+  const F = fields[data.field].func;
+  let x,y,z;
+  for (let tx = -1; tx <= 1; tx += 1) {
+    for (let ty = -1; ty <= 1; ty += 1) {
+      for (let tz = -1; tz <= 1; tz += 1) {
+        x = tx, y = ty, t = tz;
+        for (let t = 0; t < T; t += dt) {
+          start.set(x,y,z)
+          vec = F(x,y,z,vec).multiplyScalar(dt/2);
+          // x == 1 && y == 1 ? console.log(start,vec) : true;
+          if (x == -1 && y == -1) {
+            console.log(start,vec)
+          }
+          start.set(x + vec.x, y + vec.y, z + vec.z);
+          vec = F(start.x,start.y,start.z,vec).multiplyScalar(dt)
+          if (x == -1 && y == -1) {
+            console.log(start,vec)
+          }
+          x += vec.x;
+          y += vec.y;
+          z += vec.z;
+        }
+        points.push(x,y,z);
+        vec = F(x,y,z,vec).multiplyScalar(0.1);
+        points.push(x + vec.x, y + vec.y, z + vec.z);
+        points.push(x + vec.x, y + vec.y, z + vec.z);
+        r1 = vec.clone();
+        r2.set(Math.random(),Math.random(),Math.random());
+        r2 = r2.cross(r1);
+        r1.normalize()
+        r2.normalize()
+        points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
+        points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
+        points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
+        points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
+        points.push(x + vec.x, y + vec.y, z + vec.z);
       }
     }
   }
@@ -378,7 +387,7 @@ gui.add(data,'field',Object.keys(fields)).onChange(() => {
   render();
 })
 
-updateField();
+updateField(1,0.5);
 
 
 
