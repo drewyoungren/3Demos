@@ -255,78 +255,63 @@ class ParametricCurve extends THREE.Curve {
 
 const surfaces = {
   graphs: {
-    func: (u,v) => new THREE.Vector3(u,v, Math.sin(3*u - v)*Math.exp(-u*u/2 - v*v/2)/2),
-    a: -1,
-    b: 1,
-    c: -1,
-    d: 1,
-    tex: {
-      x: "u",
-      y: "v",
-      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
-      ru: "\\vec i + f_u\\,\\vec k",
-      rv: "\\vec j + f_v\\,\\vec k",
-      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
-    },
+    x: "u",
+    y: "v", 
+    z: "sin(3*u - v)*exp(-u^2/2 - v^2/2)/2",
+    a: "-1",
+    b: "1",
+    c: "-1",
+    d: "1",
+    // tex: {
+    //   x: "u",
+    //   y: "v",
+    //   z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
+    //   ru: "\\vec i + f_u\\,\\vec k",
+    //   rv: "\\vec j + f_v\\,\\vec k",
+    //   n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
+    // },
   },
   revolutions: {
-    func: (u,v) => new THREE.Vector3(u, Math.cos(u)/1.25*Math.sin(v),Math.cos(u)/1.25*Math.cos(v)),
-    a: -pi/2,
-    b: pi/2,
-    c: 0,
-    d: 2*pi,
-    tex: {
-      x: "u",
-      y: "v",
-      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
-      ru: "\\vec i + f_u\\,\\vec k",
-      rv: "\\vec j + f_v\\,\\vec k",
-      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
-    },
+    x: "u", 
+    y: "4/5 cos(u) sin(v)",
+    z: "4/5 cos(u) cos(v)",
+    a: "-pi/2",
+    b: "pi/2",
+    c: "0",
+    d: "2*pi",
   },
   spheres: {
-    func: (u,v) => new THREE.Vector3(Math.sin(u)*Math.cos(v), Math.sin(u)*Math.sin(v),Math.cos(u)),
-    a: 0.0001,
-    b: pi/2,
-    c: 0,
-    d: 2*pi,
-    tex: {
-      x: "u",
-      y: "v",
-      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
-      ru: "\\vec i + f_u\\,\\vec k",
-      rv: "\\vec j + f_v\\,\\vec k",
-      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
-    },
+    x: "sin(u) cos(v)", 
+    y: "sin(u) sin(v)",
+    z: "cos(u)",
+    a: "0.0001",
+    b: "pi/2",
+    c: "0",
+    d: "2 pi",
   },
   customSurf: {
-    func: (u,v) => new THREE.Vector3(
-      surfaces.customSurf.customX.evaluate( {u: u, v: v} ), 
-      surfaces.customSurf.customY.evaluate( {u: u, v: v} ), 
-      surfaces.customSurf.customZ.evaluate( {u: u, v: v} )
-      ),
-    a: -1,
-    b: 1,
-    c: -1,
-    d: 1,
-    customX: math.parse("u").compile(),
-    customY: math.parse("v").compile(),
-    customZ: math.parse("u + v").compile(),
-    tex: {
-      x: "u",
-      y: "v",
-      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
-      ru: "\\vec i + f_u\\,\\vec k",
-      rv: "\\vec j + f_v\\,\\vec k",
-      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
-    },
+    x: "u", 
+    y: "v",
+    z: "1/4 - u/4",
+    a: "-1",
+    b: "1",
+    c: "-1",
+    d: "1",
   },
 }
 
-
+const rData = {
+  a: math.parse("-1").compile(),
+  b: math.parse("1").compile(),
+  c: math.parse("-1").compile(),
+  d: math.parse("1").compile(),
+  x: math.parse("u").compile(),
+  y: math.parse("v").compile(),
+  z: math.parse("1/4 - u/4").compile(),
+}
 
 const data = {
-  r: 'revolutions',
+  r: 'customSurf',
   nX: 30,
   rNum: 10,
   cNum: 10,
@@ -339,13 +324,17 @@ gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(updateSurface);
 
 let surfaceMesh;
 function updateSurface() {
-  const surf = surfaces[data.r];
+  const {a,b,c,d,x,y,z} = rData;
+  const A = a.evaluate(), B = b.evaluate();
   const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
-    const s = surf.a + (surf.b - surf.a)*u;
-    const t = surf.c + (surf.d - surf.c)*v;
-    vec.copy(surf.func(s,t));
+    const U = A + (B - A)*u;
+    const params = {
+      u: U,
+      v: (1 - v)*c.evaluate( {u: U} ) + v*d.evaluate({u: U}),
+    };
+    vec.set(x.evaluate( params ), y.evaluate( params ), z.evaluate( params ) );
   }, data.nX, data.nX);
-  const meshGeometry = meshLines( surf , data.rNum, data.cNum);
+  const meshGeometry = meshLines( data.rNum, data.cNum, data.nX);
   if (surfaceMesh) {
     for (let i = 0; i < surfaceMesh.children.length; i++) {
       const mesh = surfaceMesh.children[i];
@@ -368,27 +357,33 @@ function updateSurface() {
 
 updateSurface();
 
-function meshLines( surfObject , rNum=10, cNum=10, nX=30 ) {
-  const {a,b,c,d,func} = surfObject;
-  const du = (b - a)/rNum, dv = (d - c)/cNum;
-  const dx = (b - a)/data.nX, dy = (d - c)/data.nX;
+function meshLines( rNum=10, cNum=10 , nX=30) {
+  const {a,b,c,d,x,y,z} = rData;
+  const A = a.evaluate(), B = b.evaluate();
+  const du = (B - A)/rNum, dx = (B - A)/nX;
   const points = [];
-  for (let u=a; u <= b; u += du ) {
-    points.push(func(u,c))
-    for (let v=c + dy; v < d; v += dy) {
-      points.push(func(u,v));
-      points.push(func(u,v));
+  for (let u=A; u <= B; u += du ) {
+    const C = c.evaluate( {u: u} ), D = d.evaluate( {u: u} );
+    const dy = (D - C)/nX;
+    const params = {u: u, v: C};
+    points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
+    for (let v=C + dy; v < D; v += dy) {
+      params.u = u; params.v = v;
+      points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
+      points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
     }
-    points.push(func(u,d));
+    params.u = B; params.v = D;
+    points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
+
   }
-  for (let v=c; v <= d; v += dv) {
-  points.push(func(a,v))
-    for (let u=a + dx; u < b; u += dx ) {
-      points.push(func(u,v));
-      points.push(func(u,v));
-    }
-    points.push(func(b,v));
-  }
+  // for (let v=c; v <= d; v += dv) {
+  // points.push(func(a,v))
+  //   for (let u=a + dx; u < b; u += dx ) {
+  //     points.push(func(u,v));
+  //     points.push(func(u,v));
+  //   }
+  //   points.push(func(b,v));
+  // }
   const geometry = new THREE.BufferGeometry().setFromPoints( points );
   return geometry;
 }
@@ -401,6 +396,15 @@ for (let i = 0; i < surfs.length; i++) {
 
   element.onclick = () => {
     data.r = surf;
+    const sf = surfaces[surf];
+    let el;
+    for (let i = 0; i < "xyzabcd".length; i++) {;
+      const c = "xyzabcd"[i];
+      el = document.querySelector(`#custom${c.toUpperCase()}`);
+      el.value = sf[c];
+      rData[c] = math.parse(sf[c]).compile();
+      // el.dispatchEvent(new Event('change'));
+    }
     updateSurface();
     for (let j = 0; j < surfs.length; j++) {
       const el = document.getElementById(surfs[j]);
@@ -422,21 +426,19 @@ for (let i = 0; i < surfs.length; i++) {
     const ch = XYZ[i];
     const id = `custom${ch}`;
     const element = document.querySelector(`#${id}`);
+
     element.onchange = () => {
+      const c = ch.toLowerCase();
       console.log(element.value, "is the value of" + ch);
       const form = document.querySelector(`#${id} + .form-warning`);
       try {
-      const expr = math.parse(element.value).compile();
-      if (XYZ.indexOf(ch) > 2) {
-        const c = ch.toLowerCase();
-        surfaces.customSurf[c] = expr.evaluate();
-      } else {
-        surfaces.customSurf[id] = expr;
-      }
-      form.innerText = '';
+        const expr = math.parse(element.value).compile();
+        rData[c] = expr;
+        form.innerText = '';
       } catch (e) {
         console.error( e );
         form.innerText = ' ' + e.name;
+        return;
       }
       // console.log(expr.evaluate( {u: 2, v: 1} ));
       updateSurface();
@@ -494,6 +496,5 @@ function showIntegral() {
 }
 
 // document.getElementById("formula-button").onclick = showIntegral;
-
 
 // gui.domElement.style.zIndex = 2000;
