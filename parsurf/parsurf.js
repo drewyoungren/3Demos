@@ -116,21 +116,22 @@ function drawGrid(coords='rect') {
       }
     } else {
       for (let i = 0; i <= 10*gridMax; i += gridStep) {
-        for (let j = 0; j <= 100; j++) {
-          points.push( new THREE.Vector3( i*Math.cos(2*Math.PI*j/100), i*Math.sin(2*Math.PI*j/100) , 0) );
+        for (let j = 0; j < 100; j++) {
+          points.push( new THREE.Vector3( i*Math.cos(2*pi*j/100), i*Math.sin(2*pi*j/100) , 0) );
+          points.push( new THREE.Vector3( i*Math.cos(2*pi*(j + 1)/100), i*Math.sin(2*pi*(j + 1)/100) , 0) );
         }
       }
       for (let i = 0; i < 16 ; i++) {
-        points.push( new THREE.Vector3( 10*gridMax*Math.cos(Math.PI*i/8), 10*gridMax*Math.sin(Math.PI*i/8) , 0) );
+        points.push( new THREE.Vector3( 10*gridMax*Math.cos(pi*i/8), 10*gridMax*Math.sin(pi*i/8) , 0) );
         points.push( new THREE.Vector3( 0, 0, 0 ) );
       }
     }
     geometry = new THREE.BufferGeometry().setFromPoints( points );
-    gridMeshes.add(new THREE.Line(geometry,lineMaterial));
+    gridMeshes.add(new THREE.LineSegments(geometry,lineMaterial));
 }
 
 scene.add(gridMeshes);
-drawGrid('polar');
+drawGrid();
 // drawGrid('polar');
 
 // Axes
@@ -214,8 +215,8 @@ const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 
 
 
 const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe: true } );
-const minusMaterial = new THREE.MeshPhongMaterial({color: 0xff3232, shininess: 80, side: THREE.BackSide,vertexColors: false, transparent: true, opacity: 0.4});
-const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false, transparent: true, opacity: 0.4});
+const minusMaterial = new THREE.MeshPhongMaterial({color: 0xff3232, shininess: 80, side: THREE.BackSide,vertexColors: false, transparent: true, opacity: 0.7});
+const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false, transparent: true, opacity: 0.7});
 
 
 
@@ -250,77 +251,133 @@ class ParametricCurve extends THREE.Curve {
 
 
 const surfaces = {
-  graph: {
-    func: (u,v) => new THREE.Vector3(u,v,1 + Math.sin(3*u - v)*Math.exp(-u*u/3 - v*v/3)/2),
-    a: -2,
-    b: 2,
-    c: -2,
-    d: 2,
+  graphs: {
+    func: (u,v) => new THREE.Vector3(u,v, Math.sin(3*u - v)*Math.exp(-u*u/2 - v*v/2)/2),
+    a: -1,
+    b: 1,
+    c: -1,
+    d: 1,
     tex: {
       x: "u",
       y: "v",
-      z: "1 + \\sin(3u - v) e^{-\\frac{u^2 + v^2}{3}}",
+      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
       ru: "\\vec i + f_u\\,\\vec k",
       rv: "\\vec j + f_v\\,\\vec k",
       n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
     },
   },
-  swirl: {
-    func: (t) => new THREE.Vector3((1+t/4)*Math.cos(4*pi*t),2*t - Math.sin(8*t)/2,0),
-    a: 0,
-    b: 1,
+  revolutions: {
+    func: (u,v) => new THREE.Vector3(u, Math.cos(u)/1.25*Math.sin(v),Math.cos(u)/1.25*Math.cos(v)),
+    a: -pi/2,
+    b: pi/2,
+    c: 0,
+    d: 2*pi,
     tex: {
-      x: "(1+t/4)\\cos(4 \\pi t)",
-      y: "2t - \\sin(8t)/2",
-      xPrime: "\\cos(4 \\pi t)/4 - (1+t/4)\\sin(4 \\pi t)4\\pi",
-      yPrime: "2 - 4\\sin(8t)"
-    }
+      x: "u",
+      y: "v",
+      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
+      ru: "\\vec i + f_u\\,\\vec k",
+      rv: "\\vec j + f_v\\,\\vec k",
+      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
+    },
   },
-  line: {
-    func: (t) => new THREE.Vector3(-1+ 2*t,-1 + 3*t,0),
+  spheres: {
+    func: (u,v) => new THREE.Vector3(Math.sin(u)*Math.cos(v), Math.sin(u)*Math.sin(v),Math.cos(u)),
     a: 0,
-    b: 1,
+    b: pi,
+    c: 0,
+    d: 2*pi,
     tex: {
-      x: "2t - 1",
-      y: "3t -1",
-      xPrime: "2",
-      yPrime: "3"
-    }
-  },
-  circle: {
-    func: (t) => new THREE.Vector3(Math.cos(t),Math.sin(t),0),
-    a: 0,
-    b: 2*Math.PI,
-    tex: {
-      x: "\\cos t",
-      y: "\\sin t",
-      xPrime: "-\\sin t",
-      yPrime: "\\cos t",
-      b: "2\\pi",
-    }
+      x: "u",
+      y: "v",
+      z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
+      ru: "\\vec i + f_u\\,\\vec k",
+      rv: "\\vec j + f_v\\,\\vec k",
+      n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
+    },
   },
 }
 
 
 
 const data = {
-  r: 'graph',
+  r: 'revolutions',
   f: 'wave',
   tMode: 0, // interpolate between dy (-1), ds (0), and dx (1)
   sMode: 0, // fill in wall from 0 to 1
 }
 
-{
+let surfaceMesh;
+function updateSurface() {
+  const surf = surfaces[data.r];
   const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
-    const surf = surfaces[data.r];
     const s = surf.a + (surf.b - surf.a)*u;
     const t = surf.c + (surf.d - surf.c)*v;
     vec.copy(surf.func(s,t));
   }, nX, nX);
-  const mesh = new THREE.Mesh( geometry, materialRandom );
-  scene.add(mesh);
+  const meshGeometry = meshLines( surf );
+  if (surfaceMesh) {
+    for (let i = 0; i < surfaceMesh.children.length; i++) {
+      const mesh = surfaceMesh.children[i];
+      mesh.geometry.dispose()
+      mesh.geometry = i < 2 ? geometry : meshGeometry;
+    }
+  } else {
+    surfaceMesh = new THREE.Object3D();
+    const frontMesh = new THREE.Mesh( geometry, plusMaterial );
+    const backMesh = new THREE.Mesh( geometry, minusMaterial );
+    // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
+    surfaceMesh.add( frontMesh );
+    surfaceMesh.add( backMesh );
+    surfaceMesh.add( new THREE.LineSegments( meshGeometry, whiteLineMaterial));
+  // mesh.visible = false;
+    scene.add(surfaceMesh);
+  }
+  render();
 }
 
+updateSurface();
+
+function meshLines( surfObject , rNum=10, cNum=10, nX=30 ) {
+  const {a,b,c,d,func} = surfObject;
+  const du = (b - a)/rNum, dv = (d - c)/cNum;
+  const dx = (b - a)/nX, dy = (d - c)/nX;
+  const points = [];
+  for (let u=a; u <= b; u += du ) {
+    points.push(func(u,c))
+    for (let v=c; v < d; v += dy) {
+      points.push(func(u,v + dy));
+      points.push(func(u,v + dy));
+    }
+    points.push(func(u,d));
+  }
+  for (let v=c; v <= d; v += dv) {
+  points.push(func(a,v))
+    for (let u=a; u < b; u += dx ) {
+      points.push(func(u + dx,v));
+      points.push(func(u + dx,v));
+    }
+    points.push(func(b,v));
+  }
+  const geometry = new THREE.BufferGeometry().setFromPoints( points );
+  return geometry;
+}
+
+
+const surfs = ["graphs","revolutions","spheres"];
+for (let i = 0; i < surfs.length; i++) {
+  const surf = surfs[i];
+  const element = document.getElementById(surf);
+
+  element.onclick = () => {
+    data.r = surf;
+    updateSurface();
+    for (let j = 0; j < surfs.length; j++) {
+      const el = document.getElementById(surfs[j]);
+      i == j ? el.classList.add("choices-selected") : el.classList.remove("choices-selected");
+    }
+  }
+}
 
 // from https://threejsfundamentals.org 
 function resizeRendererToDisplaySize(renderer) {
@@ -346,9 +403,6 @@ function render() {
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
         camera.updateProjectionMatrix();
 
-        const colorBarCanvas = document.querySelector("#colorbar");
-        colorBarCanvas.width = colorBarCanvas.clientWidth;
-        colorBarCanvas.height = colorBarCanvas.clientHeight;
       }
     
     renderer.render(scene, camera);
