@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Parametric Surfaces</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        elParent.innerHTML = "<b>&oplus; Line Integrals</b>" ;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = "<b>&otimes; Line Integrals</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+
+
+  </script>
+
+  <style>
+    #t-formula {
+      display: none;
+    }
+
+    .button {
+      border: 1px solid #000;
+      border-radius: 5px;
+      padding: 5px;
+      font-size: medium;
+    }
+
+    .button.active {
+      background-color: #323232;
+      color: #ddd;
+    }
+  </style>
+
+</head>
+<body>
+
+
+      <canvas id="c"></canvas>
+      <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas>
+      
+<div id="infocontainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric Surfaces</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables (parameters). 
+
+      $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$ for $(u,v)$ in some domain $D \subset \mathbb{R}^2$. 
+
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$
+
+      We concentrate on 3 classes of surfaces. 
+      <div class="choices noselect">
+        <span class="choices" id="graphs">graphs of functions</span> &nbsp; | &nbsp;  <span class="choices" id="revolution">surfaces of revolution</span> &nbsp; | &nbsp;  <span class="choices" id="spheres">parts of spheres</span>
+      </div></p>
+
+
+        <div class="surface-choices">
+          <div id="graphs-choice">
+            \begin{align} 
+              x(u,v) &= u \\
+              y(u,v) &= v \\
+              z(u,v) &= f(u,v)
+            \end{align} 
+
+            $f(u,v) = $ <input type="text" name="function-graph" id="function-graph">
+          </div>
+        </div>
+
+
+        </div>
+
+
+    </div>
+  </div>
+</div>
+
+
+</body>
+
+<script type="module" src="./parsurf.js"></script>
+
+</html>
