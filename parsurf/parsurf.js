@@ -14,6 +14,7 @@ THREE.Object3D.DefaultUp.set(0,0,1);
 
 /* Some constants */
 const nX = 30; // resolution for surfaces
+const tol = 1e-12 //tolerance for comparisons
 const xmin = -1; // domain of function
 const xmax = 1;
 const ymin = -1;
@@ -280,6 +281,13 @@ const rData = {
   z: math.parse("1/4 - u/4").compile(),
 }
 
+const data = {
+  r: 'graphs',
+  nX: 30,
+  rNum: 10,
+  cNum: 10,
+}
+
 const urlParams = new URLSearchParams(location.search)
 console.log(urlParams.keys() ? true : false);
 if (urlParams.keys()) {
@@ -288,7 +296,17 @@ if (urlParams.keys()) {
     if (element) {
       rData[key] = math.parse(val).compile();
       element.value = val.toString();
+      return;
+    } 
+    if (["nX", "rNum", "cNum"].indexOf(key) > -1) {
+      data[key] = parseInt(val);
+      return console.log(key, val);
     }
+    // const [s,c] = key.split("camera");
+    // if (!s) {
+    //   camera.position[c.toLowerCase()] = parseFloat(val);
+    // }
+    
   });
 }
 
@@ -300,21 +318,37 @@ function makeQueryStringObject() {
       query[key] = element.value;
     }
   });
-  query = {...query, ...data};
+  query = {
+    ...query,
+    ...data,
+    // cameraX: camera.position.x,
+    // cameraY: camera.position.y,
+    // cameraZ: camera.position.z,
+  };
   return query;
 }
 
-const data = {
-  r: 'customSurf',
-  nX: 30,
-  rNum: 10,
-  cNum: 10,
-}
+
 
 const gui = new GUI();
-gui.add(data,'nX',2,60,1).name("Segments").onChange(updateSurface);
-gui.add(data,'rNum',2,60,1).name("u-Meshes").onChange(updateSurface);
-gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(updateSurface);
+gui.add(data, 'nX', 2, 60, 1).name("Segments").onChange(() => {
+  if (myReq) {
+    cancelAnimationFrame(myReq);
+  }
+  myReq = requestAnimationFrame(updateSurface)
+});
+gui.add(data,'rNum',2,60,1).name("u-Meshes").onChange(() => {
+  if (myReq) {
+    cancelAnimationFrame(myReq);
+  }
+  myReq = requestAnimationFrame(updateSurface)
+});
+gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(() => {
+  if (myReq) {
+    cancelAnimationFrame(myReq);
+  }
+  myReq = requestAnimationFrame(updateSurface)
+});
 
 let surfaceMesh;
 function updateSurface() {
@@ -349,7 +383,6 @@ function updateSurface() {
   render();
 }
 
-updateSurface();
 
 function lcm(x, y) {
   if ((typeof x !== 'number') || (typeof y !== 'number')) 
@@ -370,6 +403,7 @@ function gcd(x, y) {
 
 function meshLines( rNum=10, cNum=10 , nX=30) {
   const {a,b,c,d,x,y,z} = rData;
+  const N = lcm(lcm(rNum,cNum),nX);
   const A = a.evaluate(), B = b.evaluate();
   const du = (B - A)/rNum;
   const dx = (B - A)/lcm(nX,cNum);
@@ -396,12 +430,12 @@ function meshLines( rNum=10, cNum=10 , nX=30) {
     cMin = Math.min(cMin, c.evaluate( params ) );
     dMax = Math.max(dMax, d.evaluate( params ) );
   }
+
   for (let v = cMin; v <= dMax; v += (dMax - cMin)/cNum ) {
     const zs = marchingSegments( x => (c.evaluate( {u: x} ) - v)*(v - d.evaluate( {u: x} )), A, B, nX);
-    // console.log("v and zs ", v, zs);
     params.v = v;
     let nextZero = zs.shift();
-    for (let u=A; u < B; u += dx) {
+    for (let u=A; u <= B - dx + tol; u += dx) {
       params.u = u;
       if (c.evaluate( params ) <= v && v <= d.evaluate( params )) {
         points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
@@ -410,7 +444,7 @@ function meshLines( rNum=10, cNum=10 , nX=30) {
           points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
           nextZero = zs.shift();
         } else {
-          params.u += dx;
+          params.u = u + dx;
           points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
         }
       } else {
@@ -500,24 +534,28 @@ function resizeRendererToDisplaySize(renderer) {
   }
 
 function render() {
-    // controls.update();
-    for (let index = 0; index < axesText.length; index++) {
-      const element = axesText[index];
-      element.lookAt(camera.position);
-    }
-
-    if (resizeRendererToDisplaySize(renderer)) {
-        const canvas = renderer.domElement;
-        camera.aspect = canvas.clientWidth / canvas.clientHeight;
-        camera.updateProjectionMatrix();
-
-      }
-    
-    renderer.render(scene, camera);
-    // requestAnimationFrame(render);
+  // controls.update();
+  for (let index = 0; index < axesText.length; index++) {
+    const element = axesText[index];
+    element.lookAt(camera.position);
   }
 
-render();
+  if (resizeRendererToDisplaySize(renderer)) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+
+  }
+
+  renderer.render(scene, camera);
+  // requestAnimationFrame(render);
+}
+
+let myReq;
+if (myReq) {
+  cancelAnimationFrame(myReq);
+}
+myReq = requestAnimationFrame( updateSurface );
 
 
 
