@@ -223,36 +223,6 @@ const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80
 
 
 
-class ParametricCurve extends THREE.Curve {
-
-	constructor( scale = 1, r = (t) => new THREE.Vector3(t,t,t), a = 0, b = 1 ) {
-
-		super();
-
-    this.scale = scale;
-    
-    this.r = r;
-
-    this.a = a;
-
-    this.b = b;
-
-	}
-
-	getPoint( t, optionalTarget = new THREE.Vector3() ) {
-
-    const s = this.a + (this.b - this.a)*t;
-
-    const {x,y,z} = this.r(s);
-
-		return optionalTarget.set( x,y,z ).multiplyScalar( this.scale );
-
-	}
-
-}
-
-
-
 const surfaces = {
   graphs: {
     x: "u",
@@ -308,6 +278,30 @@ const rData = {
   x: math.parse("u").compile(),
   y: math.parse("v").compile(),
   z: math.parse("1/4 - u/4").compile(),
+}
+
+const urlParams = new URLSearchParams(location.search)
+console.log(urlParams.keys() ? true : false);
+if (urlParams.keys()) {
+  urlParams.forEach((val, key) => {
+    const element = document.querySelector(`input#custom${key.toUpperCase()}`);
+    if (element) {
+      rData[key] = math.parse(val).compile();
+      element.value = val.toString();
+    }
+  });
+}
+
+function makeQueryStringObject() {
+  let query = {};
+  Object.keys(rData).forEach( (key) => {
+    const element = document.querySelector(`#custom${key.toUpperCase()}`);
+    if (element) {
+      query[key] = element.value;
+    }
+  });
+  query = {...query, ...data};
+  return query;
 }
 
 const data = {
@@ -543,7 +537,11 @@ function showIntegral() {
 }
 
 
-console.log(marchingSegments( math.cos, 0, 8));
-// document.getElementById("formula-button").onclick = showIntegral;
+document.getElementById("encodeURL").onclick = () => {
+    // console.log();
+    const qString = new URLSearchParams( makeQueryStringObject() );
+    console.log(qString.toString());
+    window.location.search = qString.toString();
+};
 
 // gui.domElement.style.zIndex = 2000;

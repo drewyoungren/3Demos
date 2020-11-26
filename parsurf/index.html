@@ -58,10 +58,10 @@
       display: none;
     }
 
-    #customSurf {
+    /* #customSurf {
       position: relative;
       margin: 100px;
-    }
+    } */
 
     #custom-table td {
       padding: 3px;
@@ -82,7 +82,7 @@
           Surfaces</b></span>
       <div id="infop" style="display: none; width: 800px;">
         <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
-          (parameters).
+          (parameters).</p>
 
           <div class="surface-choices">
             <div class="surface-choices-item" id="customSurf-formula" style="display: block;">
@@ -118,17 +118,34 @@
           </div>
           <!-- 
       A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
-          <br><br>
-          Classes of surfaces:
-          <div class="choices noselect">
-            <span class="choices" id="graphs">graphs of functions</span> &nbsp; | &nbsp; <span class="choices"
-              id="revolutions">surfaces of revolution</span> &nbsp; <br> &nbsp; <span class="choices" id="spheres">parts
-              of spheres</span> &nbsp; | &nbsp; <span class="choices" id="customSurf">custom</span>
+
+          <b>Classes of surfaces:</b>
+          <div class="noselect menu-choice-pipe-separator">
+            <div><span><span  id="graphs">graphs of functions</span> </span>  |  <span> <span 
+                id="revolutions">surfaces of revolution</span> </span></div>
+            <div><span><span  id="spheres">parts of spheres</span> </span>  |  <span> <span 
+                id="customSurf">custom</span></span></div>
           </div>
-        </p>
 
    
-        <div id="customSurf">
+        <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+          <div>
+            <span>$x(u,v) = $ </span>
+            <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
+              style="color: red;" class="form-warning"></span></span>
+          </div>
+          <div>
+            <span>$y(u,v) = $ </span>
+            <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
+              style="color: red;" class="form-warning"></span></span>
+          </div>
+          <div>
+            <span>$z(u,v) = $ </span>
+            <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
+              style="color: red;" class="form-warning"></span></span>
+          </div>
+          </div>
+        <!-- <div id="customSurf">
           <table id="custom-table">
             <tr>
               <td> $x(u,v) = $ </td>
@@ -148,30 +165,29 @@
                   style="color: red;" class="form-warning"></span>
               </td>
             </tr>
-          </table>
+          </table> -->
 
           <p style="text-align: center;">
-            <input class="custom-input" type="text" name="customA" style="width: 4em;" id="customA" value="-1"><span
+            <input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;" id="customA" value="-1"><span
               style="color: red;" class="form-warning"></span>
             $ \leq u \leq $
             <input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB" value="1"><span
               style="color: red;" class="form-warning"></span>
             <br>
-            <input class="custom-input" type="text" name="customC" style="width: 4em;" id="customC" value="-1"><span
+            <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;" id="customC" value="-1"><span
               style="color: red;" class="form-warning"></span>
             $ \leq v \leq $
             <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
               style="color: red;" class="form-warning"></span>
           </p>
+          <button id="encodeURL" style="position: absolute; right: 10px; bottom: 10px;">Encode URL</button>
         </div>
-
 
       </div>
 
 
     </div>
-  </div>
-  </div>
+
 
 
 </body>
