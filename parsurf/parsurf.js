@@ -7,7 +7,7 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar } from "../base/utils.js";
+import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments } from "../base/utils.js";
 
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
@@ -357,33 +357,80 @@ function updateSurface() {
 
 updateSurface();
 
+function lcm(x, y) {
+  if ((typeof x !== 'number') || (typeof y !== 'number')) 
+   return false;
+ return (!x || !y) ? 0 : Math.abs((x * y) / gcd(x, y));
+}
+
+function gcd(x, y) {
+ x = Math.abs(x);
+ y = Math.abs(y);
+ while(y) {
+   var t = y;
+   y = x % y;
+   x = t;
+ }
+ return x;
+}
+
 function meshLines( rNum=10, cNum=10 , nX=30) {
   const {a,b,c,d,x,y,z} = rData;
   const A = a.evaluate(), B = b.evaluate();
-  const du = (B - A)/rNum, dx = (B - A)/nX;
+  const du = (B - A)/rNum;
+  const dx = (B - A)/lcm(nX,cNum);
   const points = [];
   for (let u=A; u <= B; u += du ) {
     const C = c.evaluate( {u: u} ), D = d.evaluate( {u: u} );
-    const dy = (D - C)/nX;
+    const dy = (D - C)/lcm(nX,rNum);
     const params = {u: u, v: C};
     points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
     for (let v=C + dy; v < D; v += dy) {
-      params.u = u; params.v = v;
+      params.v = v;
       points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
       points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
     }
-    params.u = B; params.v = D;
+    params.v = D;
     points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
-
   }
-  // for (let v=c; v <= d; v += dv) {
-  // points.push(func(a,v))
-  //   for (let u=a + dx; u < b; u += dx ) {
-  //     points.push(func(u,v));
-  //     points.push(func(u,v));
-  //   }
-  //   points.push(func(b,v));
-  // }
+  
+  // v-Meshes
+  const params = {u: A};
+  let cMin = c.evaluate( params ), dMax = d.evaluate( params );
+  for (let u=A+dx; u <= B; u += dx) {
+    params.u = u;
+    cMin = Math.min(cMin, c.evaluate( params ) );
+    dMax = Math.max(dMax, d.evaluate( params ) );
+  }
+  for (let v = cMin; v <= dMax; v += (dMax - cMin)/cNum ) {
+    const zs = marchingSegments( x => (c.evaluate( {u: x} ) - v)*(v - d.evaluate( {u: x} )), A, B, nX);
+    // console.log("v and zs ", v, zs);
+    params.v = v;
+    let nextZero = zs.shift();
+    for (let u=A; u < B; u += dx) {
+      params.u = u;
+      if (c.evaluate( params ) <= v && v <= d.evaluate( params )) {
+        points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+        if (nextZero < u + dx) {
+          params.u = nextZero;
+          points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+          nextZero = zs.shift();
+        } else {
+          params.u += dx;
+          points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+        }
+      } else {
+          if (nextZero < u + dx) {
+            params.u = nextZero;
+            points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+            nextZero = zs.shift();
+            params.u = u + dx;
+            points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+          }
+      }
+    }
+  }
+  
   const geometry = new THREE.BufferGeometry().setFromPoints( points );
   return geometry;
 }
@@ -495,6 +542,8 @@ function showIntegral() {
   }
 }
 
+
+console.log(marchingSegments( math.cos, 0, 8));
 // document.getElementById("formula-button").onclick = showIntegral;
 
 // gui.domElement.style.zIndex = 2000;
