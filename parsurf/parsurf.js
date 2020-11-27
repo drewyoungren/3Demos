@@ -165,35 +165,41 @@ var font = loader.load(
 	// resource URL
 	'../fonts/P052_Italic.json',
   function (font) {
-    var xyz = ['x','y','z'];
-    var tPos = 1.7*gridMax;
+    var xyz = ['x', 'y', 'z'];
+    var tPos = 1.7 * gridMax;
     for (var i = 0; i < 3; i++) {
-      var textGeo = new THREE.TextGeometry( xyz[i], {
-      font: font,
-      size: gridStep,
-      height: 0,
-      curveSegments: 12,
-      bevelEnabled: false
-    } );
+      var textGeo = new THREE.TextGeometry(xyz[i], {
+        font: font,
+        size: gridStep,
+        height: 0,
+        curveSegments: 12,
+        bevelEnabled: false
+      });
       // var textMaterial = new THREE.MeshBasicMaterial({color: axesMaterial})
       var textHolder = new THREE.Object3D();
-      var text = new THREE.Mesh(textGeo,axesMaterial);
+      var text = new THREE.Mesh(textGeo, axesMaterial);
       // text.computeBoundingBox();
-      
+
       textGeo.computeBoundingBox();
       textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
 
-      if (i === 0) { textHolder.position.x = tPos; } else {
+      if (i === 0) {
+        textHolder.position.x = tPos;
+      } else {
         if (i === 1) {
           textHolder.position.y = tPos;
-        } else { textHolder.position.z = tPos; }
+        } else {
+          textHolder.position.z = tPos;
+        }
       }
       scene.add(textHolder);
       textHolder.add(text);
 
       axesText.push(textHolder);
       // console.log("pushed: ",'xyz'[i])
-      if (render) {render();}
+    }
+    if (render) {
+      render();
     }
   },
   // onProgress callback
