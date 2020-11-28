@@ -1,8 +1,14 @@
 .button {
-    border: 1px solid #000;
+    /* border: 1px solid #000;
     border-radius: 5px;
-    padding: 5px;
+    padding: 5px; */
+    background-color: rgba(1,1,1,0.0);
     font-size: medium;
+}
+
+.button:hover {
+    color: #ddd;
+    background-color: rgba(1,1,1,0.0);
 }
 
 .button.active {
@@ -10,9 +16,7 @@
     color: #ddd;
 }
 
-.surface-choices {
-    min-height: 300px;
-}
+
 
 .surface-choices-item {
     display: none;

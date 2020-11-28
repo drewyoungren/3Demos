@@ -7,7 +7,9 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Parametric Surfaces</title>
   <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <link rel="stylesheet" href="./styles.css">
+  <script src="https://kit.fontawesome.com/1d130b1bdd.js" crossorigin="anonymous"></script>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
@@ -34,6 +36,15 @@
         elParent.style.height = 'fit-content';
       }
     }
+
+    function openPage(pageName) {
+      var i;
+      var x = document.getElementsByClassName("page");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";
+      }
+      document.getElementById(pageName).style.display = "block";
+    }
   </script>
 
 
@@ -45,8 +56,19 @@
   <canvas id="c"></canvas>
   <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
 
-  <div id="infocontainer" style="width: 800px;">
-    <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
+  <div class="w3-container w3-display-topleft w3-border-black w3-border w3-padding" style="background-color: rgba(128,128,128,0.75); max-width: 800px;">
+ 
+    <header class="w3-container ">
+      <h1> Parametric Surfaces </h1>
+    </header>
+
+    <div class="w3-bar w3-dark-grey w3-center">
+      <button class="w3-bar-item w3-button" onclick="openPage('main')">info</button>
+      <button class="w3-bar-item w3-button" onclick="openPage('examples')">examples</button>
+      <button class="w3-bar-item w3-button" onclick="openPage('exercises')">exercises</button>
+    </div>
+
+    <!-- <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
       Surfaces</b></span>
       
       <div id="page-holder">
@@ -54,9 +76,10 @@
 
       <div class="page-selector"><span class="page-name" id="page-item-info">info</span> | 
       <span class="page-name" id="page-item-examples">more examples</span> | 
-      <span class="page-name" id="page-item-exercises">exercises</span></div>
+      <span class="page-name" id="page-item-exercises">exercises</span></div> -->
 
-      <div id="infop" style="display: block; width: 800px;">
+      <div class="page w3-container w3-animate-opacity" id="main">
+        <span onclick="this.parentElement.style.display='none'" class="w3-button w3-display-topright">&otimes;</span>
         <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
           (parameters).</p>
 
@@ -95,92 +118,59 @@
           <!-- 
       A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
 
-          <b>Classes of surfaces:</b>
-          <div class="noselect menu-choice-pipe-separator">
-            <div><span><span  id="graphs">graphs of functions</span> </span>  |  <span> <span 
-                id="revolutions">surfaces of revolution</span> </span></div>
-            <div><span><span  id="spheres">parts of spheres</span> </span>  |  <span> <span 
+          <h2>Classes of surfaces:</h2>
+          <div class="noselect w3-bar">
+            <span><span  id="graphs">graphs of functions</span> </span>  |  <span> <span 
+                id="revolutions">surfaces of revolution</span> </span>  |   <span><span  id="spheres">parts of spheres</span> </span>  |  <span> <span 
                 id="customSurf">custom</span></span></div>
-          </div>
+    
 
-   
-        <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
-          <div>
-            <span>$x(u,v) = $ </span>
-            <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
-              style="color: red;" class="form-warning"></span></span>
-          </div>
-          <div>
-            <span>$y(u,v) = $ </span>
-            <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
-              style="color: red;" class="form-warning"></span></span>
+   <div class="w3-container" id="custom-uvs">
+     <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+      <div>
+        <span>$x(u,v) = $ </span>
+        <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
+          style="color: red;" class="form-warning"></span></span>
+        </div>
+        <div>
+          <span>$y(u,v) = $ </span>
+          <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
+            style="color: red;" class="form-warning"></span></span>
           </div>
           <div>
             <span>$z(u,v) = $ </span>
             <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
               style="color: red;" class="form-warning"></span></span>
+            </div>
           </div>
-          </div>
-        <!-- <div id="customSurf">
-          <table id="custom-table">
-            <tr>
-              <td> $x(u,v) = $ </td>
-              <td><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
-                  style="color: red;" class="form-warning"></span>
-              </td>
-            </tr>
-            <tr>
-              <td> $y(u,v) = $ </td>
-              <td><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
-                  style="color: red;" class="form-warning"></span>
-              </td>
-            </tr>
-            <tr>
-              <td> $z(u,v) = $ </td>
-              <td><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
-                  style="color: red;" class="form-warning"></span>
-              </td>
-            </tr>
-          </table> -->
-
-          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
-            <div>
-              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+            
+            <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+              <div>
+                <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
                   id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
-              </span>
-              $ \leq u \leq $
-              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                </span>
+                $ \leq u \leq $
+                <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
                   value="1"><span style="color: red;" class="form-warning"></span>
-              </span>
-            </div>
-            <div>
-              <span>
-                <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+                </span>
+              </div>
+              <div>
+                <span>
+                  <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
                   id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
-              </span>
-              $ \leq v \leq $
-              <span>
-                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                </span>
+                $ \leq v \leq $
+                <span>
+                  <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
                   style="color: red;" class="form-warning"></span>
-              </span>
+                </span>
+              </div>
             </div>
           </div>
 
-          <!-- <p style="text-align: center;">
-            <input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;" id="customA" value="-1"><span
-              style="color: red;" class="form-warning"></span>
-            $ \leq u \leq $
-            <input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB" value="1"><span
-              style="color: red;" class="form-warning"></span>
-            <br>
-            <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;" id="customC" value="-1"><span
-              style="color: red;" class="form-warning"></span>
-            $ \leq v \leq $
-            <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
-              style="color: red;" class="form-warning"></span>
-          </p> -->
-          <button id="encodeURL" style="position: absolute; right: 10px; bottom: 10px;">Encode URL</button>
         </div>
+          <button class="w3-button w3-display-bottomleft button" id="settings"><i class="fa fa-cog"></i></button>
+          <button class="w3-button w3-display-bottomright button" id="encodeURL"><i class="fa fa-barcode"></i></button>
       </div>
       </div>
 
