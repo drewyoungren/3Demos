@@ -7,6 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Parametric Surfaces</title>
   <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./styles.css">
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
@@ -21,52 +22,20 @@
     };
 
     function clickInfo() {
-      var el = document.querySelector('#infop');
+      var el = document.querySelector('#page-holder');
       var elParent = document.querySelector('#infobutton');
       if (el.style.display == 'block') {
-        elParent.innerHTML = "<b>&oplus; Parametric Surfaces</b>";
+        elParent.innerHTML = `<b>&oplus; ${document.title}</b>`;
         el.style.display = 'none';
         elParent.style.height = '1em';
       } else {
         el.style.display = 'block';
-        elParent.innerHTML = "<b>&otimes; Parametric Surfaces</b>";
+        elParent.innerHTML = `<b>&otimes; ${document.title}</b>`;
         elParent.style.height = 'fit-content';
       }
     }
   </script>
 
-  <style>
-    #t-formula {
-      display: none;
-    }
-
-    .button {
-      border: 1px solid #000;
-      border-radius: 5px;
-      padding: 5px;
-      font-size: medium;
-    }
-
-    .button.active {
-      background-color: #323232;
-      color: #ddd;
-    }
-    .surface-choices {
-      min-height: 300px;
-    }
-    .surface-choices-item {
-      display: none;
-    }
-
-    /* #customSurf {
-      position: relative;
-      margin: 100px;
-    } */
-
-    #custom-table td {
-      padding: 3px;
-    }
-  </style>
 
 </head>
 
@@ -77,10 +46,17 @@
   <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
 
   <div id="infocontainer" style="width: 800px;">
-
     <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
-          Surfaces</b></span>
-      <div id="infop" style="display: none; width: 800px;">
+      Surfaces</b></span>
+      
+      <div id="page-holder">
+          
+
+      <div class="page-selector"><span class="page-name" id="page-item-info">info</span> | 
+      <span class="page-name" id="page-item-examples">more examples</span> | 
+      <span class="page-name" id="page-item-exercises">exercises</span></div>
+
+      <div id="infop" style="display: block; width: 800px;">
         <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
           (parameters).</p>
 
@@ -167,7 +143,30 @@
             </tr>
           </table> -->
 
-          <p style="text-align: center;">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+                  id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq u \leq $
+              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                  value="1"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+                  id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq v \leq $
+              <span>
+                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                  style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+          </div>
+
+          <!-- <p style="text-align: center;">
             <input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;" id="customA" value="-1"><span
               style="color: red;" class="form-warning"></span>
             $ \leq u \leq $
@@ -179,10 +178,10 @@
             $ \leq v \leq $
             <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
               style="color: red;" class="form-warning"></span>
-          </p>
+          </p> -->
           <button id="encodeURL" style="position: absolute; right: 10px; bottom: 10px;">Encode URL</button>
         </div>
-
+      </div>
       </div>
 
 

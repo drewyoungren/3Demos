@@ -1,0 +1,43 @@
+.button {
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: medium;
+}
+
+.button.active {
+    background-color: #323232;
+    color: #ddd;
+}
+
+.surface-choices {
+    min-height: 300px;
+}
+
+.surface-choices-item {
+    display: none;
+}
+
+/* #customSurf {
+    position: relative;
+    margin: 100px;
+  } */
+
+#custom-table td {
+    padding: 3px;
+}
+
+.page-selector {
+    display: inherit;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    text-align: center;
+    padding-top: 10px;
+}
+
+.page-item.active {
+    font-weight: bold;
+}
+
+body {
+    font-family: Times, 'Times New Roman', serif;
+}

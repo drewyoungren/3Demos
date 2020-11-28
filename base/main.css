@@ -14,6 +14,7 @@ h1 {
     top: 2em;
     left: 2em;
     font-family: 'Montserrat';
+    font-family: 'Gill Sans', 'Gill Sans MT', 'Calibri', 'Trebuchet MS', sans-serif;
     font-size: 7em;
     text-transform: uppercase;
     width: auto;
@@ -39,6 +40,7 @@ h1 {
     max-height: 100%;
     transition: height 1s, width 1s;
     text-align: left;
+    /* font-family: 'Gill Sans', 'Gill Sans MT', 'Calibri', 'Trebuchet MS', sans-serif; */
     font-size: 2em;
 	  z-index: 100;
     display:block;
@@ -129,7 +131,8 @@ h1 {
   }
 
   .custom-input {
-    font-size: 1em;
+    font-size: 0.75em;
+    font-family: 'Borgen', 'Monaco', monospace;
     background-color: rgba(128, 128, 128, .5);
   }
 
