@@ -158,3 +158,16 @@ export function thetaCoordinate(x,y,z,positive=true) {
     //   return t ;
     // }
   }
+
+export function marchingSegments(f, a=0, b=1, nX=100) {
+  const dx= (b - a)/nX;
+  const zeros = [];
+  for (let i=0; i < nX; i++) {
+    const x0 = a + i*dx, x1 = a + (i + 1)*dx;
+    const y0 = f(x0), y1 = f(x1);
+    if (y0*y1 < 0) {
+      zeros.push(x0 - y0*(x1 - x0)/(y1 - y0));
+    }
+  }
+  return zeros;
+}

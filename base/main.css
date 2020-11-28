@@ -106,15 +106,15 @@ h1 {
   } */
 
   .choices {
-    text-align: center;
+    /* text-align: center;
     /* font-size: 2em ; */
-    padding: 3px;
+    padding: 3px; 
     border: 1px solid transparent;
   }
 
   .choices-selected {
-    font-size: 1em;
-    padding: 3px;
+    /* font-size: 1.1em; */
+    /* padding: 3px; */
     border: 1px solid #333;
     border-radius: 5px;
   }
@@ -126,4 +126,27 @@ h1 {
     font-size: large;
     top: 10px;
     left: 76%;
+  }
+
+  .custom-input {
+    font-size: 1em;
+    background-color: rgba(128, 128, 128, .5);
+  }
+
+  .menu-choice-pipe-separator div {
+    display: flex;
+    padding-top: 10px;
+  }
+  
+  .menu-choice-pipe-separator div span {
+    flex: 1;
+  }
+  
+  .menu-choice-pipe-separator div span:first-of-type {
+    text-align: right;
+    padding-right: 5px;
+  }
+  
+  .menu-choice-pipe-separator div span:last-of-type {
+    padding-left: 5px;
   }

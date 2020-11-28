@@ -9,3 +9,4 @@ subtitle: Visualizations for Multivariable Calculus
   - [Angular Momentum](moments/index.html)
   - [Spherical Coordinates](spherical/index.html)
   - [Line Integrals](lineint/index.html)
+  - [Parametric Surfaces](parsurf/index.html)
