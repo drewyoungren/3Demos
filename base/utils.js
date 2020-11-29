@@ -449,4 +449,38 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
 }
 
-export { ArrowBufferGeometry };
+function drawGrid(gridMeshes = new THREE.Object3D(), coords = 'rect', gridMax=1, gridStep=0.1, lineMaterial=new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } )) {
+  let points = [];
+  for (let index = gridMeshes.children.length - 1; index >= 0; index++) {
+    const element = gridMeshes.children[index];
+    element.geometry.dispose();
+    gridMeshes.remove(element);
+  }
+  let geometry;
+  if (coords === 'rect') {
+    for (let j = -(10 * gridMax); j <= (10 * gridMax); j += gridStep) {
+      points.push(new THREE.Vector3(j, -(10 * gridMax), 0));
+      points.push(new THREE.Vector3(j, (10 * gridMax), 0));
+
+      points.push(new THREE.Vector3(-(10 * gridMax), j, 0));
+      points.push(new THREE.Vector3((10 * gridMax), j, 0));
+
+    }
+  } else { // polar grid
+    for (let i = 0; i <= 10 * gridMax; i += gridStep) {
+      for (let j = 0; j < 100; j++) {
+        points.push(new THREE.Vector3(i * Math.cos(2 * pi * j / 100), i * Math.sin(2 * pi * j / 100), 0));
+        points.push(new THREE.Vector3(i * Math.cos(2 * pi * (j + 1) / 100), i * Math.sin(2 * pi * (j + 1) / 100), 0));
+      }
+    }
+    for (let i = 0; i < 16; i++) {
+      points.push(new THREE.Vector3(10 * gridMax * Math.cos(pi * i / 8), 10 * gridMax * Math.sin(pi * i / 8), 0));
+      points.push(new THREE.Vector3(0, 0, 0));
+    }
+  }
+  geometry = new THREE.BufferGeometry().setFromPoints(points);
+  gridMeshes.add(new THREE.LineSegments(geometry, lineMaterial));
+  return gridMeshes;
+}
+
+export { ArrowBufferGeometry, drawGrid };
