@@ -308,7 +308,7 @@ const curves = {
 
 const fields = {
   'wave': {
-    func: (x,y,z,vec) => {vec.set(1,Math.sin(x),Math.sin(z)); return vec;},
+    func: (x,y,z,vec) => {vec.set(1,Math.sin(2*x)/2,-Math.sin(z)); return vec;},
     tex: " \,\vec i + \sin(x) \,\vec j + \sin(z) \,\vec k",
   },
   'constant': {
@@ -316,76 +316,76 @@ const fields = {
     tex: " \,\vec i + 2 \,\vec j - \,\vec k",
   },
   'swirl': {
-    func: (x,y,z,vec) => {vec.set(-y,x,0); return vec;},
+    func: (x,y,z,vec) => {vec.set(-y - x/10,x - y/10,0); return vec;},
     tex: " - y \,\vec i + x\,\vec j ",
   },
 }
 
 const data = {
   r: 'parabola',
-  field: 'wave',
+  field: 'swirl',
   tMode: 0, // interpolate between dy (-1), ds (0), and dx (1)
   sMode: 0, // fill in wall from 0 to 1
 }
 
-let fieldMesh;
-function updateField(T = 0, dt = 1/60) {
-  console.log(T,dt);
-  const points = [];
-  let start = new THREE.Vector3();
-  let vec = new THREE.Vector3();
-  let r1 = new THREE.Vector3();
-  let r2 = new THREE.Vector3(),u,v;
-  const F = fields[data.field].func;
-  let x,y,z,t;
-  for (let tx = -1; tx <= 1; tx += 1) {
-    for (let ty = -1; ty <= 1; ty += 1) {
-      for (let tz = -1; tz <= 1; tz += 1) {
-        x = tx, y = ty, t = tz;
-        for (let t = 0; t < T; t += dt) {
-          start.set(x,y,z)
-          vec = F(x,y,z,vec).multiplyScalar(dt/2);
-          // x == 1 && y == 1 ? console.log(start,vec) : true;
-          if (x == -1 && y == -1) {
-            console.log(start,vec)
-          }
-          start.set(x + vec.x, y + vec.y, z + vec.z);
-          vec = F(start.x,start.y,start.z,vec).multiplyScalar(dt)
-          if (x == -1 && y == -1) {
-            console.log(start,vec)
-          }
-          x += vec.x;
-          y += vec.y;
-          z += vec.z;
-        }
-        points.push(x,y,z);
-        vec = F(x,y,z,vec).multiplyScalar(0.1);
-        points.push(x + vec.x, y + vec.y, z + vec.z);
-        points.push(x + vec.x, y + vec.y, z + vec.z);
-        r1 = vec.clone();
-        r2.set(Math.random(),Math.random(),Math.random());
-        r2 = r2.cross(r1);
-        r1.normalize()
-        r2.normalize()
-        points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
-        points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
-        points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
-        points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
-        points.push(x + vec.x, y + vec.y, z + vec.z);
-      }
-    }
-  }
+// let fieldMesh;
+// function updateField(T = 0, dt = 1/60) {
+//   console.log(T,dt);
+//   const points = [];
+//   let start = new THREE.Vector3();
+//   let vec = new THREE.Vector3();
+//   let r1 = new THREE.Vector3();
+//   let r2 = new THREE.Vector3(),u,v;
+//   const F = fields[data.field].func;
+//   let x,y,z,t;
+//   for (let tx = -1; tx <= 1; tx += 1) {
+//     for (let ty = -1; ty <= 1; ty += 1) {
+//       for (let tz = -1; tz <= 1; tz += 1) {
+//         x = tx, y = ty, t = tz;
+//         for (let t = 0; t < T; t += dt) {
+//           start.set(x,y,z)
+//           vec = F(x,y,z,vec).multiplyScalar(dt/2);
+//           // x == 1 && y == 1 ? console.log(start,vec) : true;
+//           if (x == -1 && y == -1) {
+//             console.log(start,vec)
+//           }
+//           start.set(x + vec.x, y + vec.y, z + vec.z);
+//           vec = F(start.x,start.y,start.z,vec).multiplyScalar(dt)
+//           if (x == -1 && y == -1) {
+//             console.log(start,vec)
+//           }
+//           x += vec.x;
+//           y += vec.y;
+//           z += vec.z;
+//         }
+//         points.push(x,y,z);
+//         vec = F(x,y,z,vec).multiplyScalar(0.1);
+//         points.push(x + vec.x, y + vec.y, z + vec.z);
+//         points.push(x + vec.x, y + vec.y, z + vec.z);
+//         r1 = vec.clone();
+//         r2.set(Math.random(),Math.random(),Math.random());
+//         r2 = r2.cross(r1);
+//         r1.normalize()
+//         r2.normalize()
+//         points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
+//         points.push(x + vec.x - Math.sqrt(3)/80*r1.x + 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y + 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z + 1/80*r2.z );
+//         points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
+//         points.push(x + vec.x - Math.sqrt(3)/80*r1.x - 1/80*r2.x , y + vec.y - Math.sqrt(3)/80*r1.y - 1/80*r2.y , z + vec.z - Math.sqrt(3)/80*r1.z - 1/80*r2.z );
+//         points.push(x + vec.x, y + vec.y, z + vec.z);
+//       }
+//     }
+//   }
 
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( points, 3 ).onUpload( disposeArray ) );
-  if (fieldMesh) {
-    fieldMesh.geometry.dispose();
-    fieldMesh.geometry = geometry;
-  } else {
-    fieldMesh = new THREE.LineSegments( geometry, redLineMaterial );
-    scene.add(fieldMesh)
-  }
-}
+//   const geometry = new THREE.BufferGeometry()
+//   geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( points, 3 ).onUpload( disposeArray ) );
+//   if (fieldMesh) {
+//     fieldMesh.geometry.dispose();
+//     fieldMesh.geometry = geometry;
+//   } else {
+//     fieldMesh = new THREE.LineSegments( geometry, redLineMaterial );
+//     scene.add(fieldMesh)
+//   }
+// }`
 
 gui.add(data,'field',Object.keys(fields)).onChange(() => {
   // updateField();
@@ -397,22 +397,29 @@ gui.add(data,'field',Object.keys(fields)).onChange(() => {
 
 const quiver = new THREE.Object3D();
 scene.add(quiver);
+const arrowGeometries = [];
+for (let i = 1; i < 51; i++) {
+  arrowGeometries.push(new ArrowBufferGeometry( Math.min(1/30,i/100), Math.min(1/60,i/100), i/100, Math.min(1/10, i/100)));
+}
 const arrowGeometry = new ArrowBufferGeometry( 1/20, 1/50, 1/2, 1/12 );
 
-for (let i = 0; i < 4; i++) {
-  for (let j = 0; j < 4; j++) {
-    for (let k = -1; k <= 1; k += 1/2) {
+for (let i = 0; i < 8; i++) {
+  for (let j = 0; j < 8; j++) {
+    for (let k = -1; k <= 2; k += 1/2) {
     let vec = new THREE.Vector3();
-    const pos = new THREE.Vector3(i / 2 - 1/3, j/2 - 1/3, k)
+    const pos = new THREE.Vector3();
+    pos.set(Math.random()-1/2, Math.random()-1/2, Math.random()-1/2).normalize();
+    pos.multiplyScalar(4*gridMax);
     fields[data.field].func(pos.x,pos.y,pos.z,vec);
-    const arrow = new THREE.Mesh( arrowGeometry, material );
-    const arrowMesh = new THREE.LineSegments( new THREE.EdgesGeometry(arrow.geometry), whiteLineMaterial );
+
+    const arrow = new THREE.Mesh( arrowGeometries[Math.min(49, Math.round( vec.length()*20 )) ], material );
+    // const arrowMesh = new THREE.LineSegments( new THREE.EdgesGeometry(arrow.geometry), whiteLineMaterial );
     
     arrow.position.set( pos.x, pos.y, pos.z );
     vec = fields[data.field].func( pos.x, pos.y, pos.z, vec );
     console.log( "setup", i, j, pos, vec)
     arrow.lookAt(pos.x + vec.x, pos.y + vec.y, pos.z + vec.z);
-    arrow.add(arrowMesh);
+    // arrow.add(arrowMesh);
     quiver.add( arrow );
     }
   }
@@ -430,18 +437,23 @@ function animate() {
 
     const pos = arrow.position.clone();
     pos.add(F(pos.x,pos.y,pos.z,vec).multiplyScalar(dt));
-    // if (counter % 1 === 0 && index === 0 ) {
-    //   console.log(counter,arrow.position, vec, pos);
-    // }
+
+    if (pos.length() > 4*gridMax) {
+      pos.set(Math.random()-1/2, Math.random()-1/2, Math.random()-1/2).normalize();
+      pos.multiplyScalar(4*gridMax);
+    }
+
     arrow.position.set(pos.x , pos.y , pos.z );
     F(pos.x,pos.y,pos.z,vec);
-    // console.log("loogat", arrow.position, pos, pos.x + vec.x, pos.y + vec.y, pos.z + vec.z);
+
+    arrow.geometry = arrowGeometries[Math.min(49, Math.round( vec.length()*20 )) ];
+
     arrow.lookAt(pos.x + vec.x, pos.y + vec.y, pos.z + vec.z);
-    // arrow.lookAt(0,0,1);
+
   }
   counter ++;
   render();
-  if (counter < 1000){
+  if (true){
     requestAnimationFrame(animate);
   }
 }
