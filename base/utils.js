@@ -483,4 +483,129 @@ function drawGrid(gridMeshes = new THREE.Object3D(), coords = 'rect', gridMax=1,
   return gridMeshes;
 }
 
-export { ArrowBufferGeometry, drawGrid };
+function drawAxes( {  
+    gridMax = 1,
+    gridStep = 0.1,
+    axesMaterial = new THREE.MeshLambertMaterial( { color: 0x000000  } )
+  } = {}
+) {
+  console.log(" invoke stuff ", gridMax, gridStep);
+  const axesHolder = new THREE.Object3D();
+  const axisGeometry = new ArrowBufferGeometry( gridStep/9, gridStep/16, gridMax*3, gridStep/3 * 2 , 8, 8, false, false );
+  for (let index = 0; index < 3; index++) {
+    let arrow = new THREE.Mesh( axisGeometry, axesMaterial );
+    if (index === 0) {
+      arrow.lookAt(1,0,0);
+      arrow.position.x = -gridMax*3/2;
+    } else { if (index === 2) {
+      arrow.lookAt(0,1,0);
+      arrow.position.y = -gridMax*3/2;
+    } else {
+      arrow.position.z = -gridMax*3/2;
+    }}
+    axesHolder.add( arrow );
+  }
+  return axesHolder;
+}
+
+class ParametricCurve extends THREE.Curve {
+
+	constructor( scale = 1, r = (t) => new THREE.Vector3(t,t,t), a = 0, b = 1 ) {
+
+		super();
+
+    this.scale = scale;
+    
+    this.r = r;
+
+    this.a = a;
+
+    this.b = b;
+
+	}
+
+	getPoint( t, optionalTarget = new THREE.Vector3() ) {
+
+    const s = this.a + (this.b - this.a)*t;
+
+    const {x,y,z} = this.r(s);
+
+		return optionalTarget.set( x,y,z ).multiplyScalar( this.scale );
+
+	}
+
+}
+
+function labelAxes({
+  scene,
+  gridMax = 1,
+  gridStep = 0.1,
+  fontFile = '../fonts/P052_Italic.json',
+  textMaterial = new THREE.MeshBasicMaterial( {color: 0x000000 } ),
+  axesText = []
+} = {}) {
+  const loader = new THREE.FontLoader();
+  const font = loader.load(
+    // resource URL
+    fontFile,
+    function (font) {
+      const xyz = ['x', 'y', 'z'];
+      const tPos = 1.7 * gridMax;
+      const textGeometryArguments = {
+        font: font,
+        size: gridStep * 2 / 3,
+        height: 0,
+        curveSegments: 12,
+        bevelEnabled: false
+      };
+      const tickGeos = [];
+      for (let i = 0; i <= 6; i++) {
+        if (i !== 3) {
+          const textGeo = new THREE.TextGeometry(((-3/2 + i/2)*gridMax).toString(), textGeometryArguments);
+          tickGeos.push(textGeo);
+          textGeo.computeBoundingBox();
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 6; j++) {
+          const text = new THREE.Mesh( tickGeos[j], textMaterial );
+          const textHolder = new THREE.Object3D();
+          tickGeos[j].boundingBox.getCenter(text.position).multiplyScalar(-1);
+          textHolder.position[xyz[i]] = (-3/2 + j/2 + (j > 2 ? 1/2 : 0))*gridMax ;
+          textHolder.position[xyz[(i + 1) % 3 + (i === 0 ? 1 : 0)]] = - gridStep ;
+          textHolder.add(text);
+          axesText.push(textHolder);
+          scene.add( textHolder );
+        }
+        const textGeo = new THREE.TextGeometry(xyz[i], textGeometryArguments);
+        // const textMaterial = new THREE.MeshBasicMaterial({color: axesMaterial})
+        const textHolder = new THREE.Object3D();
+        const text = new THREE.Mesh( textGeo, textMaterial );
+        // text.computeBoundingBox();
+
+        textGeo.computeBoundingBox();
+        textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
+
+        textHolder.position[xyz[i]] = tPos;
+
+        textHolder.add(text);
+        scene.add(textHolder);
+        axesText.push(textHolder);
+        // console.log("pushed: ",'xyz'[i])
+
+      }
+    },
+    // onProgress callback
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+
+    // onError callback
+    function (err) {
+      console.log('An error happened');
+    }
+  );
+  return [axesText, font];
+}
+
+export { ArrowBufferGeometry, ParametricCurve, drawGrid, drawAxes, labelAxes };
