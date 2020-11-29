@@ -171,3 +171,441 @@ export function marchingSegments(f, a=0, b=1, nX=100) {
   }
   return zeros;
 }
+
+// Modified from https://github.com/mrdoob/three.js/blob/master/src/geometries/CylinderBufferGeometry.js
+class ArrowBufferGeometry extends THREE.BufferGeometry {
+
+	constructor( radiusTop = 1/16, radiusBottom = 1/20, height = 1, heightTop = 1/6, radialSegments = 8, heightSegments = 1, openEnded = false, heightIncludesHead = true ) {
+
+		super();
+		this.type = 'ArrowBufferGeometry';
+
+		this.parameters = {
+			radiusTop: radiusTop,
+			radiusBottom: radiusBottom,
+      height: height,
+      heightTop: heightTop,
+			radialSegments: radialSegments,
+			heightSegments: heightSegments,
+			openEnded: openEnded,
+			heightIncludesHead: heightIncludesHead,
+		};
+
+    const scope = this;
+    const thetaStart = 0, thetaLength = 2 * Math.PI;
+
+		radialSegments = Math.floor( radialSegments );
+		heightSegments = Math.floor( heightSegments );
+
+		// buffers
+
+		const indices = [];
+		const vertices = [];
+		const normals = [];
+		const uvs = [];
+
+		// helper variables
+
+		let index = 0;
+		const indexArray = [];
+		const halfHeight = height / 2;
+		const tubeHeight = heightIncludesHead ? height - heightTop : height;
+		let groupStart = 0;
+
+		// generate geometry
+
+    generateTorso();
+    generateCap( true );
+
+		if ( openEnded === false ) {
+
+			if ( radiusBottom > 0 ) generateCap( false );
+
+		}
+
+		// build geometry
+
+		this.setIndex( indices );
+		this.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+		this.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
+		this.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
+
+		function generateTorso() {
+
+			const normal = new THREE.Vector3();
+			const vertex = new THREE.Vector3();
+
+			let groupCount = 0;
+
+			// this will be used to calculate the normal
+			const slope = 0;
+
+			// generate vertices, normals and uvs
+
+			for ( let y = 0; y <= heightSegments; y ++ ) {
+
+				const indexRow = [];
+
+				const v = y / heightSegments;
+
+				// calculate the radius of the current row
+
+				const radius = radiusBottom;
+
+				for ( let x = 0; x <= radialSegments; x ++ ) {
+
+					const u = x / radialSegments;
+
+					const theta = u * Math.PI * 2;
+
+					const sinTheta = Math.sin( theta );
+					const cosTheta = Math.cos( theta );
+
+					// vertex
+
+					vertex.x = radius * cosTheta;
+					vertex.y = radius * sinTheta;
+					vertex.z = v * tubeHeight;
+					vertices.push( vertex.x, vertex.y, vertex.z );
+
+					// normal
+
+					normal.set( cosTheta, sinTheta, 0 ).normalize();
+					normals.push( normal.x, normal.y, normal.z );
+
+					// uv
+
+					uvs.push( u, 1 - v );
+
+					// save index of vertex in respective row
+
+					indexRow.push( index ++ );
+
+				}
+
+				// now save vertices of the row in our index array
+
+				indexArray.push( indexRow );
+
+			}
+
+			// generate indices
+
+			for ( let x = 0; x < radialSegments; x ++ ) {
+
+				for ( let y = 0; y < heightSegments; y ++ ) {
+
+					// we use the index array to access the correct indices
+
+					const a = indexArray[ y ][ x ];
+					const b = indexArray[ y + 1 ][ x ];
+					const c = indexArray[ y + 1 ][ x + 1 ];
+					const d = indexArray[ y ][ x + 1 ];
+
+					// faces
+
+					indices.push( b, a, d );
+					indices.push( c, b, d );
+
+					// update group counter
+
+					groupCount += 6;
+
+				}
+
+			}
+
+			// add a group to the geometry. this will ensure multi material support
+
+			scope.addGroup( groupStart, groupCount, 0 );
+
+			// calculate new start value for groups
+
+			groupStart += groupCount;
+
+		}
+
+		function generateCap( top ) {
+
+			// save the index of the first center vertex
+			const centerIndexStart = index;
+
+			const uv = new THREE.Vector2();
+			const vertex = new THREE.Vector3();
+
+			let groupCount = 0;
+
+			const radius = ( top === true ) ? radiusTop : radiusBottom;
+			const sign = ( top === true ) ? 1 : - 1;
+
+			// first we generate the center vertex data of the cap.
+			// because the geometry needs one set of uvs per face,
+			// we must generate a center vertex per face/segment
+
+			for ( let x = 1; x <= radialSegments; x ++ ) {
+
+				// vertex
+
+				vertices.push( 0, 0, top ? tubeHeight + heightTop : 0 );
+
+				// normal
+
+        if (top) {
+          const theta = (x - 1/2) / radialSegments * Math.PI * 2;
+          const sinTheta = Math.sin(theta), cosTheta = Math.cos(theta);
+          const normal = new THREE.Vector3( cosTheta, sinTheta, radiusTop / heightTop );
+          normal.normalize();
+          normals.push( normal.x, normal.y, normal.z);
+        } else {
+          normals.push( 0, 0, sign );
+        }
+				// uv
+
+				uvs.push( 0.5, 0.5 );
+
+				// increase index
+
+				index ++;
+
+			}
+
+			// save the index of the last center vertex
+			const centerIndexEnd = index;
+
+			// now we generate the surrounding vertices, normals and uvs
+
+			for ( let x = 0; x <= radialSegments; x ++ ) {
+
+				const u = x / radialSegments;
+				const theta = u * thetaLength + thetaStart;
+
+				const cosTheta = Math.cos( theta );
+				const sinTheta = Math.sin( theta );
+
+				// vertex
+
+				vertex.x = radius * cosTheta;
+				vertex.y = radius * sinTheta;
+				vertex.z = top ? tubeHeight : 0;
+				vertices.push( vertex.x, vertex.y, vertex.z );
+
+				// normal
+
+        if (top) {
+          const normal = new THREE.Vector3(cosTheta, sinTheta, radiusTop / heightTop );
+          normal.normalize();
+          normals.push( normal.x, normal.y, normal.z);
+        } else {
+          normals.push( 0, 0, sign );
+        }
+				// uv
+
+				uv.x = ( cosTheta * 0.5 ) + 0.5;
+				uv.y = ( sinTheta * 0.5 * sign ) + 0.5;
+				uvs.push( uv.x, uv.y );
+
+				// increase index
+
+				index ++;
+
+			}
+
+			// generate indices
+
+			for ( let x = 0; x < radialSegments; x ++ ) {
+
+				const c = centerIndexStart + x;
+				const i = centerIndexEnd + x;
+
+				if ( top === true ) {
+
+					// face top
+
+					indices.push( i, i + 1, c );
+
+				} else {
+
+					// face bottom
+
+					indices.push( i + 1, i, c );
+
+				}
+
+				groupCount += 3;
+
+			}
+
+			// add a group to the geometry. this will ensure multi material support
+
+			scope.addGroup( groupStart, groupCount, top === true ? 1 : 2 );
+
+			// calculate new start value for groups
+
+			groupStart += groupCount;
+
+		}
+
+	}
+
+}
+
+function drawGrid(gridMeshes = new THREE.Object3D(), coords = 'rect', gridMax=1, gridStep=0.1, lineMaterial=new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } )) {
+  let points = [];
+  for (let index = gridMeshes.children.length - 1; index >= 0; index++) {
+    const element = gridMeshes.children[index];
+    element.geometry.dispose();
+    gridMeshes.remove(element);
+  }
+  let geometry;
+  if (coords === 'rect') {
+    for (let j = -(10 * gridMax); j <= (10 * gridMax); j += gridStep) {
+      points.push(new THREE.Vector3(j, -(10 * gridMax), 0));
+      points.push(new THREE.Vector3(j, (10 * gridMax), 0));
+
+      points.push(new THREE.Vector3(-(10 * gridMax), j, 0));
+      points.push(new THREE.Vector3((10 * gridMax), j, 0));
+
+    }
+  } else { // polar grid
+    for (let i = 0; i <= 10 * gridMax; i += gridStep) {
+      for (let j = 0; j < 100; j++) {
+        points.push(new THREE.Vector3(i * Math.cos(2 * pi * j / 100), i * Math.sin(2 * pi * j / 100), 0));
+        points.push(new THREE.Vector3(i * Math.cos(2 * pi * (j + 1) / 100), i * Math.sin(2 * pi * (j + 1) / 100), 0));
+      }
+    }
+    for (let i = 0; i < 16; i++) {
+      points.push(new THREE.Vector3(10 * gridMax * Math.cos(pi * i / 8), 10 * gridMax * Math.sin(pi * i / 8), 0));
+      points.push(new THREE.Vector3(0, 0, 0));
+    }
+  }
+  geometry = new THREE.BufferGeometry().setFromPoints(points);
+  gridMeshes.add(new THREE.LineSegments(geometry, lineMaterial));
+  return gridMeshes;
+}
+
+function drawAxes( {  
+    gridMax = 1,
+    gridStep = 0.1,
+    axesMaterial = new THREE.MeshLambertMaterial( { color: 0x000000  } )
+  } = {}
+) {
+  console.log(" invoke stuff ", gridMax, gridStep);
+  const axesHolder = new THREE.Object3D();
+  const axisGeometry = new ArrowBufferGeometry( gridStep/9, gridStep/16, gridMax*3, gridStep/3 * 2 , 8, 8, false, false );
+  for (let index = 0; index < 3; index++) {
+    let arrow = new THREE.Mesh( axisGeometry, axesMaterial );
+    if (index === 0) {
+      arrow.lookAt(1,0,0);
+      arrow.position.x = -gridMax*3/2;
+    } else { if (index === 2) {
+      arrow.lookAt(0,1,0);
+      arrow.position.y = -gridMax*3/2;
+    } else {
+      arrow.position.z = -gridMax*3/2;
+    }}
+    axesHolder.add( arrow );
+  }
+  return axesHolder;
+}
+
+class ParametricCurve extends THREE.Curve {
+
+	constructor( scale = 1, r = (t) => new THREE.Vector3(t,t,t), a = 0, b = 1 ) {
+
+		super();
+
+    this.scale = scale;
+    
+    this.r = r;
+
+    this.a = a;
+
+    this.b = b;
+
+	}
+
+	getPoint( t, optionalTarget = new THREE.Vector3() ) {
+
+    const s = this.a + (this.b - this.a)*t;
+
+    const {x,y,z} = this.r(s);
+
+		return optionalTarget.set( x,y,z ).multiplyScalar( this.scale );
+
+	}
+
+}
+
+function labelAxes({
+  scene,
+  gridMax = 1,
+  gridStep = 0.1,
+  fontFile = '../fonts/P052_Italic.json',
+  textMaterial = new THREE.MeshBasicMaterial( {color: 0x000000 } ),
+  axesText = []
+} = {}) {
+  const loader = new THREE.FontLoader();
+  const font = loader.load(
+    // resource URL
+    fontFile,
+    function (font) {
+      const xyz = ['x', 'y', 'z'];
+      const tPos = 1.7 * gridMax;
+      const textGeometryArguments = {
+        font: font,
+        size: gridStep * 2 / 3,
+        height: 0,
+        curveSegments: 12,
+        bevelEnabled: false
+      };
+      const tickGeos = [];
+      for (let i = 0; i <= 6; i++) {
+        if (i !== 3) {
+          const textGeo = new THREE.TextGeometry(((-3/2 + i/2)*gridMax).toString(), textGeometryArguments);
+          tickGeos.push(textGeo);
+          textGeo.computeBoundingBox();
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 6; j++) {
+          const text = new THREE.Mesh( tickGeos[j], textMaterial );
+          const textHolder = new THREE.Object3D();
+          tickGeos[j].boundingBox.getCenter(text.position).multiplyScalar(-1);
+          textHolder.position[xyz[i]] = (-3/2 + j/2 + (j > 2 ? 1/2 : 0))*gridMax ;
+          textHolder.position[xyz[(i + 1) % 3 + (i === 0 ? 1 : 0)]] = - gridStep ;
+          textHolder.add(text);
+          axesText.push(textHolder);
+          scene.add( textHolder );
+        }
+        const textGeo = new THREE.TextGeometry(xyz[i], textGeometryArguments);
+        // const textMaterial = new THREE.MeshBasicMaterial({color: axesMaterial})
+        const textHolder = new THREE.Object3D();
+        const text = new THREE.Mesh( textGeo, textMaterial );
+        // text.computeBoundingBox();
+
+        textGeo.computeBoundingBox();
+        textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
+
+        textHolder.position[xyz[i]] = tPos;
+
+        textHolder.add(text);
+        scene.add(textHolder);
+        axesText.push(textHolder);
+        // console.log("pushed: ",'xyz'[i])
+
+      }
+    },
+    // onProgress callback
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+
+    // onError callback
+    function (err) {
+      console.log('An error happened');
+    }
+  );
+  return [axesText, font];
+}
+
+export { ArrowBufferGeometry, ParametricCurve, drawGrid, drawAxes, labelAxes };
