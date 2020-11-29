@@ -4,16 +4,21 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar } from "../base/utils.js";
+import { colorBufferVertices, blueUpRedDown, addColorBar, ArrowBufferGeometry } from "../base/utils.js";
+
+// Make z the default up
+THREE.Object3D.DefaultUp.set(0,0,1);
 
 /* Some constants */
 const nX = 30; // resolution for surfaces
+const tol = 1e-12 //tolerance for comparisons
 const xmin = -1; // domain of function
 const xmax = 1;
 const ymin = -1;
 const ymax = 1;
 const gridMax = Math.max(...[xmin,xmax,ymin,ymax].map(Math.abs));
 const gridStep = gridMax / 10;
+const pi = Math.PI;
 
 
 
@@ -25,9 +30,10 @@ scene.background = new THREE.Color( 0xddddef );
 
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
-camera.position.z = gridMax/2;
-camera.position.y = gridMax*4 ;
-camera.position.x = -gridMax*2;
+camera.position.x = gridMax*2/2;
+camera.position.y = -gridMax*3/2 ;
+camera.position.z = gridMax*4.5/2;
+camera.up.set(0,0,1);
 camera.lookAt( 0,0,0 );
 
 // Lights
@@ -35,51 +41,53 @@ camera.lookAt( 0,0,0 );
 
 // soft white light
 scene.add( new THREE.AmbientLight( 0xA0A0A0 ) );
-let directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-directionalLight.position.set(0,50,0)
-scene.add( directionalLight );
-directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-directionalLight.position.set(0,-50,0)
-scene.add( directionalLight );
-directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-directionalLight.position.set(50,0,50)
-scene.add( directionalLight );
-directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-directionalLight.position.set(-50,0,-50)
-scene.add( directionalLight );
-directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-directionalLight.position.set(50,0,-50)
-scene.add( directionalLight );
-directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-directionalLight.position.set(-50,0,50)
-scene.add( directionalLight );
+// let directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+// directionalLight.position.set(0,50,0)
+// scene.add( directionalLight );
+// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+// directionalLight.position.set(0,-50,0)
+// scene.add( directionalLight );
+// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+// directionalLight.position.set(50,0,50)
+// scene.add( directionalLight );
+// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+// directionalLight.position.set(-50,0,-50)
+// scene.add( directionalLight );
+// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+// directionalLight.position.set(50,0,-50)
+// scene.add( directionalLight );
+// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
+// directionalLight.position.set(-50,0,50)
+// scene.add( directionalLight );
 
-//something to make shiny things shine
-// let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-// light.position.set(0,30,0);
-// scene.add(light);
-// let light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-// light.position.set(0,0,-10);
-// scene.add(light);
-// light = new THREE.PointLight(0xFFFFFF, 1, 1000);
-// light.position.set(30,30,5);
-// scene.add(light);
+//something to make shiny things shine - a chandelier
+const chandelier = new THREE.Object3D();
+const candles = 2;
+for (let i=0; i < candles; i++) {
+  for (let j=0; j < 2; j++) {
+    const light = new THREE.PointLight(0xFFFFFF, .5, 1000);
+    light.position.set(20*Math.cos(i*2*pi/candles + Math.pow(-1,j) * 1/2),20*Math.sin(i*2*pi/candles + Math.pow(-1,j)*1/2),Math.pow(-1,j)*10);
+    chandelier.add(light);
+  }
+}
+scene.add(chandelier);
 
 // controls 
 
-const controls = new OrbitControls (camera, renderer.domElement);
-controls.autoRotate = false;
+const controls = new OrbitControls(camera, renderer.domElement);
+
+// controls.rotateSpeed = 1.0;
+// controls.zoomSpeed = 1.2;
+// controls.panSpeed = 0.8;
+
+// controls.keys = [ 65, 83, 68 ];
+
 controls.target.set( 0,0,0);
 controls.addEventListener('change',render);
 
 window.addEventListener('resize', render);
 
 //axes
-
-const ii = new THREE.Vector3( 0, 0, 1 );
-const jj = new THREE.Vector3( 1, 0, 0 );
-const kk = new THREE.Vector3( 0, 1, 0 );
-const axesArray = [ii,jj,kk];
 
 const lineMaterial = new THREE.LineBasicMaterial( { color: 0x551122, transparent: true, opacity: 0.8 } );
 
@@ -92,28 +100,29 @@ function drawGrid(coords='rect') {
     gridMeshes.remove(element);
   }
   let geometry;
-  if (coords == 'rect'){
+  if (coords === 'rect'){
     for (let j = -(10*gridMax); j <= (10*gridMax); j += gridStep) {
-        points.push( new THREE.Vector3( j, 0, -(10*gridMax) ) );
-        points.push( new THREE.Vector3( j, 0, (10*gridMax) ) );
+        points.push( new THREE.Vector3( j, -(10*gridMax), 0 ) );
+        points.push( new THREE.Vector3( j, (10*gridMax), 0 ) );
 
         // let geometry = new THREE.BufferGeometry().setFromPoints( points );
         // gridMeshes.add(new THREE.Line(geometry,lineMaterial));
         
         // points = [];
 
-        points.push( new THREE.Vector3( -(10*gridMax), 0, j ) );
-        points.push( new THREE.Vector3( (10*gridMax), 0, j ) );
+        points.push( new THREE.Vector3( -(10*gridMax), j , 0) );
+        points.push( new THREE.Vector3( (10*gridMax), j , 0) );
 
       }
     } else {
       for (let i = 0; i <= 10*gridMax; i += gridStep) {
-        for (let j = 0; j <= 100; j++) {
-          points.push( new THREE.Vector3( i*Math.sin(2*Math.PI*j/100), 0, i*Math.cos(2*Math.PI*j/100) ) );
+        for (let j = 0; j < 100; j++) {
+          points.push( new THREE.Vector3( i*Math.cos(2*pi*j/100), i*Math.sin(2*pi*j/100) , 0) );
+          points.push( new THREE.Vector3( i*Math.cos(2*pi*(j + 1)/100), i*Math.sin(2*pi*(j + 1)/100) , 0) );
         }
       }
       for (let i = 0; i < 16 ; i++) {
-        points.push( new THREE.Vector3( 10*gridMax*Math.sin(Math.PI*i/8), 0, 10*gridMax*Math.cos(Math.PI*i/8) ) );
+        points.push( new THREE.Vector3( 10*gridMax*Math.cos(pi*i/8), 10*gridMax*Math.sin(pi*i/8) , 0) );
         points.push( new THREE.Vector3( 0, 0, 0 ) );
       }
     }
@@ -122,22 +131,22 @@ function drawGrid(coords='rect') {
 }
 
 scene.add(gridMeshes);
-drawGrid('rect');
+drawGrid();
+// drawGrid('polar');
 
 // Axes
 const axesHolder = new THREE.Object3D();
 scene.add(axesHolder);
 const axesMaterial = new THREE.MeshLambertMaterial( {color: 0x320032} );
-for (let index = 0; index < axesArray.length; index++) {
-  const ax = axesArray[index];
+for (let index = 0; index < 3; index++) {
   let geometry = new THREE.CylinderGeometry( gridStep/16, gridStep/16, gridMax*3, 12 );
   let coneGeometry = new THREE.ConeGeometry( gridStep/10, gridStep/3, 12 );
   let cylinder = new THREE.Mesh( geometry, axesMaterial );
   // cylinder.position.y = gridMax*1.1/2;
   let cone = new THREE.Mesh(coneGeometry,axesMaterial);
-  if (ax == ii) {
+  if (index === 0) {
     cylinder.rotation.x = Math.PI/2;
-  } else { if (ax == jj) {
+  } else { if (index === 2) {
     cylinder.rotation.z = -Math.PI/2;
   }}
   cone.position.y = gridMax*3/2 + gridStep/6;
@@ -171,16 +180,17 @@ var font = loader.load(
       textGeo.computeBoundingBox();
       textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
 
-      if (i == 0) { textHolder.position.z = tPos; } else {
-        if (i ==1) {
-          textHolder.position.x = tPos;
-        } else { textHolder.position.y = tPos; }
+      if (i === 0) { textHolder.position.x = tPos; } else {
+        if (i === 1) {
+          textHolder.position.y = tPos;
+        } else { textHolder.position.z = tPos; }
       }
       scene.add(textHolder);
       textHolder.add(text);
 
       axesText.push(textHolder);
       // console.log("pushed: ",'xyz'[i])
+      if (render) {render();}
     }
   },
   // onProgress callback
@@ -201,14 +211,10 @@ function disposeArray() {
 
 let gui = new GUI();
 
-let graphWorld = new THREE.Object3D();
-graphWorld.rotation.x += Math.PI/2;
-graphWorld.rotation.y += Math.PI;
-graphWorld.rotation.z += Math.PI/2;
-scene.add(graphWorld);
 
-const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
-const materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 70,side: THREE.FrontSide,vertexColors: false});
+
+const material = new THREE.MeshPhongMaterial({color: 0xdd22ff,shininess: 60,side: THREE.DoubleSide,vertexColors: false});
+const materialRandom = new THREE.MeshPhongMaterial({color: 0x0000b4,shininess: 70,side: THREE.FrontSide,vertexColors: false});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 14});
 
@@ -247,7 +253,6 @@ class ParametricCurve extends THREE.Curve {
 
 }
 
-const pi = Math.PI;
 
 const r1 = ((t) => new THREE.Vector3(t,t**2,t**3));
 const r2 = ((t) => new THREE.Vector3((1+t/4)*Math.cos(4*pi*t),2*t - Math.sin(8*t)/2,0));
@@ -307,7 +312,7 @@ const fields = {
     tex: " \,\vec i + \sin(x) \,\vec j + \sin(z) \,\vec k",
   },
   'constant': {
-    func: (x,y,z,vec) => {vec.set(1,2,-1); return vec;},
+    func: (x,y,z,vec) => {vec.set(1/2,-1/2,0); return vec;},
     tex: " \,\vec i + 2 \,\vec j - \,\vec k",
   },
   'swirl': {
@@ -324,7 +329,7 @@ const data = {
 }
 
 let fieldMesh;
-function updateField(T = 0, dt = 1/10) {
+function updateField(T = 0, dt = 1/60) {
   console.log(T,dt);
   const points = [];
   let start = new THREE.Vector3();
@@ -332,7 +337,7 @@ function updateField(T = 0, dt = 1/10) {
   let r1 = new THREE.Vector3();
   let r2 = new THREE.Vector3(),u,v;
   const F = fields[data.field].func;
-  let x,y,z;
+  let x,y,z,t;
   for (let tx = -1; tx <= 1; tx += 1) {
     for (let ty = -1; ty <= 1; ty += 1) {
       for (let tz = -1; tz <= 1; tz += 1) {
@@ -378,18 +383,68 @@ function updateField(T = 0, dt = 1/10) {
     fieldMesh.geometry = geometry;
   } else {
     fieldMesh = new THREE.LineSegments( geometry, redLineMaterial );
-    graphWorld.add(fieldMesh)
+    scene.add(fieldMesh)
   }
 }
 
 gui.add(data,'field',Object.keys(fields)).onChange(() => {
-  updateField();
-  render();
+  // updateField();
+  counter = 0;
+  animate();
 })
 
-updateField(1,0.5);
+// updateField(1,0.5);
 
+const quiver = new THREE.Object3D();
+scene.add(quiver);
+const arrowGeometry = new ArrowBufferGeometry( 1/20, 1/50, 1/2, 1/12 );
 
+for (let i = 0; i < 4; i++) {
+  for (let j = 0; j < 4; j++) {
+    for (let k = -1; k <= 1; k += 1/2) {
+    let vec = new THREE.Vector3();
+    const pos = new THREE.Vector3(i / 2 - 1/3, j/2 - 1/3, k)
+    fields[data.field].func(pos.x,pos.y,pos.z,vec);
+    const arrow = new THREE.Mesh( arrowGeometry, material );
+    const arrowMesh = new THREE.LineSegments( new THREE.EdgesGeometry(arrow.geometry), whiteLineMaterial );
+    
+    arrow.position.set( pos.x, pos.y, pos.z );
+    vec = fields[data.field].func( pos.x, pos.y, pos.z, vec );
+    console.log( "setup", i, j, pos, vec)
+    arrow.lookAt(pos.x + vec.x, pos.y + vec.y, pos.z + vec.z);
+    arrow.add(arrowMesh);
+    quiver.add( arrow );
+    }
+  }
+}
+
+let counter = 0;
+
+function animate() {
+  const dt = 1/60;
+  const F = fields[data.field].func;
+  let vec = new THREE.Vector3();
+
+  for (let index = 0; index < quiver.children.length; index++) {
+    const arrow = quiver.children[index];
+
+    const pos = arrow.position.clone();
+    pos.add(F(pos.x,pos.y,pos.z,vec).multiplyScalar(dt));
+    // if (counter % 1 === 0 && index === 0 ) {
+    //   console.log(counter,arrow.position, vec, pos);
+    // }
+    arrow.position.set(pos.x , pos.y , pos.z );
+    F(pos.x,pos.y,pos.z,vec);
+    // console.log("loogat", arrow.position, pos, pos.x + vec.x, pos.y + vec.y, pos.z + vec.z);
+    arrow.lookAt(pos.x + vec.x, pos.y + vec.y, pos.z + vec.z);
+    // arrow.lookAt(0,0,1);
+  }
+  counter ++;
+  render();
+  if (counter < 1000){
+    requestAnimationFrame(animate);
+  }
+}
 
 // from https://threejsfundamentals.org 
 function resizeRendererToDisplaySize(renderer) {
@@ -427,7 +482,7 @@ function render() {
 
 render();
 
-
+animate();
 
 
 
