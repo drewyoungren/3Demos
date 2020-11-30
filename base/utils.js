@@ -542,7 +542,8 @@ function labelAxes({
   gridStep = 0.1,
   fontFile = '../fonts/P052_Italic.json',
   textMaterial = new THREE.MeshBasicMaterial( {color: 0x000000 } ),
-  axesText = []
+  axesText = [],
+  render = undefined
 } = {}) {
   const loader = new THREE.FontLoader();
   const font = loader.load(
@@ -591,8 +592,7 @@ function labelAxes({
         textHolder.add(text);
         scene.add(textHolder);
         axesText.push(textHolder);
-        // console.log("pushed: ",'xyz'[i])
-
+        if (render) render();
       }
     },
     // onProgress callback

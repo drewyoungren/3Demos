@@ -105,7 +105,7 @@ const axesHolder = drawAxes( {gridMax, gridStep, axesMaterial});
 scene.add(axesHolder)
 
 // Fonts
-const [axesText, font] = labelAxes( { scene } );
+const [axesText, font] = labelAxes( { scene, render } );
 
 
 const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
