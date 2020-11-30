@@ -96,7 +96,7 @@ const lineMaterial = new THREE.LineBasicMaterial( { color: 0x551122, transparent
 
 // Grid
 
-let gridMeshes = drawGrid( );
+let gridMeshes = drawGrid( {lineMaterial});
 scene.add(gridMeshes);
 
 // Axes
@@ -106,10 +106,6 @@ scene.add(axesHolder)
 
 // Fonts
 const [axesText, font] = labelAxes( { scene } );
-
-function disposeArray() {
-  this.array = null;
-}
 
 
 const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
@@ -168,6 +164,26 @@ const surfaces = {
     b: "1",
     c: "-1",
     d: "1",
+  },
+  kiss: {
+    x: "(cos(u) + 1.001)sin(v) / 2", 
+    y: "(cos(u) + 1.001)cos(v) / 2",
+    z: "u/2",
+    a: "-pi/6",
+    b: "pi",
+    c: "0",
+    d: "2 pi",
+    material: new THREE.MeshStandardMaterial( {color: 0xffffff, roughness: 0.5, metalness: 0.7 } )
+  },
+  bugle: {
+    x: "u < 0 ? (1 + cos(v)*2^(-9*pi/20)/8) : (u < 9*pi/2 ? (1 + cos(v)*2^((-9*pi/2 + u)/10)/8)*cos(u) : -1.4*(u - 9*pi/2))", 
+    y: "u < 0 ? (u + cos(v)*2^(-9*pi/20)/8) : (u < 9*pi/2 ? (1 + cos(v)*2^((-9*pi/2 + u)/10)/8)*sin(u) : 1 + (2^((u - 9*pi/2)/10)/8 + (u - 9*pi/2)^2/2)*cos(v))", 
+    z: "u < 0 ? (sin(v)*2^(-9*pi/20)/8) : (u < 9*pi/2 ? (sin(v)*2^((-9*pi/2 + u)/10)/8) + ( (u*4/(9*pi) - 1)*((u*4/(9*pi) - 1)^2-1)^2/3 ) : (2^((u - 9*pi/2)/10)/8 + (u - 9*pi/2)^2/2)*sin(v))", 
+    a: "-1.3",
+    b: "9*pi/2 + 1",
+    c: "0",
+    d: "2 pi",
+    material: new THREE.MeshStandardMaterial( {color: 0xffffbb, roughness: 0.5, metalness: 0.7 } )
   },
 }
 
@@ -272,16 +288,23 @@ function updateSurface() {
     };
     vec.set(x.evaluate( params ), y.evaluate( params ), z.evaluate( params ) );
   }, data.nX, data.nX);
-  const meshGeometry = meshLines( data.rNum, data.cNum, data.nX);
+  const meshGeometry = meshLines(rData, data.rNum, data.cNum, data.nX);
+  let material = plusMaterial;
+  if (surfaces[data.r].material) {
+    material = surfaces[data.r].material;
+  }
   if (surfaceMesh) {
     for (let i = 0; i < surfaceMesh.children.length; i++) {
       const mesh = surfaceMesh.children[i];
       mesh.geometry.dispose()
       mesh.geometry = i < 2 ? geometry : meshGeometry;
+      if (i < 1) {
+        mesh.material = material;
+      }
     }
   } else {
     surfaceMesh = new THREE.Object3D();
-    const frontMesh = new THREE.Mesh( geometry, plusMaterial );
+    const frontMesh = new THREE.Mesh( geometry, material );
     const backMesh = new THREE.Mesh( geometry, minusMaterial );
     // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
     surfaceMesh.add( frontMesh );
@@ -292,6 +315,7 @@ function updateSurface() {
   }
   render();
 }
+
 
 
 function lcm(x, y) {
@@ -311,7 +335,7 @@ function gcd(x, y) {
  return x;
 }
 
-function meshLines( rNum=10, cNum=10 , nX=30) {
+function meshLines( rData, rNum=10, cNum=10 , nX=30) {
   const {a,b,c,d,x,y,z} = rData;
   const N = lcm(lcm(rNum,cNum),nX);
   const A = a.evaluate(), B = b.evaluate();
@@ -374,7 +398,7 @@ function meshLines( rNum=10, cNum=10 , nX=30) {
 }
 
 
-const surfs = ["graphs","revolutions","spheres","customSurf"];
+const surfs = ["graphs","revolutions","spheres","customSurf","kiss","bugle"];
 for (let i = 0; i < surfs.length; i++) {
   const surf = surfs[i];
   const element = document.getElementById(surf);
@@ -396,10 +420,10 @@ for (let i = 0; i < surfs.length; i++) {
       const elForm = document.querySelector(`.surface-choices-item#${surfs[j]}-formula`)
       if (i === j) {
         el.classList.add("choices-selected");
-        elForm.style.display = 'block';
+        if (elForm) elForm.style.visibility = 'visible';
       } else {
         el.classList.remove("choices-selected");
-        elForm.style.display = 'none';
+        if (elForm) elForm.style.visibility = 'hidden';
       }
     }
   }

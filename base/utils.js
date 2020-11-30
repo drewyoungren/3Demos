@@ -449,7 +449,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
 }
 
-function drawGrid(gridMeshes = new THREE.Object3D(), coords = 'rect', gridMax=1, gridStep=0.1, lineMaterial=new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } )) {
+function drawGrid( { gridMeshes = new THREE.Object3D(), coords = 'rect', gridMax=1, gridStep=0.1, lineMaterial=new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } ) } = {} ) {
   let points = [];
   for (let index = gridMeshes.children.length - 1; index >= 0; index++) {
     const element = gridMeshes.children[index];

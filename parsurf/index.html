@@ -89,7 +89,22 @@
 
       <div class="page w3-padding w3-hide w3-animate-left" id="examples"> <span onclick="this.parentElement.classList.add('w3-hide');"
           class="w3-button w3-display-topright">&otimes;</span>
-        Coming soon.</div>
+          <div class="card-container">
+            <div class="card sans" id="kiss">
+              <img src="https://www.discoverwalks.com/blog/wp-content/uploads/2019/10/optimized-cathedral.jpg" alt="Onion Domes on Paris church" style="width:100%">
+              <div class="container">
+                <h4><b>onion dome</b></h4>
+              </div>
+            </div>
+            <div class="card sans" id="bugle">
+              <img src="https://www.jimlaabsmusicstore.com/wp-content/plugins/wp-easycart-data/products/pics1/Single%20French%20Horn%20(1)_fa8fdee99bc29ef687d82213a946e1d3.jpg" alt="Onion Domes on Paris church" style="width:100%">
+              <div class="container">
+                <h4><b>bugle</b></h4>
+              </div>
+            </div>
+            <!-- <span><span id="kiss">onion dome</span> </span> | <span> <span id="bugle"> bugle </span> </span>  -->
+          </div>
+      </div>
       <div class="page w3-padding w3-hide w3-animate-left" id="exercises"> <span onclick="this.parentElement.classList.add('w3-hide');"
           class="w3-button w3-display-topright">&otimes;</span>
         Coming soon.</div>
@@ -98,8 +113,9 @@
         <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
           (parameters).</p>
 
+          <div>
         <div class="surface-choices">
-          <div class="surface-choices-item" id="customSurf-formula" style="display: block;">
+          <div class="surface-choices-item" id="customSurf-formula" style="visibility: visible;">
             <p>
               $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$
               for $(u,v)$ in some domain $ D \subset \mathbb{R}^2$.
@@ -130,12 +146,12 @@
               \end{bmatrix} $$
               where $u$ is angle $\phi$, $v$ is angle $\theta$, and $R$ is the fixed radius.</p>
           </div>
-        </div>
+        </div></div>
         <!-- 
       A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
 
         <!-- <h2>Classes of surfaces:</h2> -->
-        <div class="noselect w3-row">
+        <div class="noselect choice-row sans">
           <span><span id="graphs">graphs of functions</span> </span> | <span> <span id="revolutions">surfaces of
               revolution</span> </span> | <span><span id="spheres">parts of spheres</span> </span> | <span> <span
               id="customSurf">custom</span></span></div>
@@ -199,7 +215,7 @@
     <div class="info-header-item title"> Settings </div>
   </header>
   <div><label for="segments">segments :</label>
-    <input type="range" name="nX" id="segments" min="4" max="60" step="1" value="30">
+    <input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
     <output style='font-family: monospace;'>30</output></div>
   <div><label for="rNum">u-meshes :</label>
     <input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
