@@ -90,7 +90,6 @@ controls.target.set( 0,0,0);
 // Grid
 
 let gridMeshes = drawGrid();
-
 scene.add(gridMeshes);
 
 // Axes
@@ -98,7 +97,7 @@ const axesMaterial = new THREE.MeshLambertMaterial( {color: 0x320032} );
 const axesHolder = drawAxes( {gridMax, gridStep, axesMaterial});
 scene.add(axesHolder)
 
-
+// Fonts
 const [axesText, font] = labelAxes( { scene } );
 
 const disposeArray = () => {
