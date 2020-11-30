@@ -7,9 +7,9 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Parametric Surfaces</title>
   <link rel="stylesheet" href="../base/main.css">
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="./w3.css">
   <link rel="stylesheet" href="./styles.css">
-  <script src="https://kit.fontawesome.com/1d130b1bdd.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
@@ -41,10 +41,18 @@
       var i;
       var x = document.getElementsByClassName("page");
       for (i = 0; i < x.length; i++) {
-        x[i].style.display = "none";
+        x[i].classList.add("w3-hide");
       }
-      document.getElementById(pageName).style.display = "block";
+      document.getElementById(pageName).classList.remove("w3-hide");
     }
+
+    function openSettings() {
+      const el = document.querySelector('#settings-box');
+      if ( el.classList.contains('w3-hide') ){
+        el.classList.remove('w3-hide');
+      } else { el.classList.add('w3-hide');} 
+    }
+
   </script>
 
 
@@ -56,19 +64,20 @@
   <canvas id="c"></canvas>
   <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
 
-  <div class="w3-container w3-display-topleft w3-border-black w3-border w3-padding" style="background-color: rgba(128,128,128,0.75); max-width: 800px;">
- 
-    <header class="w3-container ">
-      <h1> Parametric Surfaces </h1>
+  <div class="infobox" id="infobox">
+
+    <header class=" sans info-header">
+      <div class="info-header-item title"> Parametric Surfaces </div>
+      
+      <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+        <span class="menu-page-item" onclick="openPage('main')">info</span> | 
+        <span class="menu-page-item" onclick="openPage('examples')">examples</span> | 
+        <span class="menu-page-item" onclick="openPage('exercises')">exercises</span>
+      </div>
     </header>
 
-    <div class="w3-bar w3-dark-grey w3-center">
-      <button class="w3-bar-item w3-button" onclick="openPage('main')">info</button>
-      <button class="w3-bar-item w3-button" onclick="openPage('examples')">examples</button>
-      <button class="w3-bar-item w3-button" onclick="openPage('exercises')">exercises</button>
-    </div>
-
-    <!-- <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
+    <div class="">
+      <!-- <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
       Surfaces</b></span>
       
       <div id="page-holder">
@@ -78,105 +87,128 @@
       <span class="page-name" id="page-item-examples">more examples</span> | 
       <span class="page-name" id="page-item-exercises">exercises</span></div> -->
 
-      <div class="page w3-container w3-animate-opacity" id="main">
-        <span onclick="this.parentElement.style.display='none'" class="w3-button w3-display-topright">&otimes;</span>
+      <div class="page w3-padding w3-hide w3-animate-left" id="examples"> <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        Coming soon.</div>
+      <div class="page w3-padding w3-hide w3-animate-left" id="exercises"> <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        Coming soon.</div>
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
         <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
           (parameters).</p>
 
-          <div class="surface-choices">
-            <div class="surface-choices-item" id="customSurf-formula" style="display: block;">
-              <p>
-                $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$ 
-                for $(u,v)$ in some domain $ D \subset \mathbb{R}^2$.
-              </p>
-            </div>
-            <div class="surface-choices-item" id="graphs-formula">
-              <p>
-                $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} = 
-                \begin{bmatrix} u \\ v \\ f(u,v) \end{bmatrix} $$
-               where $u,v$ are input parameters and $f(u,v)$ gives 3rd coordinate.</p>
-            </div>
-            <div class="surface-choices-item" id="revolutions-formula">
-              <p> $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} = 
-              \begin{bmatrix}
-               u \\
-               R(u) \cos(v) \\
-               R(u) \sin(v)
-              \end{bmatrix} $$
-              where $u$ tracks position along axis. $R(u)$ is the radius at position $u$.$v$ tracks angle around axis. </p>
-            </div>
-            <div class="surface-choices-item" id="spheres-formula">
-              <p> $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} = 
-                \begin{bmatrix}
-               R\sin(u)\cos(v) \\
-               R\sin(u)\sin(v) \\
-               R\cos(u)
-              \end{bmatrix} $$
-               where $u$ is angle $\phi$, $v$ is angle $\theta$, and $R$ is the fixed radius.</p>
-            </div>
+        <div class="surface-choices">
+          <div class="surface-choices-item" id="customSurf-formula" style="display: block;">
+            <p>
+              $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$
+              for $(u,v)$ in some domain $ D \subset \mathbb{R}^2$.
+            </p>
           </div>
-          <!-- 
+          <div class="surface-choices-item" id="graphs-formula">
+            <p>
+              $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} =
+              \begin{bmatrix} u \\ v \\ f(u,v) \end{bmatrix} $$
+              where $u,v$ are input parameters and $f(u,v)$ gives 3rd coordinate.</p>
+          </div>
+          <div class="surface-choices-item" id="revolutions-formula">
+            <p> $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} =
+              \begin{bmatrix}
+              u \\
+              R(u) \cos(v) \\
+              R(u) \sin(v)
+              \end{bmatrix} $$
+              where $u$ tracks position along axis. $R(u)$ is the radius at position $u$.$v$ tracks angle around axis.
+            </p>
+          </div>
+          <div class="surface-choices-item" id="spheres-formula">
+            <p> $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} =
+              \begin{bmatrix}
+              R\sin(u)\cos(v) \\
+              R\sin(u)\sin(v) \\
+              R\cos(u)
+              \end{bmatrix} $$
+              where $u$ is angle $\phi$, $v$ is angle $\theta$, and $R$ is the fixed radius.</p>
+          </div>
+        </div>
+        <!-- 
       A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
 
-          <h2>Classes of surfaces:</h2>
-          <div class="noselect w3-bar">
-            <span><span  id="graphs">graphs of functions</span> </span>  |  <span> <span 
-                id="revolutions">surfaces of revolution</span> </span>  |   <span><span  id="spheres">parts of spheres</span> </span>  |  <span> <span 
-                id="customSurf">custom</span></span></div>
-    
+        <!-- <h2>Classes of surfaces:</h2> -->
+        <div class="noselect w3-row">
+          <span><span id="graphs">graphs of functions</span> </span> | <span> <span id="revolutions">surfaces of
+              revolution</span> </span> | <span><span id="spheres">parts of spheres</span> </span> | <span> <span
+              id="customSurf">custom</span></span></div>
 
-   <div class="w3-container" id="custom-uvs">
-     <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
-      <div>
-        <span>$x(u,v) = $ </span>
-        <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
-          style="color: red;" class="form-warning"></span></span>
-        </div>
-        <div>
-          <span>$y(u,v) = $ </span>
-          <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
-            style="color: red;" class="form-warning"></span></span>
-          </div>
-          <div>
-            <span>$z(u,v) = $ </span>
-            <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
-              style="color: red;" class="form-warning"></span></span>
+
+        <div class="w3-container" id="custom-uvs">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$x(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$y(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$z(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
+                  style="color: red;" class="form-warning"></span></span>
             </div>
           </div>
-            
-            <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
-              <div>
-                <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
                   id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
-                </span>
-                $ \leq u \leq $
-                <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+              </span>
+              $ \leq u \leq $
+              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
                   value="1"><span style="color: red;" class="form-warning"></span>
-                </span>
-              </div>
-              <div>
-                <span>
-                  <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
                   id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
-                </span>
-                $ \leq v \leq $
-                <span>
-                  <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+              </span>
+              $ \leq v \leq $
+              <span>
+                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
                   style="color: red;" class="form-warning"></span>
-                </span>
-              </div>
+              </span>
             </div>
           </div>
-
         </div>
-          <button class="w3-button w3-display-bottomleft button" id="settings"><i class="fa fa-cog"></i></button>
-          <button class="w3-button w3-display-bottomright button" id="encodeURL"><i class="fa fa-barcode"></i></button>
+
       </div>
-      </div>
+    </div> 
+  </div>
+          <div class="w3-display-bottomleft">
+            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
+            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+          </div>
 
 
-    </div>
+<div class="infobox w3-hide" id="settings-box" style="display: block;">
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Settings </div>
+  </header>
+  <div><label for="segments">segments :</label>
+    <input type="range" name="nX" id="segments" min="4" max="60" step="1" value="30">
+    <output style='font-family: monospace;'>30</output></div>
+  <div><label for="rNum">u-meshes :</label>
+    <input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+    <output style='font-family: monospace;'>10</output></div>
+  <div><label for="cNum">v-meshes :</label>
+    <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+    <output style='font-family: monospace;'>10</output></div>
 
+</div>
 
 
 </body>

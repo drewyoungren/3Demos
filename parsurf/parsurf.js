@@ -228,27 +228,37 @@ function makeQueryStringObject() {
   return query;
 }
 
+document.querySelectorAll("#settings-box>div>input").forEach( (element) => {
+  element.oninput = () => {
+    data[element.name] = parseInt(element.value);
+    // console.log("input change", element.name, element.value, data);
+    if (myReq) {
+      cancelAnimationFrame(myReq);
+    }
+    myReq = requestAnimationFrame(updateSurface);
+    element.nextElementSibling.value = element.value;
+  }
+});
 
-
-const gui = new GUI();
-gui.add(data, 'nX', 2, 60, 1).name("Segments").onChange(() => {
-  if (myReq) {
-    cancelAnimationFrame(myReq);
-  }
-  myReq = requestAnimationFrame(updateSurface)
-});
-gui.add(data,'rNum',2,60,1).name("u-Meshes").onChange(() => {
-  if (myReq) {
-    cancelAnimationFrame(myReq);
-  }
-  myReq = requestAnimationFrame(updateSurface)
-});
-gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(() => {
-  if (myReq) {
-    cancelAnimationFrame(myReq);
-  }
-  myReq = requestAnimationFrame(updateSurface)
-});
+// const gui = new GUI();
+// gui.add(data, 'nX', 2, 60, 1).name("Segments").onChange(() => {
+//   if (myReq) {
+//     cancelAnimationFrame(myReq);
+//   }
+//   myReq = requestAnimationFrame(updateSurface);
+// });
+// gui.add(data,'rNum',2,60,1).name("u-Meshes").onChange(() => {
+//   if (myReq) {
+//     cancelAnimationFrame(myReq);
+//   }
+//   myReq = requestAnimationFrame(updateSurface)
+// });
+// gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(() => {
+//   if (myReq) {
+//     cancelAnimationFrame(myReq);
+//   }
+//   myReq = requestAnimationFrame(updateSurface)
+// });
 
 let surfaceMesh;
 function updateSurface() {
