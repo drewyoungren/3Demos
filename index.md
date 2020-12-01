@@ -10,3 +10,4 @@ subtitle: Visualizations for Multivariable Calculus
   - [Spherical Coordinates](spherical/index.html)
   - [Line Integrals](lineint/index.html)
   - [Parametric Surfaces](parsurf/index.html)
+  - [Surfaces](surfint/index.html)

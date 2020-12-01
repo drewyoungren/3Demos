@@ -76,28 +76,35 @@
       
       <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
         <span class="menu-page-item" onclick="openPage('main')">info</span> | 
-        <span class="menu-page-item" onclick="openPage('examples')">examples</span> | 
+        <span class="menu-page-item" onclick="openPage('areas')">areas</span> | 
         <span class="menu-page-item" onclick="openPage('exercises')">exercises</span>
       </div>
     </header>
 
     <div class="">
-      <!-- <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
-      Surfaces</b></span>
-      
-      <div id="page-holder">
-          
-
-      <div class="page-selector"><span class="page-name" id="page-item-info">info</span> | 
-      <span class="page-name" id="page-item-examples">more examples</span> | 
-      <span class="page-name" id="page-item-exercises">exercises</span></div> -->
 
       <div class="page w3-padding w3-hide w3-animate-left" id="areas"> 
         <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
           &otimes;
         </span>
           
-        <p>Recall the area of a parallelogram with edges defined by $\vec u$ and $\vec v$ is $|\vec v ||\vec u| \sin \theta = |\vec u \times \vec v|$. </p>
+        <p>Recall the area of a parallelogram with edges defined by $\vec a$ and $\vec b$ is $$|\vec b ||\vec a| \sin \theta = |\vec a \times \vec b|$$ so we can approximate the area of a piece of our surface using a piece of te tangent plane. </p>
+        <p> To wit, suppose we partition our parameters into segments of size $\Delta u$ and $\Delta v$. Then, we have 
+          $$\Delta S = | (\vec r_u(u,v) \,\Delta u) \times (\vec r_v(u,v)\,\Delta v) |.$$ 
+          </p>
+
+          <div class="interact"><p>
+            <b>Interact:</b> Chop up the $u$- and $v$-spaces into equal segments and view the "tangent trapezoids" that approximate the surface. <span style="float: inline-end;"><input type="range" name="shards" id="shards" min="0" max="30" step="1" value="0"><output></output></span>
+          </p></div>
+
+          <p>
+          
+          In the limit, this becomes the elegant $$dS = |\vec r_u \times \vec r_v| \,du\,dv$$
+          
+          which allows us to define the <b>surface integral with respect to surface area</b>: 
+          $$ \iint_\Sigma f\, dS = \iint_D f(x(u,v), y(u,v), z(u,v))\,|\vec r_u \times \vec r_v| \,du\,dv$$
+        </p>
+        <p>Of course, if $f\equiv 1$, we just get the surface area.</p>
 
       </div>
       <div class="page w3-padding w3-hide w3-animate-left" id="exercises"> <span onclick="this.parentElement.classList.add('w3-hide');"
@@ -119,8 +126,9 @@
             \end{align*} We say the parametrization is <em>smooth</em> if these span a tangent plane. That is, they form a nonzero <em>normal vector</em> $$\vec n = \vec r_u \times r_v $$ for each $(u,v)$ pair. 
           </p>
 
-          <div class="point-button-container"><button class="w3-button button sans" id="point-select-button">select point</button></div>
-
+          <div class="interact">
+            <p><b>Interact:</b>  Turn on <span class="sans">frame</span> in the settings menu <i class="fa fa-cog" onclick="openSettings()"></i> below. Then hold <kbd>Shift</kbd> and use your mouse to select a point.</p>
+          </div>
         <!-- 
       A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
 
@@ -128,7 +136,7 @@
         <div class="noselect choice-row sans">
           <span><span id="graphs">graphs of functions</span> </span> | <span> <span id="revolutions">surfaces of
               revolution</span> </span> | <span><span id="spheres">parts of spheres</span> </span> | <span> <span
-              id="customSurf">custom</span></span></div>
+              id="customSurf">non-orientable</span></span></div>
 
 
         <div class="w3-container" id="custom-uvs">
@@ -180,6 +188,7 @@
           <div class="w3-display-bottomleft">
             <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
             <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+            <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
           </div>
 
 
@@ -197,6 +206,7 @@
   <div><label for="cNum">v-meshes :</label>
     <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
     <output style='font-family: monospace;'>10</output></div>
+  <div><label for="frameBall">frame : </label><input type="checkbox" name="frameBallVisible" id="frameBallVisible"></div>
 
 </div>
 

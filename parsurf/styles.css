@@ -136,3 +136,9 @@ body {
       margin-right: auto;
       text-align: center;
   }
+
+  .interact {
+      background-color: rgba(192,192,192,0.5);
+      border: 1px solid black;
+      font-size: xx-large;
+  }

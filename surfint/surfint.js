@@ -117,7 +117,7 @@ const materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 7
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 
 whiteLineMaterial.polygonOffset = true;
-whiteLineMaterial.polygonOffsetFactor = -0.1;
+whiteLineMaterial.polygonOffsetFactor = 0.1;
 
 const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 14});
 
@@ -165,11 +165,11 @@ const surfaces = {
     d: "2 pi",
   },
   customSurf: {
-    x: "u", 
-    y: "v",
-    z: "(1/4 - u/4)^3+ 0.01",
-    a: "-1",
-    b: "1",
+    x: "(1 + cos(u/2)*v/3)*cos(u)", 
+    y: "(1 + cos(u/2)*v/3)*sin(u)",
+    z: "(sin(u/2)*v/3)",
+    a: "0",
+    b: "2 pi",
     c: "-1",
     d: "1",
   },
@@ -210,6 +210,7 @@ const data = {
   nX: 30,
   rNum: 10,
   cNum: 10,
+  shards: 0,
 }
 
 const urlParams = new URLSearchParams(location.search)
@@ -255,14 +256,29 @@ function makeQueryStringObject() {
 document.querySelectorAll("#settings-box>div>input").forEach( (element) => {
   element.oninput = () => {
     data[element.name] = parseInt(element.value);
-    // console.log("input change", element.name, element.value, data);
-    if (myReq) {
-      cancelAnimationFrame(myReq);
-    }
-    myReq = requestAnimationFrame(updateSurface);
+    updateSurface();
+
     element.nextElementSibling.value = element.value;
   }
 });
+
+document.querySelectorAll("#shards").forEach( (element) => {
+  element.oninput = () => {
+    data[element.name] = parseInt(element.value);
+    updateSurface();
+
+    element.nextElementSibling.value = element.value;
+  }
+});
+
+{
+  const element = document.querySelector("input#frameBallVisible");
+  element.oninput = () => {
+    frameBall.visible = element.checked;
+    // console.log("frameball checked", element.checked)
+    // updateSurface
+  }
+}
 
 // const gui = new GUI();
 // gui.add(data, 'nX', 2, 60, 1).name("Segments").onChange(() => {
@@ -321,6 +337,8 @@ function updateSurface() {
   // mesh.visible = false;
     scene.add(surfaceMesh);
   }
+  tangentVectors();
+  updateShards(data.shards);
 }
 
 
@@ -447,7 +465,7 @@ for (let i = 0; i < surfs.length; i++) {
 
     element.onchange = () => {
       const c = ch.toLowerCase();
-      console.log(element.value, "is the value of" + ch);
+      // console.log(element.value, "is the value of" + ch);
       const form = document.querySelector(`#${id} + .form-warning`);
       try {
         const expr = math.parse(element.value).compile();
@@ -467,47 +485,89 @@ for (let i = 0; i < surfs.length; i++) {
 
 // Select a point
 const frameBall = new THREE.Object3D();
-const arrow = new THREE.Mesh( new ArrowBufferGeometry( ), axesMaterial);
-const arrowV = new THREE.Mesh( new ArrowBufferGeometry( ), axesMaterial);
-frameBall.add(arrow);
-frameBall.add(arrowV);
+const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh()};
+const ruColors = {u: 0xffff33, v: 0xff33ff, n: 0x33ffff};
+for (let key of Object.keys(arrows)) {
+  arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
+  frameBall.add(arrows[key])
+}
+
+const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
+const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
+
+frameBall.add(point);
+frameBall.visible = false;
+
 scene.add(frameBall);
+
+function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
+  const {a,b,c,d,x,y,z} = rData;
+  const A = a.evaluate(), B = b.evaluate()
+  const U = (1 - u)*A + u*B; 
+  const C = c.evaluate( {u: U} ), D = d.evaluate( {u: U} );
+  const V = (1 - v)*C + v*D; 
+  // const du = (B - A) / data.rNum, dv = (dMax - cMin) / data.cNum;
+
+  const p = new THREE.Vector3(x.evaluate({u: U, v: V}), y.evaluate({u: U, v: V}), z.evaluate({u: U, v: V})), 
+    ruForward = new THREE.Vector3(x.evaluate({u: U + dt/2, v: V}), y.evaluate({u: U + dt/2, v: V}), z.evaluate({u: U + dt/2, v: V})), 
+    ruBackward = new THREE.Vector3(x.evaluate({u: U - dt/2, v: V}), y.evaluate({u: U - dt/2, v: V}), z.evaluate({u: U - dt/2, v: V})), 
+    rvForward = new THREE.Vector3(x.evaluate({u: U, v: V + dt/2}), y.evaluate({u: U, v: V + dt/2}), z.evaluate({u: U, v: V + dt/2})),
+    rvBackward = new THREE.Vector3(x.evaluate({u: U, v: V - dt/2}), y.evaluate({u: U, v: V - dt/2}), z.evaluate({u: U, v: V - dt/2}));
+  
+    
+    ruForward.sub(ruBackward).multiplyScalar((B - A) * du / dt);
+    rvForward.sub(rvBackward).multiplyScalar((D - C) * dv / dt);
+    // console.log("inside ruF",dMax,cMin,{p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward)}dv);
+  // console.log(p,ru,rv);
+
+
+  return {p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward)}
+}
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
 function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
-  if (1 - v < dt) {dt = - dt};
-  const euv = (obj) => obj.evaluate({u,v})
-  const {a,b,c,d,x,y,z} = rData;
-  const U = euv(a) + (euv(b) - euv(a))*u, V = euv(c) + (euv(d) - euv(c))*v;
-  const du = (b.evaluate() - a.evaluate()) / data.rNum, dv = (dMax - cMin) / data.cNum;
-  const eUV = (obj) => obj.evaluate({u: U, v: V});
-  const p = new THREE.Vector3(x.evaluate({u: U, v: V}), y.evaluate({u: U, v: V}), z.evaluate({u: U, v: V})), 
-    ruForward = new THREE.Vector3(x.evaluate({u: U + dt/2, v: V}), y.evaluate({u: U + dt/2, v: V}), z.evaluate({u: U + dt/2, v: V})), 
-    rvForward = new THREE.Vector3(x.evaluate({u: U, v: V + dt/2}), y.evaluate({u: U, v: V + dt/2}), z.evaluate({u: U, v: V + dt/2})),
-    ruBackward = new THREE.Vector3(x.evaluate({u: U - dt/2, v: V}), y.evaluate({u: U - dt/2, v: V}), z.evaluate({u: U - dt/2, v: V})), 
-    rvBackward = new THREE.Vector3(x.evaluate({u: U, v: V - dt/2}), y.evaluate({u: U, v: V - dt/2}), z.evaluate({u: U, v: V - dt/2}));
-  ruForward.sub(ruBackward).multiplyScalar(du / dt);
-  rvForward.sub(rvBackward).multiplyScalar(dv / dt);
-  // console.log(p,ru,rv);
-  arrow.position.copy(p);
-  arrow.lookAt(p.add(ruForward));
-  arrow.geometry.dispose();
-  arrow.geometry = new ArrowBufferGeometry( { radiusTop: gridStep / 10,  radiusBottom: gridStep / 20, height: ruForward.length(), heightTop: gridStep/10 } )
+  // if (1 - v < dt) {dt = - dt};
 
-  arrowV.position.copy(p.sub(ruForward));
-  arrowV.lookAt(p.add(rvForward));
-  arrowV.geometry.dispose();
-  arrowV.geometry = new ArrowBufferGeometry( { radiusTop: gridStep / 10,  radiusBottom: gridStep / 20, height: rvForward.length(), heightTop: gridStep/10 } )
+  // const {a,b,c,d,x,y,z} = rData;
+  // const A = a.evaluate(), B = b.evaluate()
+  // const U = (1 - u)*A + u*B; 
+  // const C = c.evaluate( {u: U} ), D = d.evaluate( {u: U} );
+  // const V = (1 - v)*C + v*D; 
+  // const du = (B - A) / data.rNum, dv = (dMax - cMin) / data.cNum;
+
+  // const p = new THREE.Vector3(x.evaluate({u: U, v: V}), y.evaluate({u: U, v: V}), z.evaluate({u: U, v: V})), 
+  //   ruForward = new THREE.Vector3(x.evaluate({u: U + dt/2, v: V}), y.evaluate({u: U + dt/2, v: V}), z.evaluate({u: U + dt/2, v: V})), 
+  //   rvForward = new THREE.Vector3(x.evaluate({u: U, v: V + dt/2}), y.evaluate({u: U, v: V + dt/2}), z.evaluate({u: U, v: V + dt/2})),
+  //   ruBackward = new THREE.Vector3(x.evaluate({u: U - dt/2, v: V}), y.evaluate({u: U - dt/2, v: V}), z.evaluate({u: U - dt/2, v: V})), 
+  //   rvBackward = new THREE.Vector3(x.evaluate({u: U, v: V - dt/2}), y.evaluate({u: U, v: V - dt/2}), z.evaluate({u: U, v: V - dt/2}));
+
+  // point.position.copy(p);
+  // ruForward.sub(ruBackward).multiplyScalar(du / dt);
+  // rvForward.sub(rvBackward).multiplyScalar(dv / dt);
+  // // console.log(p,ru,rv);
+
+  const dr = ruFrame( {u,v,dt,du: 1/data.rNum, dv: 1/data.cNum});
+
+  point.position.copy(dr.p);
+
+
+  const arrowParams = { radiusTop: gridStep / 10,  radiusBottom: gridStep / 20, heightTop: gridStep/10 }
+
+  for (const [key, arrow] of Object.entries(arrows)) {
+    const pos = dr.p.clone();
+    arrow.position.copy(pos);
+    if ( arrow.geometry ) arrow.geometry.dispose();
+    arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
+    arrow.lookAt(pos.add(dr[key]));
+  }
+
 }
 
 
 
-const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
-const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/4, 10,10),pointMaterial);
 
-frameBall.add(point);
 
-point.position.set(5,5,-5);
+
 
 const raycaster = new THREE.Raycaster();
 
@@ -522,11 +582,11 @@ function onMouseMove( e ) {
     
       raycaster.setFromCamera( mouseVector, camera );
 
-      const intersects = raycaster.intersectObjects( [ surfaceMesh.children[0] ], true );
+      const intersects = raycaster.intersectObjects( [ surfaceMesh.children[0], surfaceMesh.children[1] ], true );
 
       if ( intersects.length > 0 ) {
         const intersect = intersects[0];
-        // console.log(intersect);
+        console.log(intersect.uv);
         point.position.x = intersect.point.x;
         point.position.y = intersect.point.y;
         point.position.z = intersect.point.z;
@@ -545,16 +605,49 @@ window.addEventListener('mousemove',onMouseMove,false);
 window.addEventListener('keydown',(e) => {
   if (e.key === "Shift") {
     selectNewPoint = true;
-    frameBall.visible = true;
+    // frameBall.visible = true;
   }
 },false);
 window.addEventListener('keyup',(e) => {
   if (e.key === "Shift") {
     selectNewPoint = false;
-    frameBall.visible = false;
+    // frameBall.visible = false;
   }
 },false);
 
+
+// Add surface area pieces
+
+const shards = new THREE.Object3D();
+const shardMaterial = new THREE.MeshPhongMaterial( {color: 0xb4b4b4, shininess: 80, side: THREE.DoubleSide })
+scene.add(shards);
+
+function updateShards(N=0) {
+  for (let index = shards.children.length - 1; index >= 0 ; index--) {
+    const element = shards.children[index];
+    element.geometry.dispose()
+    shards.remove(element);
+  }
+  if (N < 1) return;
+  const dt = 1/N;
+  const vec = new THREE.Vector3();
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      const {p,u,v} = ruFrame( {u: i*dt, v: j*dt, du: dt, dv: dt } );
+      const geometry = new THREE.ParametricBufferGeometry( (x,y,vec) => {
+        vec.copy(p);
+        vec.add(u.clone().multiplyScalar(x)).add(v.clone().multiplyScalar(y));
+        vec.z += 0.001;
+        // console.log(x, y, vec)
+      },1,1);
+      const shard = new THREE.Mesh( geometry, shardMaterial );
+      shards.add(shard);
+    }
+  }
+}
+
+// updateShards(22);
+// console.log(shards.children)
 
 
 // from https://threejsfundamentals.org 
@@ -603,6 +696,20 @@ document.getElementById("encodeURL").onclick = () => {
     window.location.search = qString.toString();
 };
 
+document.querySelector("#cameraReset").onclick = () => {
+  // console.log();
+  controls.target.set(0,0,0);
+};
+
 // gui.domElement.style.zIndex = 2000;
 updateSurface();
+
+//initialize frame
+{
+  const uv = {u: 0.5, v: 0.5};
+  point.position.set(rData.x.evaluate(uv));
+  tangentVectors();
+}
+
+// go
 animate();
