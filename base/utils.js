@@ -175,7 +175,7 @@ export function marchingSegments(f, a=0, b=1, nX=100) {
 // Modified from https://github.com/mrdoob/three.js/blob/master/src/geometries/CylinderBufferGeometry.js
 class ArrowBufferGeometry extends THREE.BufferGeometry {
 
-	constructor( radiusTop = 1/16, radiusBottom = 1/20, height = 1, heightTop = 1/6, radialSegments = 8, heightSegments = 1, openEnded = false, heightIncludesHead = true ) {
+	constructor( {radiusTop = 1/16, radiusBottom = 1/20, height = 1, heightTop = 1/6, radialSegments = 8, heightSegments = 1, openEnded = false, heightIncludesHead = true} = {} ) {
 
 		super();
 		this.type = 'ArrowBufferGeometry';
@@ -491,7 +491,7 @@ function drawAxes( {
 ) {
   console.log(" invoke stuff ", gridMax, gridStep);
   const axesHolder = new THREE.Object3D();
-  const axisGeometry = new ArrowBufferGeometry( gridStep/9, gridStep/16, gridMax*3, gridStep/3 * 2 , 8, 8, false, false );
+  const axisGeometry = new ArrowBufferGeometry( {radiusTop: gridStep/9, radiusBottom: gridStep/16, height: gridMax*3, heightTop: gridStep/3 * 2 , heightIncludesHead: false} );
   for (let index = 0; index < 3; index++) {
     let arrow = new THREE.Mesh( axisGeometry, axesMaterial );
     if (index === 0) {

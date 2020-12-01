@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Surface Integrals</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./w3.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        macros: {
+          RR: "{\\mathbb R}",
+          bold: ["{\\bf #1}", 1],
+          vec: "\\mathbf "
+    }
+      }
+    };
+
+    function clickInfo() {
+      var el = document.querySelector('#page-holder');
+      var elParent = document.querySelector('#infobutton');
+      if (el.style.display == 'block') {
+        elParent.innerHTML = `<b>&oplus; ${document.title}</b>`;
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        elParent.innerHTML = `<b>&otimes; ${document.title}</b>`;
+        elParent.style.height = 'fit-content';
+      }
+    }
+
+    function openPage(pageName) {
+      var i;
+      var x = document.getElementsByClassName("page");
+      for (i = 0; i < x.length; i++) {
+        x[i].classList.add("w3-hide");
+      }
+      document.getElementById(pageName).classList.remove("w3-hide");
+    }
+
+    function openSettings() {
+      const el = document.querySelector('#settings-box');
+      if ( el.classList.contains('w3-hide') ){
+        el.classList.remove('w3-hide');
+      } else { el.classList.add('w3-hide');} 
+    }
+
+  </script>
+
+
+</head>
+
+<body>
+
+
+  <canvas id="c"></canvas>
+  <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
+
+  <div class="infobox" id="infobox">
+
+    <header class=" sans info-header">
+      <div class="info-header-item title"> Surface Integrals </div>
+      
+      <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+        <span class="menu-page-item" onclick="openPage('main')">info</span> | 
+        <span class="menu-page-item" onclick="openPage('examples')">examples</span> | 
+        <span class="menu-page-item" onclick="openPage('exercises')">exercises</span>
+      </div>
+    </header>
+
+    <div class="">
+      <!-- <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Parametric
+      Surfaces</b></span>
+      
+      <div id="page-holder">
+          
+
+      <div class="page-selector"><span class="page-name" id="page-item-info">info</span> | 
+      <span class="page-name" id="page-item-examples">more examples</span> | 
+      <span class="page-name" id="page-item-exercises">exercises</span></div> -->
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="areas"> 
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+          &otimes;
+        </span>
+          
+        <p>Recall the area of a parallelogram with edges defined by $\vec u$ and $\vec v$ is $|\vec v ||\vec u| \sin \theta = |\vec u \times \vec v|$. </p>
+
+      </div>
+      <div class="page w3-padding w3-hide w3-animate-left" id="exercises"> <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        Coming soon.</div>
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+        <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
+          (parameters).</p>
+
+          <p>
+            $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$
+            for $(u,v)$ in some domain $ D \subset \mathbb{R}^2$.
+          </p>
+          <p>Assuming the components of $\vec r$ are differentiable, can compute the tangent vectors
+            \begin{align*} 
+              \vec r_u &= \frac{\partial x}{\partial u}\,\vec i + \frac{\partial y}{\partial u} \,\vec j + \frac{\partial z}{\partial u} \,\vec k \\
+              \vec r_v &= \frac{\partial x}{\partial v}\,\vec i + \frac{\partial y}{\partial v} \,\vec j + \frac{\partial z}{\partial v} \,\vec k \\
+            \end{align*} We say the parametrization is <em>smooth</em> if these span a tangent plane. That is, they form a nonzero <em>normal vector</em> $$\vec n = \vec r_u \times r_v $$ for each $(u,v)$ pair. 
+          </p>
+
+          <div class="point-button-container"><button class="w3-button button sans" id="point-select-button">select point</button></div>
+
+        <!-- 
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+        <!-- <h2>Classes of surfaces:</h2> -->
+        <div class="noselect choice-row sans">
+          <span><span id="graphs">graphs of functions</span> </span> | <span> <span id="revolutions">surfaces of
+              revolution</span> </span> | <span><span id="spheres">parts of spheres</span> </span> | <span> <span
+              id="customSurf">custom</span></span></div>
+
+
+        <div class="w3-container" id="custom-uvs">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$x(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$y(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$z(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+          </div>
+
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+                  id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq u \leq $
+              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                  value="1"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+                  id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq v \leq $
+              <span>
+                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                  style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div> 
+  </div>
+          <div class="w3-display-bottomleft">
+            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
+            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+          </div>
+
+
+<div class="infobox w3-hide" id="settings-box" style="display: block;">
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Settings </div>
+  </header>
+  <div><label for="segments">segments :</label>
+    <input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
+    <output style='font-family: monospace;'>30</output></div>
+  <div><label for="rNum">u-meshes :</label>
+    <input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+    <output style='font-family: monospace;'>10</output></div>
+  <div><label for="cNum">v-meshes :</label>
+    <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+    <output style='font-family: monospace;'>10</output></div>
+
+</div>
+
+
+</body>
+
+<script type="module" src="./surfint.js"></script>
+
+</html>
