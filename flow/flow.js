@@ -6,6 +6,10 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 import { GUI} from '../base/dat.gui.module.js';
 import  { ArrowBufferGeometry, drawAxes, drawGrid, labelAxes }  from "../base/utils.js";
 
+const stats = new Stats();
+stats.showPanel( 2 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild( stats.dom );
+
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
 
@@ -71,7 +75,7 @@ for (let i=0; i < candles; i++) {
   }
 }
 scene.add(chandelier);
-
+ 
 // controls 
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -209,18 +213,19 @@ gui.add(data,'field',Object.keys(fields))
 const quiver = new THREE.Object3D();
 scene.add(quiver);
 const arrowGeometries = [];
+
 for (let i = 1; i < 51; i++) {
-  arrowGeometries.push(new ArrowBufferGeometry( Math.min(1/30,i/100), Math.min(1/60,i/100), i/100, Math.min(1/10, i/100)));
+  arrowGeometries.push(new ArrowBufferGeometry( {radiusTop: Math.min(1/180,i/100), radiusBottom: Math.min(1/200,i/1000), height: i/100, heightTop: Math.min(1/100, i/100) } ));
 }
 
 
 for (let i = 0; i < 8; i++) {
   for (let j = 0; j < 8; j++) {
-    for (let k = -1; k <= 2; k += 1/2) {
+    for (let k = -1; k <= 8; k += 1/2) {
     let vec = new THREE.Vector3();
     const pos = new THREE.Vector3();
     pos.set(Math.random()-1/2, Math.random()-1/2, Math.random()-1/2).normalize();
-    pos.multiplyScalar(4*gridMax);
+    pos.multiplyScalar(2*gridMax);
     fields[data.field].func(pos.x,pos.y,pos.z,vec);
 
     const arrow = new THREE.Mesh( arrowGeometries[Math.min(49, Math.round( vec.length()*20 )) ], material );
@@ -247,6 +252,8 @@ function animate( time ) {
     dt = (time - last) * 0.001;
   }
   last = time;
+
+  stats.begin()
   const F = fields[data.field].func;
   let vec = new THREE.Vector3();
 
@@ -256,9 +263,9 @@ function animate( time ) {
     const pos = arrow.position.clone();
     pos.add(F(pos.x,pos.y,pos.z,vec).multiplyScalar(dt));
 
-    if (pos.length() > 4*gridMax) {
+    if (Math.max(Math.abs(pos.x), Math.abs(pos.y), Math.abs(pos.z)) > 2*gridMax) {
       pos.set(Math.random()-1/2, Math.random()-1/2, Math.random()-1/2).normalize();
-      pos.multiplyScalar(4*gridMax);
+      pos.multiplyScalar(2*gridMax);
     }
 
     arrow.position.set(pos.x , pos.y , pos.z );
@@ -271,6 +278,9 @@ function animate( time ) {
   }
   counter ++;
   render();
+
+  stats.end()
+
   if (true){
     requestAnimationFrame(animate);
   }

@@ -4,50 +4,27 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<title>Line Integrals</title>
+	<title>Vector Fields</title>
   <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="../base/w3.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
+
   <script>
     window.MathJax = {
       tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        macros: {
+          RR: "{\\mathbb R}",
+          bold: ["{\\bf #1}", 1],
+          vec: "\\mathbf "
+        }
       }
     };
-    function clickInfo() {
-      var el = document.querySelector('#infop'); 
-      var elParent = document.querySelector('#infobutton'); 
-      if (el.style.display == 'block') { 
-        elParent.innerHTML = "<b>&oplus; Line Integrals</b>" ;
-        el.style.display = 'none';
-        elParent.style.height = '1em';
-      } else {
-        el.style.display = 'block';
-        elParent.innerHTML = "<b>&otimes; Line Integrals</b>" ;
-        elParent.style.height = 'fit-content';
-      } 
-    }
-
-
   </script>
-
-  <style>
-    #t-formula {
-      display: none;
-    }
-
-    .button {
-      border: 1px solid #000;
-      border-radius: 5px;
-      padding: 5px;
-      font-size: medium;
-    }
-
-    .button.active {
-      background-color: #323232;
-      color: #ddd;
-    }
-  </style>
 
 </head>
 <body>
@@ -56,27 +33,152 @@
       <canvas id="c"></canvas>
       <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas>
       
-<div id="infocontainer" style="width: 800px;">
+<!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
 
-  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Flow of a Vector Field</b></span>
-    <div id="infop" style="display: none; width: 800px;">
-      
-      <p>
+<div class="infobox" id="infobox">
+
+  <header class=" sans info-header">
+    <div class="info-header-item title">Vector Fields &amp; Flows </div>
+    
+    <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+      <span class="menu-page-item" onclick="openPage('main')">info</span> | 
+      <span class="menu-page-item" onclick="openPage('areas')">areas</span> | 
+      <span class="menu-page-item" onclick="openPage('exercises')">exercises</span>
+    </div>
+  </header>
+
+  <div class="">
+
+    <div class="page w3-padding w3-hide w3-animate-left" id="areas"> 
+      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+        &otimes;
+      </span>
         
-        Let's visualize the flow of a vector field.
-        <div style="height: 2em;"><span id="F-formula">$$ \mathb{F}(x,y,z)$$</span></div>
-        <div class="choices noselect">
-          <span class="choices" id="constant">constant</span> &nbsp; | &nbsp; <span class="choices" id="swirl">swirl</span> &nbsp; | &nbsp;  <span class="choices" id="wave">wave</span>
-        </div>
+      <p>Recall the area of a parallelogram with edges defined by $\vec a$ and $\vec b$ is $$|\vec b ||\vec a| \sin \theta = |\vec a \times \vec b|$$ so we can approximate the area of a piece of our surface using a piece of te tangent plane. </p>
+      <p> To wit, suppose we partition our parameters into segments of size $\Delta u$ and $\Delta v$. Then, we have 
+        $$\Delta S = | (\vec r_u(u,v) \,\Delta u) \times (\vec r_v(u,v)\,\Delta v) |.$$ 
+        </p>
+
+        <div class="interact"><p>
+          <b>Interact:</b> Chop up the $u$- and $v$-spaces into equal segments and view the "tangent trapezoids" that approximate the surface. <span style="float: inline-end;"><input type="range" name="shards" id="shards" min="0" max="30" step="1" value="0"><output></output></span>
+        </p></div>
+
+        <p>
+        
+        In the limit, this becomes the elegant $$dS = |\vec r_u \times \vec r_v| \,du\,dv$$
+        
+        which allows us to define the <b>surface integral with respect to surface area</b>: 
+        $$ \iint_\Sigma f\, dS = \iint_D f(x(u,v), y(u,v), z(u,v))\,|\vec r_u \times \vec r_v| \,du\,dv$$
       </p>
+      <p>Of course, if $f\equiv 1$, we just get the surface area.</p>
 
     </div>
-  </div>
+    <div class="page w3-padding w3-hide w3-animate-left" id="exercises"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+      Coming soon.</div>
+    <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+      <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
+        (parameters).</p>
+
+        <p>
+          $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$
+          for $(u,v)$ in some domain $ D \subset \mathbb{R}^2$.
+        </p>
+        <p>Assuming the components of $\vec r$ are differentiable, can compute the tangent vectors
+          \begin{align*} 
+            \vec r_u &= \frac{\partial x}{\partial u}\,\vec i + \frac{\partial y}{\partial u} \,\vec j + \frac{\partial z}{\partial u} \,\vec k \\
+            \vec r_v &= \frac{\partial x}{\partial v}\,\vec i + \frac{\partial y}{\partial v} \,\vec j + \frac{\partial z}{\partial v} \,\vec k \\
+          \end{align*} We say the parametrization is <em>smooth</em> if these span a tangent plane. That is, they form a nonzero <em>normal vector</em> $$\vec n = \vec r_u \times r_v $$ for each $(u,v)$ pair. 
+        </p>
+
+        <div class="interact">
+          <p><b>Interact:</b>  Turn on <span class="sans">frame</span> in the settings menu <i class="fa fa-cog" onclick="openSettings()"></i> below. Then hold <kbd>Shift</kbd> and use your mouse to select a point.</p>
+        </div>
+      <!-- 
+    A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+      <!-- <h2>Classes of surfaces:</h2> -->
+      <div class="noselect choice-row sans">
+        <span><span id="graphs">graphs of functions</span> </span> | <span> <span id="revolutions">surfaces of
+            revolution</span> </span> | <span><span id="spheres">parts of spheres</span> </span> | <span> <span
+            id="customSurf">non-orientable</span></span></div>
+
+
+      <div class="w3-container" id="custom-uvs">
+        <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+          <div>
+            <span>$x(u,v) = $ </span>
+            <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
+                style="color: red;" class="form-warning"></span></span>
+          </div>
+          <div>
+            <span>$y(u,v) = $ </span>
+            <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
+                style="color: red;" class="form-warning"></span></span>
+          </div>
+          <div>
+            <span>$z(u,v) = $ </span>
+            <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
+                style="color: red;" class="form-warning"></span></span>
+          </div>
+        </div>
+
+        <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+          <div>
+            <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+                id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
+            </span>
+            $ \leq u \leq $
+            <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                value="1"><span style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+          <div>
+            <span>
+              <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+                id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
+            </span>
+            $ \leq v \leq $
+            <span>
+              <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div> 
+</div>
+        <div class="w3-display-bottomleft">
+          <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
+          <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+          <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
+        </div>
+
+
+<div class="infobox w3-hide" id="settings-box" style="display: block;">
+<span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+<header>
+  <div class="info-header-item title"> Settings </div>
+</header>
+<div><label for="segments">segments :</label>
+  <input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
+  <output style='font-family: monospace;'>30</output></div>
+<div><label for="rNum">u-meshes :</label>
+  <input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+  <output style='font-family: monospace;'>10</output></div>
+<div><label for="cNum">v-meshes :</label>
+  <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+  <output style='font-family: monospace;'>10</output></div>
+<div><label for="frameBall">frame : </label><input type="checkbox" name="frameBallVisible" id="frameBallVisible"></div>
+
 </div>
 
-<div id="score-container">total: <span id="running-score"></span></div>
-
 </body>
+
+<script src="https://unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
 
 <script type="module" src="./flow.js"></script>
 
