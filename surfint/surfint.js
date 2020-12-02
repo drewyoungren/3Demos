@@ -486,6 +486,99 @@ for (let i = 0; i < surfs.length; i++) {
   }
 }
 
+// Color based on scalar field
+
+// Runge-Kutta method
+function rk4(x, y, z, F, dt) {
+  // Returns final (x1,y1,z1) array after time dt has passed.
+  //        x,y,z: initial position
+  //        F: r' function a(x,v,dt) (must be callable)
+  //        dt: timestep
+  const vec = new THREE.Vector3(),
+        f1 = new THREE.Vector3(),
+        f2 = new THREE.Vector3(),
+        f3 = new THREE.Vector3(),
+        f4 = new THREE.Vector3();
+  
+  f1.copy(F(x,y,z,vec).multiplyScalar(dt));
+  f2.copy(F(x + f1.x/2, y + f1.y/2, z + f1.z/2,vec).multiplyScalar(dt));
+  f3.copy(F(x + f2.x/2, y + f2.y/2, z + f2.z/2,vec).multiplyScalar(dt));
+  f4.copy(F(x + f3.x, y + f3.y, z + f3.z,vec).multiplyScalar(dt));
+
+  const x1 = x + (f1.x + 2*f2.x + 2*f3.x + f4.x)/6;
+  const y1 = y + (f1.y + 2*f2.y + 2*f3.y + f4.y)/6;
+  const z1 = z + (f1.z + 2*f2.z + 2*f3.z + f4.z)/6;
+
+  return [x1, y1, z1];
+}
+
+// 1-norm
+function norm1(v) {
+  return Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
+}
+
+class BallMesh extends THREE.Mesh {
+  constructor(geometry, material, lim=1) {
+    super( geometry, material );
+
+    this.start = new THREE.Vector3();
+    this.lim = lim;
+  }
+
+  initiate(F, dt=0.01, maxSteps=500, tol = 1e-6 ) {
+    // Flow this.position backward on F until 1) it moves less than tol*lim, 2) has 1-norm  > lim, or 3) maxSteps reached
+    const counter = 0, vec = new THREE.Vector3(), vec1 = new THREE.Vector3();
+    vec.copy(this.position);
+    for (let i = 0; i< maxSteps; i++ ) {
+      vec1.set(...rk4(vec.x,vec.y,vec.z,F,-dt));
+      if (vec.clone().sub(vec1).length() < tol*this.lim) {
+        return this.start.copy(vec1);
+      } else {
+        if (norm1(vec1) > this.lim) {
+          return this.start.copy(vec);
+        }
+      }
+      vec.copy(vec1);
+    }
+    return this.start.copy(vec1);
+  }
+
+}
+
+const balls = new THREE.Object3D();
+function initBalls( balls, lim=1 ) {
+  for (let i = 0; i < 765; i++) {
+    const ball = new BallMesh( new THREE.SphereGeometry(0.02, 15, 15), new THREE.MeshLambertMaterial( {color: 0xffffff*Math.random() } ) , 1.2);
+    // ball.position.set(1/3, 1/5, 1/4*(-1)**i);
+    ball.position.set(lim*(Math.random() - 0.5), lim*(Math.random() - 0.5), lim*(Math.random() - 0.5));
+    ball.initiate(fieldF);
+    // console.log(ball,ball.start);
+    balls.add(ball);
+  }
+}
+
+function updateBalls(balls, F, dt, lim=1) {
+  balls.children.forEach( (ball) => {
+    const {x,y,z} = ball.position;
+    ball.position.set(...rk4(x,y,z,F,dt));
+    if (norm1(ball.position) > ball.lim) {
+      ball.position.copy(ball.start);
+    }
+    // if Math.ball.position.x
+  })
+}
+
+function fieldF(x,y,z,vec) {
+  // vec.set(.4,.5,-.3);
+  vec.set(-y - x/10 ,x,0.3*Math.sin(x*3));
+  return vec;
+}
+
+initBalls(balls);
+// updateBalls(balls, fieldF, 1);
+scene.add(balls);
+
+
 
 // Select a point
 const frameBall = new THREE.Object3D();
@@ -530,25 +623,6 @@ function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
 function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
-  // if (1 - v < dt) {dt = - dt};
-
-  // const {a,b,c,d,x,y,z} = rData;
-  // const A = a.evaluate(), B = b.evaluate()
-  // const U = (1 - u)*A + u*B; 
-  // const C = c.evaluate( {u: U} ), D = d.evaluate( {u: U} );
-  // const V = (1 - v)*C + v*D; 
-  // const du = (B - A) / data.rNum, dv = (dMax - cMin) / data.cNum;
-
-  // const p = new THREE.Vector3(x.evaluate({u: U, v: V}), y.evaluate({u: U, v: V}), z.evaluate({u: U, v: V})), 
-  //   ruForward = new THREE.Vector3(x.evaluate({u: U + dt/2, v: V}), y.evaluate({u: U + dt/2, v: V}), z.evaluate({u: U + dt/2, v: V})), 
-  //   rvForward = new THREE.Vector3(x.evaluate({u: U, v: V + dt/2}), y.evaluate({u: U, v: V + dt/2}), z.evaluate({u: U, v: V + dt/2})),
-  //   ruBackward = new THREE.Vector3(x.evaluate({u: U - dt/2, v: V}), y.evaluate({u: U - dt/2, v: V}), z.evaluate({u: U - dt/2, v: V})), 
-  //   rvBackward = new THREE.Vector3(x.evaluate({u: U, v: V - dt/2}), y.evaluate({u: U, v: V - dt/2}), z.evaluate({u: U, v: V - dt/2}));
-
-  // point.position.copy(p);
-  // ruForward.sub(ruBackward).multiplyScalar(du / dt);
-  // rvForward.sub(rvBackward).multiplyScalar(dv / dt);
-  // // console.log(p,ru,rv);
 
   const dr = ruFrame( {u,v,dt,du: 1/data.rNum, dv: 1/data.cNum});
 
@@ -666,14 +740,23 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize;
   }
 
-let myReq;
+let myReq,last;
 
-function animate() {
+function animate(time) {
   controls.update();
   for (let index = 0; index < axesText.length; index++) {
     const element = axesText[index];
     element.lookAt(camera.position);
   }
+
+  if (! last) {
+    last = time;
+  }
+  if (true) {
+    debugLog.innerText = (Math.round((time - last)*1000)*.00001).toString();
+    updateBalls(balls, fieldF, (time - last)*0.001 );
+  }
+  last = time;
 
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
@@ -690,6 +773,19 @@ function animate() {
   // stats.end();
 }
 
+
+const debugLog = document.createElement('div');
+document.body.appendChild(debugLog);
+debugLog.style.display = 'block';
+debugLog.style.position = 'absolute';
+debugLog.style.color = 'white';
+debugLog.style.backgroundColor = 'black';
+debugLog.style.fontFamily = 'monospace';
+debugLog.style.right = '10px';
+debugLog.style.top = '10px';
+debugLog.style.zOrder = '32';
+debugLog.style.width = '125px';
+debugLog.style.height = '125px';
 
 
 
@@ -709,6 +805,29 @@ document.querySelector("#cameraReset").onclick = () => {
   controls.target.set(0,0,0);
 };
 
+{
+
+  const saveBlob = (function() {
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.style.display = 'none';
+    return function saveData(blob, fileName) {
+       const url = window.URL.createObjectURL(blob);
+       a.href = url;
+       a.download = fileName;
+       a.click();
+    };
+  }());
+
+  const elem = document.querySelector('#screenshot');
+  elem.addEventListener('click', () => {
+    renderer.render(scene, camera);
+    canvas.toBlob((blob) => {
+      saveBlob(blob, `screencapture-${canvas.width}x${canvas.height}.png`);
+    });
+  });
+}
+
 // gui.domElement.style.zIndex = 2000;
 updateSurface();
 
@@ -720,4 +839,4 @@ updateSurface();
 }
 
 // go
-animate();
+requestAnimationFrame(animate);
