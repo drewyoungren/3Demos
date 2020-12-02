@@ -4,9 +4,9 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 // import {Stats} from 'https://unpkg.com/stats.js@0.17.0/build/stats.min.js';
 
-const stats = new Stats();
-stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild( stats.dom );
+// const stats = new Stats();
+// stats.showPanel( 2 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild( stats.dom );
 
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
@@ -683,11 +683,11 @@ function animate() {
   }
   myReq = requestAnimationFrame(animate);
 
-  stats.begin() ;
+  // stats.begin() ;
 
   renderer.render(scene, camera);
 
-  stats.end();
+  // stats.end();
 }
 
 
