@@ -261,7 +261,7 @@ const rData = {
   P: math.parse(fields[fieldChoice].P).compile(),
   Q: math.parse(fields[fieldChoice].Q).compile(),
   R: math.parse(fields[fieldChoice].R).compile(),
-  f: math.parse("x^2 + y^2").compile(),
+  D: math.parse("x^2 + y^2").compile(),
 }
 
 const data = {
@@ -393,9 +393,9 @@ function updateSurface() {
       if (i === 0) {
         if (colorFunc) {
           mesh.material = materialColors;
-          let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.f.evaluate({x,y,z}));
+          let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.D.evaluate({x,y,z}));
           colorBufferVertices( mesh, (x,y,z) => {
-            const value = rData.f.evaluate({x,y,z});
+            const value = rData.D.evaluate({x,y,z});
             return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
           });
           const colorBar = document.querySelector(".colorBar");
@@ -414,9 +414,9 @@ function updateSurface() {
     if (colorFunc) {
       frontMesh.material = materialColors;
       backMesh.visible = false;
-      let [vMax, vMin] = vMaxMin(frontMesh, (x,y,z) => rData.f.evaluate({x,y,z}));
+      let [vMax, vMin] = vMaxMin(frontMesh, (x,y,z) => rData.D.evaluate({x,y,z}));
       colorBufferVertices( frontMesh, (x,y,z) => {
-        const value = rData.f.evaluate({x,y,z});
+        const value = rData.D.evaluate({x,y,z});
         return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
       });
       addColorBar(vMin, vMax);
@@ -762,15 +762,45 @@ for (let [field,pqr] of Object.entries(fields)) {
   }
 }
 
+const rhos = {
+  'moment': "x^2 + y^2",
+  'north' : "x^2 + y^2 + (z - 2)^2",
+  'plane wave': "sin(x - 3y)"
+}
+
+for (let [rho,func] of Object.entries(rhos)) {
+  let element = document.querySelector(`#density-${rho}`);
+  if (! element) {
+    element = document.createElement('span');
+    const pipe = document.createElement('span');
+    pipe.innerHTML = " | ";
+    element.id = `density-${rho}`;
+    element.innerText = rho;
+    const row = document.querySelector("#density-row");
+    row.appendChild(pipe);
+    row.appendChild(element);
+  }
+
+  element.onclick = () => {
+    // const sf = fields[field];
+    let el;
+    const c = "D";
+    el = document.querySelector(`#custom${c.toUpperCase()}`);
+    el.value = func;
+    rData[c] = math.parse(func).compile();
+    updateSurface();
+    // el.dispatchEvent(new Event('change'));
+  }
+}
+
+
 {
-  const XYZ = "PQR";
+  const XYZ = "PQRD";
   for (let i = 0; i < XYZ.length; i++) {
     const ch = XYZ[i];
     const id = `custom${ch}`;
     const element = document.querySelector(`#${id}`);
     const form = document.querySelector(`#${id} + .form-warning`);
-
-    console.log(ch, element,form);
 
     element.onchange = () => {
       // const c = ch.toLowerCase();
@@ -779,8 +809,9 @@ for (let [field,pqr] of Object.entries(fields)) {
         // console.log("got here");
         const expr = math.parse(element.value).compile();
         rData[ch] = expr;
-        console.log(rData[ch],rData[ch].evaluate({x: 1, y: 0, z: -2}))
         form.innerText = '';
+        if (ch === 'D') updateSurface();
+
       } catch (e) {
         console.error( e );
         form.innerText = ' ' + e.name;
@@ -827,7 +858,7 @@ for (let [field,pqr] of Object.entries(fields)) {
 // Select a point
 const frameBall = new THREE.Object3D();
 const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh()};
-const ruColors = {u: 0xffff33, v: 0xff33ff, n: 0x33ffff};
+const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6};
 for (let key of Object.keys(arrows)) {
   arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
   frameBall.add(arrows[key])
@@ -873,7 +904,7 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
   point.position.copy(dr.p);
 
 
-  const arrowParams = { radiusTop: gridStep / 10,  radiusBottom: gridStep / 20, heightTop: gridStep/10 }
+  const arrowParams = { radiusTop: gridStep / 10,  radiusBottom: gridStep / 20, heightTop: gridStep/7 }
 
   for (const [key, arrow] of Object.entries(arrows)) {
     const pos = dr.p.clone();
@@ -1027,16 +1058,6 @@ if (debug) {
   debugLog = document.createElement('div');
   debugLog.classList.add('debugger');
   document.body.appendChild(debugLog);
-  // debugLog.style.display = 'block';
-  // debugLog.style.position = 'absolute';
-  // debugLog.style.color = 'white';
-  // debugLog.style.backgroundColor = 'black';
-  // debugLog.style.fontFamily = 'monospace';
-  // debugLog.style.right = '10px';
-  // debugLog.style.top = '10px';
-  // debugLog.style.zOrder = '32';
-  // debugLog.style.width = '125px';
-  // debugLog.style.height = '125px';
   }
 
 // start the flow

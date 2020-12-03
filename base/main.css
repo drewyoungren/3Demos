@@ -1,6 +1,7 @@
 html, body {
     margin: 0;
     height: 100%;
+    overflow: hidden;
  }
   
 #c { 
@@ -46,7 +47,7 @@ html, body {
     display:block;
     border:1px solid black;
     padding: 10px;
-    overflow-y: hidden;
+    overflow-y: auto;
 }
 
 #infop {

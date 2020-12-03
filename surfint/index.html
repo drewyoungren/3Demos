@@ -28,20 +28,6 @@
       }
     };
 
-    function clickInfo() {
-      var el = document.querySelector('#page-holder');
-      var elParent = document.querySelector('#infobutton');
-      if (el.style.display == 'block') {
-        elParent.innerHTML = `<b>&oplus; ${document.title}</b>`;
-        el.style.display = 'none';
-        elParent.style.height = '1em';
-      } else {
-        el.style.display = 'block';
-        elParent.innerHTML = `<b>&otimes; ${document.title}</b>`;
-        elParent.style.height = 'fit-content';
-      }
-    }
-
     function openPage(pageName) {
       var i;
       var x = document.getElementsByClassName("page");
@@ -82,7 +68,7 @@
       </div>
     </header>
 
-    <div class="">
+    <div class="page-box">
 
       <div class="page w3-padding w3-hide w3-animate-left" id="areas"> 
         <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
@@ -171,14 +157,38 @@
 
       </div>
 
-
+<!-- Scalar field page -->
 
       <div class="page w3-padding w3-hide w3-animate-left" id="scalars"> <span onclick="this.parentElement.classList.add('w3-hide');"
           class="w3-button w3-display-topright">&otimes;</span>
         
-          <p>Color function by distance to $z$-axis, squared. That is, integrand of moment of inertia. <input type="checkbox" name="colorFunc" id="colorFunc"> </p>
+          <p>We can integrate any (continuous) scalar field $f(x,y,z)$ on a parametric surface by using the surface area form $dS$. Indeed, $$\iint_\Sigma f\,dS = \iint_{\mathcal D} f(x(u,v),y(u,v),z(u,v))\, |\vec r_u \times \vec r_v |\,du\,dv . $$
 
-          <p>$$ I_z = \iint_\Sigma (x^2 + y^2)\, \rho(x,y,z)\, dS $$</p>
+            <p><b>Interact</b>: Turn on coloring to shade the surface by a scalar field $f(x,y,z)$. &nbsp;&nbsp;&nbsp; <label class="switch">
+              <input type="checkbox" name="colorFunc" id="colorFunc">
+              <span class="slider round"></span>
+            </label> </p>
+
+            <div class="noselect choice-row sans" id="density-row">
+              <span id="density-moment">moment of inertia $I_z$</span>
+              <span>
+                | 
+              </span>
+              <span id="density-north">distance from $(0,0,2)$</span>
+            </div>
+            
+            <div class="w3-container" id="custom-density">
+              <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+                <div>
+                  <span>$f(x,y,z) = $ </span>
+                  <span><input class="custom-input" type="text" name="customD" id="customD" value="x^2 + y^2"><span
+                      style="color: red;" class="form-warning"></span></span>
+                </div>
+              </div>
+              </div>
+            
+
+        
       
       </div>
 
