@@ -148,4 +148,29 @@ body {
     z-index : 32;
     width : 125px;
     height : 125px;
+    padding: 5px;
+}
+
+#faucetButton {
+    padding: 5px;
+    display: block;
+    position: fixed;
+    right: 10px;
+    top: 200px;
+    background-color: rgba(128, 128, 128, 0.75);
+    color: white;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: smaller;
+  }
+
+  .choice-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+  }
+
+  .function-tray {
+      position: absolute;
+      bottom: 0px;
+      z-index: 100;
   }

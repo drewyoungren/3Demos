@@ -4,14 +4,11 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 // import {Stats} from 'https://unpkg.com/stats.js@0.17.0/build/stats.min.js';
 
-// const stats = new Stats();
-// stats.showPanel( 2 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-// document.body.appendChild( stats.dom );
 
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry } from "../base/utils.js";
+import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry, vMaxMin } from "../base/utils.js";
 
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
@@ -117,7 +114,7 @@ const [axesText, font] = labelAxes( { scene } );
 
 
 const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
-const materialRandom = new THREE.MeshPhongMaterial({color: 0x0000ff,shininess: 70,side: THREE.FrontSide,vertexColors: false});
+const materialColors = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 70,side: THREE.DoubleSide, vertexColors: true});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 
 whiteLineMaterial.polygonOffset = true;
@@ -199,6 +196,60 @@ const surfaces = {
   },
 }
 
+const fields = {
+  'source': {
+    P: "x",
+    Q: "y",
+    R: "z"
+  },
+  'sink': {
+    P: "0",
+    Q: "0",
+    R: "-z"
+  },
+  'swirl': {
+    P: "-y",
+    Q: "x",
+    R: "x^2 - y^2"
+  },
+  'wacky': {
+    P: "sin(x*y)",
+    Q: "-atan(sin(3*z))",
+    R: "x^2 - y^2 - z^3/2"
+  },
+  'rain': {
+    P: "x/4",
+    Q: "y/4",
+    R: "-z/4"
+  },
+  'gravity': {
+    P: "(x^2 + y^2 + z^2) > 0.2 ? -x/(x^2 + y^2 + z^2)^(3/2) : 0",
+    Q: "(x^2 + y^2 + z^2) > 0.2 ? -y/(x^2 + y^2 + z^2)^(3/2) : 0",
+    R: "(x^2 + y^2 + z^2) > 0.2 ? -z/(x^2 + y^2 + z^2)^(3/2) : 0"
+  },
+  'magnet': {
+    P: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (x-1/2) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (x + 1/2) / ((x + 1/2)^2 + y^2 + z^2)^(0.6): 0",
+    Q: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (y) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (y) / ((x + 1/2)^2 + y^2 + z^2)^(0.6) : 0",
+    R: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (z) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (z) / ((x + 1/2)^2 + y^2 + z^2)^(0.6) : 0",
+  },
+  'magnet2': {
+    P: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? ((x - 0.5)*(y^2 + z^2 + (x + 0.5)^2)^1.5 - (x + 0.5)*(y^2 + z^2 + (x - 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5): 0",
+    Q: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? y*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
+    R: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? z*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
+  },
+  // 'test': {
+  //   P: "x^2",
+  //   Q: "1/2",
+  //   R: "0",
+  // },
+}
+let fieldChoice = 'rain';
+
+for (let c of "PQR") {
+  const form = document.querySelector(`input#custom${c}`);
+  form.value = fields[fieldChoice][c];
+}
+
 const rData = {
   a: math.parse("-1").compile(),
   b: math.parse("1").compile(),
@@ -206,7 +257,11 @@ const rData = {
   d: math.parse("1").compile(),
   x: math.parse("u").compile(),
   y: math.parse("v").compile(),
-  z: math.parse("(1/4 - u/4)^3").compile(),
+  z: math.parse("u^3 - u").compile(),
+  P: math.parse(fields[fieldChoice].P).compile(),
+  Q: math.parse(fields[fieldChoice].Q).compile(),
+  R: math.parse(fields[fieldChoice].R).compile(),
+  f: math.parse("x^2 + y^2").compile(),
 }
 
 const data = {
@@ -279,6 +334,26 @@ document.querySelectorAll("#shards").forEach( (element) => {
   }
 });
 
+let stats;
+if (debug) {
+  stats = new Stats();
+  stats.showPanel( 2 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+  document.body.appendChild( stats.dom );
+  stats.dom.style.left = 'unset';
+  stats.dom.style.top = '160px';
+  stats.dom.style.right = '10px';
+
+  const faucetButton = document.createElement('div');
+  faucetButton.id = 'faucetButton';
+  document.body.appendChild(faucetButton);
+  faucetButton.innerHTML = '<h2><i class="fa fa-play"></i></h2>';
+  faucetButton.onclick = () => {
+    faucet = !faucet;
+  }
+
+}
+
+
 {
   const element = document.querySelector("input#frameBallVisible");
   element.oninput = () => {
@@ -288,25 +363,6 @@ document.querySelectorAll("#shards").forEach( (element) => {
   }
 }
 
-// const gui = new GUI();
-// gui.add(data, 'nX', 2, 60, 1).name("Segments").onChange(() => {
-//   if (myReq) {
-//     cancelAnimationFrame(myReq);
-//   }
-//   myReq = requestAnimationFrame(updateSurface);
-// });
-// gui.add(data,'rNum',2,60,1).name("u-Meshes").onChange(() => {
-//   if (myReq) {
-//     cancelAnimationFrame(myReq);
-//   }
-//   myReq = requestAnimationFrame(updateSurface)
-// });
-// gui.add(data,'cNum',2,60,1).name("v-Meshes").onChange(() => {
-//   if (myReq) {
-//     cancelAnimationFrame(myReq);
-//   }
-//   myReq = requestAnimationFrame(updateSurface)
-// });
 
 let surfaceMesh;
 function updateSurface() {
@@ -333,11 +389,38 @@ function updateSurface() {
       if (i < 1) {
         mesh.material = material;
       }
+
+      if (i === 0) {
+        if (colorFunc) {
+          mesh.material = materialColors;
+          let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.f.evaluate({x,y,z}));
+          colorBufferVertices( mesh, (x,y,z) => {
+            const value = rData.f.evaluate({x,y,z});
+            return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
+          });
+          const colorBar = document.querySelector(".colorBar");
+          if (colorBar) document.body.removeChild(colorBar);
+          addColorBar(vMin, vMax);
+        }
+      }
+      if (i === 1) {
+        mesh.visible = ! colorFunc;
+      }
     }
   } else {
     surfaceMesh = new THREE.Object3D();
-    const frontMesh = new THREE.Mesh( geometry, material );
     const backMesh = new THREE.Mesh( geometry, minusMaterial );
+    const frontMesh = new THREE.Mesh( geometry, material );
+    if (colorFunc) {
+      frontMesh.material = materialColors;
+      backMesh.visible = false;
+      let [vMax, vMin] = vMaxMin(frontMesh, (x,y,z) => rData.f.evaluate({x,y,z}));
+      colorBufferVertices( frontMesh, (x,y,z) => {
+        const value = rData.f.evaluate({x,y,z});
+        return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
+      });
+      addColorBar(vMin, vMax);
+    }
     // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
     surfaceMesh.add( frontMesh );
     surfaceMesh.add( backMesh );
@@ -350,6 +433,7 @@ function updateSurface() {
 }
 
 
+// let [vMax, vMin] = vMaxMin(surfaceMesh.children[0])
 
 function lcm(x, y) {
   if ((typeof x !== 'number') || (typeof y !== 'number')) 
@@ -432,6 +516,11 @@ function meshLines( rData, rNum=10, cNum=10 , nX=30) {
   return geometry;
 }
 
+//
+//
+// UI for parametric surface
+//
+//
 
 const surfs = ["graphs","revolutions","spheres","customSurf"];
 for (let i = 0; i < surfs.length; i++) {
@@ -550,50 +639,189 @@ class BallMesh extends THREE.Mesh {
 }
 
 const balls = new THREE.Object3D();
+const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
+const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
+const arrowArgs = {radiusTop: vfScale/30, radiusBottom: vfScale/100, heightTop: vfScale/8};
+
+
+for (let i = 1; i <= heightResolution; i++) {
+  const geometry = new ArrowBufferGeometry( {
+    radiusBottom: vfScale/100, 
+    height: i/heightResolution*vfScale, 
+    heightTop: Math.min(i/heightResolution*vfScale/3,vfScale/8) ,
+    radiusTop: Math.min(vfScale/30, i/heightResolution*vfScale/6)
+  });
+  arrowGeometries.push(geometry)
+}
+
+
 function initBalls( balls, lim=1 ) {
   const vec = new THREE.Vector3();
-  const N = 10;
+  const N = 8;
+  let maxLength = 0;
+  const arrowDefaultGeometry = new ArrowBufferGeometry( {...arrowArgs, height: gridStep/gridMax } );
+
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
-        const ball = new BallMesh( new ArrowBufferGeometry( {radiusTop: 1/80, radiusBottom: 1/160, height: 1/4, heightTop: 1/40} ), new THREE.MeshLambertMaterial( {color: 0xffffff*Math.random() } ) , 1.2);
-        ball.position.set(i*2/(N) - 1 + .01*Math.random(), j*2/(N) - 1, k*2/(N) - 1);
+        const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2);
+        ball.position.set(i*2/(N) - 1 + .01*Math.random(), j*2/(N) - 1 + .01*Math.random(), k*2/(N) - 1 + .01*Math.random());
         // ball.position.set(lim*(Math.random() - 0.5), lim*(Math.random() - 0.5), lim*(Math.random() - 0.5));
-        ball.lookAt(fieldF(ball.position.x,ball.position.y,ball.position.z,vec).add(ball.position));
         ball.initiate(fieldF);
-        console.log(ball.start);
+        fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
+        const len = vec.length();
+        maxLength = Math.max(maxLength, len);
+        ball.position.copy(ball.start)
+        fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
+        vec.add(ball.position);
+        ball.lookAt(vec);
+        // console.log(ball.start);
         balls.add(ball);
       }
     }
   }
+  return maxLength; // 
 }
 
 function updateBalls(balls, F, dt, lim=1) {
   const vec = new THREE.Vector3();
   balls.children.forEach( (ball) => {
+    // if (ball.geometry) {
+    // ball.geometry.dispose()
+    // } else {
+    //   console.error ("uh oh", ball);
+    // }
     const {x,y,z} = ball.position;
     const pos1 = new THREE.Vector3(); 
     pos1.set(...rk4(x,y,z,F,dt));
-    if (norm1(pos1) > ball.lim || pos1.clone().sub(ball.position).length() < 1e-3 ) {
+    if (norm1(pos1) > ball.lim || pos1.clone().sub(ball.position).length() < 1e-6 ) {
       ball.position.copy(ball.start);
     } else {
       ball.position.copy(pos1);
     }
-    ball.lookAt(F(ball.position.x,ball.position.y,ball.position.z,vec).add(ball.position));
+    let height = F(ball.position.x,ball.position.y,ball.position.z,vec).length();
+    height = Math.round(height / maxLength * heightResolution) - 1;
+    
+    ball.geometry = arrowGeometries[Math.max(0,Math.min(arrowGeometries.length -1, height))];
+    
+    ball.lookAt(vec.add(ball.position));
     // if Math.ball.position.x
   })
 }
 
-function fieldF(x,y,z,vec) {
-  // vec.set(.4,.5,-.3);
-  vec.set( -y + Math.sin(4*x*Math.PI)/3 , x, 0.3*Math.sin(y*3) );
+function freeBalls(balls) {
+  for (let i = balls.children.length - 1; i >= 0 ; i--) {
+    const element = balls.children[i];
+    if (element.geometry.dispose) element.geometry.dispose();
+    balls.remove(element);
+  }
+}
+
+ 
+let fieldF = (x,y,z,vec) => {
+  vec.set(rData.P.evaluate( {x,y,z} ), rData.Q.evaluate( {x,y,z} ), rData.R.evaluate( {x,y,z} ));
   return vec;
 }
 
-initBalls(balls);
+let maxLength = 2;
+// let maxLength = initBalls(balls);
 // updateBalls(balls, fieldF, 1);
 scene.add(balls);
 
+
+
+//
+//   UI for field
+//
+
+
+for (let [field,pqr] of Object.entries(fields)) {
+  let element = document.querySelector(`#field-${field}`);
+  if (! element) {
+    element = document.createElement('span');
+    const pipe = document.createElement('span');
+    pipe.innerHTML = " | ";
+    element.id = `field-${field}`;
+    element.innerText = field;
+    const row = document.querySelector("#field-row");
+    row.appendChild(pipe);
+    row.appendChild(element);
+  }
+
+  element.onclick = () => {
+    fieldChoice = field;
+    // const sf = fields[field];
+    let el;
+    for (let i = 0; i < "PQR".length; i++) {;
+      const c = "PQR"[i];
+      el = document.querySelector(`#custom${c.toUpperCase()}`);
+      el.value = pqr[c];
+      rData[c] = math.parse(pqr[c]).compile();
+      // el.dispatchEvent(new Event('change'));
+    }
+  }
+}
+
+{
+  const XYZ = "PQR";
+  for (let i = 0; i < XYZ.length; i++) {
+    const ch = XYZ[i];
+    const id = `custom${ch}`;
+    const element = document.querySelector(`#${id}`);
+    const form = document.querySelector(`#${id} + .form-warning`);
+
+    console.log(ch, element,form);
+
+    element.onchange = () => {
+      // const c = ch.toLowerCase();
+      // console.log(element.value, "is the value of" + ch);
+      try {
+        // console.log("got here");
+        const expr = math.parse(element.value).compile();
+        rData[ch] = expr;
+        console.log(rData[ch],rData[ch].evaluate({x: 1, y: 0, z: -2}))
+        form.innerText = '';
+      } catch (e) {
+        console.error( e );
+        form.innerText = ' ' + e.name;
+        return;
+      }
+    };
+  }
+}
+
+{  // play controls
+  const play = document.querySelector("#field-play");
+  play.onclick = () => {
+    if (balls.children.length < 1) {
+      console.log("play from the top");
+      maxLength = initBalls(balls);
+    }
+    faucet = true;
+  }
+
+  const pause = document.querySelector("#field-pause");
+  pause.onclick = () => {
+    faucet = false;
+    console.log("pause");
+  }
+
+  const stop = document.querySelector("#field-stop");
+  stop.onclick = () => {
+    faucet = false;
+    freeBalls(balls);
+    console.log("stop");
+  }
+
+  const rew = document.querySelector("#field-rewind");
+  rew.onclick = () => {
+    faucet = false;
+    freeBalls(balls);
+    maxLength = initBalls(balls);
+    faucet = true;
+    console.log("rewind");
+  }
+}
 
 
 // Select a point
@@ -680,7 +908,7 @@ function onMouseMove( e ) {
 
       if ( intersects.length > 0 ) {
         const intersect = intersects[0];
-        console.log(intersect.uv);
+        // console.log(intersect.uv);
         point.position.x = intersect.point.x;
         point.position.y = intersect.point.y;
         point.position.z = intersect.point.z;
@@ -768,10 +996,16 @@ function animate(time) {
   if (! last) {
     last = time;
   }
-  if (true) {
+
+  if (debug) {
+    stats.begin() ;
     debugLog.innerText = (Math.round((time - last)*1000)*.00001).toString();
+  }
+
+  if (faucet) {
     updateBalls(balls, fieldF, (time - last)*0.001 );
   }
+
   last = time;
 
   if (resizeRendererToDisplaySize(renderer)) {
@@ -782,32 +1016,45 @@ function animate(time) {
   }
   myReq = requestAnimationFrame(animate);
 
-  // stats.begin() ;
 
   renderer.render(scene, camera);
 
-  // stats.end();
+  if (debug) stats.end();
 }
 
+let debugLog;
+if (debug) {
+  debugLog = document.createElement('div');
+  debugLog.classList.add('debugger');
+  document.body.appendChild(debugLog);
+  // debugLog.style.display = 'block';
+  // debugLog.style.position = 'absolute';
+  // debugLog.style.color = 'white';
+  // debugLog.style.backgroundColor = 'black';
+  // debugLog.style.fontFamily = 'monospace';
+  // debugLog.style.right = '10px';
+  // debugLog.style.top = '10px';
+  // debugLog.style.zOrder = '32';
+  // debugLog.style.width = '125px';
+  // debugLog.style.height = '125px';
+  }
 
-const debugLog = document.createElement('div');
-debugLog.classList.add('debugger');
-document.body.appendChild(debugLog);
-// debugLog.style.display = 'block';
-// debugLog.style.position = 'absolute';
-// debugLog.style.color = 'white';
-// debugLog.style.backgroundColor = 'black';
-// debugLog.style.fontFamily = 'monospace';
-// debugLog.style.right = '10px';
-// debugLog.style.top = '10px';
-// debugLog.style.zOrder = '32';
-// debugLog.style.width = '125px';
-// debugLog.style.height = '125px';
+// start the flow
+let faucet = !debug;
 
+let colorFunc = false; // do density
+const colorFuncCheckbox = document.querySelector("input#colorFunc");
 
-
-
-
+colorFuncCheckbox.oninput = () => {
+  colorFunc = colorFuncCheckbox.checked;
+  if (!colorFunc) {
+    const cBar = document.querySelector(".colorBar");
+    if (cBar) {
+      cBar.parentElement.removeChild(cBar);
+    }
+  }
+  updateSurface();
+}
 
 
 document.getElementById("encodeURL").onclick = () => {

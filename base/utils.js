@@ -49,6 +49,21 @@ export function marchingSquares(f, level, xmin, xmax, ymin, ymax, zLevel = null,
 //     return [...properties.keys()].filter(item => typeof obj[item] === 'function');
 //   };
 
+// Find extremes of scalar function on vertices
+
+export function vMaxMin(mesh, f) {
+  let vMax, vMin;
+  const points = mesh.geometry.attributes.position.array;
+  vMax = f(points[0],points[1],points[2]);
+  vMin = vMax;
+  for (let i = 3; i < points.length; i += 3) {
+    const w = f(points[i],points[i+1],points[i+2]);
+    vMax = Math.max(vMax, w);
+    vMin = Math.min(vMin, w);
+  }
+  return [vMax, vMin];
+}
+
 /* color the vertices of a geometry via f(x,y,z) -> {r,g,b} */
 export function colorBufferVertices( mesh , f ) {
     let colors = [];
@@ -60,7 +75,7 @@ export function colorBufferVertices( mesh , f ) {
         // vec.add(mesh.position);
         // console.log(vec);
         let {x,y,z} = mesh.localToWorld(vec);
-        let {r,g,b} = f(z,x,y);
+        let {r,g,b} = f(x,y,z);
         // console.log([x,y,z]);
         colors.push(r,g,b);
     }
@@ -110,7 +125,7 @@ export function addColorBar(vMin=-1, vMax=1) {
         const textLabel = document.createElement("div");
         labels.appendChild(textLabel);
         textLabel.classList.add("colorBarText");
-        textLabel.innerHTML = '<span class="colorBarText" style="vertical-align:text-top">' + (vMin + x*vRange).toString() + '</span>';
+        textLabel.innerHTML = '<span class="colorBarText" style="vertical-align:text-top">' + (Math.round((vMin + x*vRange)*100)/100).toString() + '</span>';
         textLabel.style.bottom = (100 * x).toString() + "%";
         textLabel.style.left = "0px";
         // textLabel.style.textAlign = "right";
