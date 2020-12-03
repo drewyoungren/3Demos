@@ -137,3 +137,15 @@ body {
       text-align: center;
   }
 
+  .debugger {
+    display : block;
+    position : absolute;
+    color : white;
+    background-color : black;
+    font-family : monospace;
+    right : 10px;
+    top : 10px;
+    z-index : 32;
+    width : 125px;
+    height : 125px;
+  }

@@ -218,7 +218,8 @@ const data = {
 }
 
 const urlParams = new URLSearchParams(location.search)
-console.log(urlParams.keys() ? true : false);
+// console.log(urlParams.keys() ? true : false);
+let debug = false;
 if (urlParams.keys()) {
   urlParams.forEach((val, key) => {
     const element = document.querySelector(`input#custom${key.toUpperCase()}`);
@@ -230,6 +231,9 @@ if (urlParams.keys()) {
     if (["nX", "rNum", "cNum"].indexOf(key) > -1) {
       data[key] = parseInt(val);
       return console.log(key, val);
+    }
+    if (key === 'debug') {
+      debug = val.toLowerCase() === 'true';
     }
     // const [s,c] = key.split("camera");
     // if (!s) {
@@ -525,7 +529,7 @@ class BallMesh extends THREE.Mesh {
     this.lim = lim;
   }
 
-  initiate(F, dt=0.01, maxSteps=500, tol = 1e-6 ) {
+  initiate(F, dt=0.01, maxSteps=500, tol = 1e-3 ) {
     // Flow this.position backward on F until 1) it moves less than tol*lim, 2) has 1-norm  > lim, or 3) maxSteps reached
     const counter = 0, vec = new THREE.Vector3(), vec1 = new THREE.Vector3();
     vec.copy(this.position);
@@ -547,30 +551,42 @@ class BallMesh extends THREE.Mesh {
 
 const balls = new THREE.Object3D();
 function initBalls( balls, lim=1 ) {
-  for (let i = 0; i < 765; i++) {
-    const ball = new BallMesh( new THREE.SphereGeometry(0.02, 15, 15), new THREE.MeshLambertMaterial( {color: 0xffffff*Math.random() } ) , 1.2);
-    // ball.position.set(1/3, 1/5, 1/4*(-1)**i);
-    ball.position.set(lim*(Math.random() - 0.5), lim*(Math.random() - 0.5), lim*(Math.random() - 0.5));
-    ball.initiate(fieldF);
-    // console.log(ball,ball.start);
-    balls.add(ball);
+  const vec = new THREE.Vector3();
+  const N = 10;
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      for (let k = 0; k < N; k++) {
+        const ball = new BallMesh( new ArrowBufferGeometry( {radiusTop: 1/80, radiusBottom: 1/160, height: 1/4, heightTop: 1/40} ), new THREE.MeshLambertMaterial( {color: 0xffffff*Math.random() } ) , 1.2);
+        ball.position.set(i*2/(N) - 1 + .01*Math.random(), j*2/(N) - 1, k*2/(N) - 1);
+        // ball.position.set(lim*(Math.random() - 0.5), lim*(Math.random() - 0.5), lim*(Math.random() - 0.5));
+        ball.lookAt(fieldF(ball.position.x,ball.position.y,ball.position.z,vec).add(ball.position));
+        ball.initiate(fieldF);
+        console.log(ball.start);
+        balls.add(ball);
+      }
+    }
   }
 }
 
 function updateBalls(balls, F, dt, lim=1) {
+  const vec = new THREE.Vector3();
   balls.children.forEach( (ball) => {
     const {x,y,z} = ball.position;
-    ball.position.set(...rk4(x,y,z,F,dt));
-    if (norm1(ball.position) > ball.lim) {
+    const pos1 = new THREE.Vector3(); 
+    pos1.set(...rk4(x,y,z,F,dt));
+    if (norm1(pos1) > ball.lim || pos1.clone().sub(ball.position).length() < 1e-3 ) {
       ball.position.copy(ball.start);
+    } else {
+      ball.position.copy(pos1);
     }
+    ball.lookAt(F(ball.position.x,ball.position.y,ball.position.z,vec).add(ball.position));
     // if Math.ball.position.x
   })
 }
 
 function fieldF(x,y,z,vec) {
   // vec.set(.4,.5,-.3);
-  vec.set(-y - x/10 ,x,0.3*Math.sin(x*3));
+  vec.set( -y + Math.sin(4*x*Math.PI)/3 , x, 0.3*Math.sin(y*3) );
   return vec;
 }
 
@@ -775,17 +791,18 @@ function animate(time) {
 
 
 const debugLog = document.createElement('div');
+debugLog.classList.add('debugger');
 document.body.appendChild(debugLog);
-debugLog.style.display = 'block';
-debugLog.style.position = 'absolute';
-debugLog.style.color = 'white';
-debugLog.style.backgroundColor = 'black';
-debugLog.style.fontFamily = 'monospace';
-debugLog.style.right = '10px';
-debugLog.style.top = '10px';
-debugLog.style.zOrder = '32';
-debugLog.style.width = '125px';
-debugLog.style.height = '125px';
+// debugLog.style.display = 'block';
+// debugLog.style.position = 'absolute';
+// debugLog.style.color = 'white';
+// debugLog.style.backgroundColor = 'black';
+// debugLog.style.fontFamily = 'monospace';
+// debugLog.style.right = '10px';
+// debugLog.style.top = '10px';
+// debugLog.style.zOrder = '32';
+// debugLog.style.width = '125px';
+// debugLog.style.height = '125px';
 
 
 
