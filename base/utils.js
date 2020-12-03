@@ -216,6 +216,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
     generateTorso();
     generateCap( true );
+    generateCap( false, true );
 
 		if ( openEnded === false ) {
 
@@ -325,7 +326,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
 		}
 
-		function generateCap( top ) {
+		function generateCap( top, headBase = false ) {
 
 			// save the index of the first center vertex
 			const centerIndexStart = index;
@@ -335,8 +336,8 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
 			let groupCount = 0;
 
-			const radius = ( top === true ) ? radiusTop : radiusBottom;
-			const sign = ( top === true ) ? 1 : - 1;
+			const radius = ( top || headBase ) ? radiusTop : radiusBottom;
+			const sign = ( top ) ? 1 : -1;
 
 			// first we generate the center vertex data of the cap.
 			// because the geometry needs one set of uvs per face,
@@ -346,7 +347,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
 				// vertex
 
-				vertices.push( 0, 0, top ? tubeHeight + heightTop : 0 );
+				vertices.push( 0, 0, top ? tubeHeight + heightTop : (headBase ? tubeHeight : 0) );
 
 				// normal
 
@@ -386,7 +387,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
 				vertex.x = radius * cosTheta;
 				vertex.y = radius * sinTheta;
-				vertex.z = top ? tubeHeight : 0;
+				vertex.z = top || headBase ? tubeHeight : 0;
 				vertices.push( vertex.x, vertex.y, vertex.z );
 
 				// normal
