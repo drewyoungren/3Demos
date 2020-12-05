@@ -261,7 +261,7 @@ const rData = {
   P: math.parse(fields[fieldChoice].P).compile(),
   Q: math.parse(fields[fieldChoice].Q).compile(),
   R: math.parse(fields[fieldChoice].R).compile(),
-  D: math.parse("x^2 + y^2").compile(),
+  E: math.parse("x^2 + y^2").compile(),
 }
 
 const data = {
@@ -270,6 +270,7 @@ const data = {
   rNum: 10,
   cNum: 10,
   shards: 0,
+  nVec: 5,
 }
 
 const urlParams = new URLSearchParams(location.search)
@@ -320,7 +321,15 @@ document.querySelectorAll("#settings-box>div>input").forEach( (element) => {
   element.oninput = () => {
     data[element.name] = parseInt(element.value);
     updateSurface();
-
+    if (debug) {
+      let element = document.querySelector("div#dataLog");
+      if (! element) {
+        element = document.createElement('div');
+        element.id = "dataLog";
+        debugLog.appendChild(element);
+      }
+      element.innerText = JSON.stringify(data, null, " ");
+    }
     element.nextElementSibling.value = element.value;
   }
 });
@@ -340,16 +349,9 @@ if (debug) {
   stats.showPanel( 2 ); // 0: fps, 1: ms, 2: mb, 3+: custom
   document.body.appendChild( stats.dom );
   stats.dom.style.left = 'unset';
-  stats.dom.style.top = '160px';
+  stats.dom.style.top = 'unset';
+  stats.dom.style.bottom = '60px';
   stats.dom.style.right = '10px';
-
-  const faucetButton = document.createElement('div');
-  faucetButton.id = 'faucetButton';
-  document.body.appendChild(faucetButton);
-  faucetButton.innerHTML = '<h2><i class="fa fa-play"></i></h2>';
-  faucetButton.onclick = () => {
-    faucet = !faucet;
-  }
 
 }
 
@@ -393,9 +395,9 @@ function updateSurface() {
       if (i === 0) {
         if (colorFunc) {
           mesh.material = materialColors;
-          let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.D.evaluate({x,y,z}));
+          let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.E.evaluate({x,y,z}));
           colorBufferVertices( mesh, (x,y,z) => {
-            const value = rData.D.evaluate({x,y,z});
+            const value = rData.E.evaluate({x,y,z});
             return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
           });
           const colorBar = document.querySelector(".colorBar");
@@ -414,9 +416,9 @@ function updateSurface() {
     if (colorFunc) {
       frontMesh.material = materialColors;
       backMesh.visible = false;
-      let [vMax, vMin] = vMaxMin(frontMesh, (x,y,z) => rData.D.evaluate({x,y,z}));
+      let [vMax, vMin] = vMaxMin(frontMesh, (x,y,z) => rData.E.evaluate({x,y,z}));
       colorBufferVertices( frontMesh, (x,y,z) => {
-        const value = rData.D.evaluate({x,y,z});
+        const value = rData.E.evaluate({x,y,z});
         return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
       });
       addColorBar(vMin, vMax);
@@ -616,6 +618,7 @@ class BallMesh extends THREE.Mesh {
 
     this.start = new THREE.Vector3();
     this.lim = lim;
+    this.trail = [];
   }
 
   initiate(F, dt=0.01, maxSteps=500, tol = 1e-3 ) {
@@ -639,7 +642,9 @@ class BallMesh extends THREE.Mesh {
 }
 
 const balls = new THREE.Object3D();
-const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
+const trails = new THREE.Object3D();
+const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
+const trailMaterial = new THREE.LineBasicMaterial( { color: 0x373765, vertexColors: true } );
 const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
 const arrowArgs = {radiusTop: vfScale/30, radiusBottom: vfScale/100, heightTop: vfScale/8};
 
@@ -655,9 +660,8 @@ for (let i = 1; i <= heightResolution; i++) {
 }
 
 
-function initBalls( balls, lim=1 ) {
+function initBalls( balls, lim=1, N=data.nVec ) {
   const vec = new THREE.Vector3();
-  const N = 8;
   let maxLength = 0;
   const arrowDefaultGeometry = new ArrowBufferGeometry( {...arrowArgs, height: gridStep/gridMax } );
 
@@ -665,14 +669,18 @@ function initBalls( balls, lim=1 ) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
         const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2);
+        const trail = new THREE.Line( new THREE.BufferGeometry(), trailMaterial);
+        ball.trailObject = trail;
+        trails.add(trail);
+
         ball.position.set(i*2/(N) - 1 + .01*Math.random(), j*2/(N) - 1 + .01*Math.random(), k*2/(N) - 1 + .01*Math.random());
         // ball.position.set(lim*(Math.random() - 0.5), lim*(Math.random() - 0.5), lim*(Math.random() - 0.5));
         ball.initiate(fieldF);
         fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
         const len = vec.length();
         maxLength = Math.max(maxLength, len);
-        ball.position.copy(ball.start)
-        fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
+        // ball.position.copy(ball.start)
+        // fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
         vec.add(ball.position);
         ball.lookAt(vec);
         // console.log(ball.start);
@@ -694,8 +702,21 @@ function updateBalls(balls, F, dt, lim=1) {
     const {x,y,z} = ball.position;
     const pos1 = new THREE.Vector3(); 
     pos1.set(...rk4(x,y,z,F,dt));
+    if (true) {
+      ball.trail.push(pos1);
+      if (ball.trail.length > 250) {
+        // console.log("too long", ball.trail[ball.trail.length - 1]);
+        ball.trail.shift();
+      }
+      const trail = ball.trailObject;
+      if (trail && ball.trail.length > 1) {
+        trail.geometry.setFromPoints(ball.trail);
+        // console.log(ball.trail);
+      }
+    }
     if (norm1(pos1) > ball.lim || pos1.clone().sub(ball.position).length() < 1e-6 ) {
       ball.position.copy(ball.start);
+      ball.trail = [];
     } else {
       ball.position.copy(pos1);
     }
@@ -709,11 +730,16 @@ function updateBalls(balls, F, dt, lim=1) {
   })
 }
 
-function freeBalls(balls) {
+function freeBalls(balls, trails) {
   for (let i = balls.children.length - 1; i >= 0 ; i--) {
     const element = balls.children[i];
     if (element.geometry.dispose) element.geometry.dispose();
     balls.remove(element);
+  }
+  for (let i = trails.children.length - 1; i >= 0 ; i--) {
+    const element = trails.children[i];
+    if (element.geometry.dispose) element.geometry.dispose();
+    trails.remove(element);
   }
 }
 
@@ -727,6 +753,7 @@ let maxLength = 2;
 // let maxLength = initBalls(balls);
 // updateBalls(balls, fieldF, 1);
 scene.add(balls);
+scene.add(trails);
 
 
 
@@ -784,7 +811,7 @@ for (let [rho,func] of Object.entries(rhos)) {
   element.onclick = () => {
     // const sf = fields[field];
     let el;
-    const c = "D";
+    const c = "E";
     el = document.querySelector(`#custom${c.toUpperCase()}`);
     el.value = func;
     rData[c] = math.parse(func).compile();
@@ -795,7 +822,7 @@ for (let [rho,func] of Object.entries(rhos)) {
 
 
 {
-  const XYZ = "PQRD";
+  const XYZ = "PQRE";
   for (let i = 0; i < XYZ.length; i++) {
     const ch = XYZ[i];
     const id = `custom${ch}`;
@@ -826,7 +853,7 @@ for (let [rho,func] of Object.entries(rhos)) {
   play.onclick = () => {
     if (balls.children.length < 1) {
       console.log("play from the top");
-      maxLength = initBalls(balls);
+      maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
     }
     faucet = true;
   }
@@ -840,15 +867,15 @@ for (let [rho,func] of Object.entries(rhos)) {
   const stop = document.querySelector("#field-stop");
   stop.onclick = () => {
     faucet = false;
-    freeBalls(balls);
+    freeBalls(balls, trails);
     console.log("stop");
   }
 
   const rew = document.querySelector("#field-rewind");
   rew.onclick = () => {
     faucet = false;
-    freeBalls(balls);
-    maxLength = initBalls(balls);
+    freeBalls(balls,trails);
+    maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
     faucet = true;
     console.log("rewind");
   }
@@ -1030,7 +1057,8 @@ function animate(time) {
 
   if (debug) {
     stats.begin() ;
-    debugLog.innerText = (Math.round((time - last)*1000)*.00001).toString();
+    const element = document.querySelector("div#timeLog");
+    timeLog.innerText = (Math.round((time - last)*1000)*.00001).toString();
   }
 
   if (faucet) {
@@ -1056,8 +1084,11 @@ function animate(time) {
 let debugLog;
 if (debug) {
   debugLog = document.createElement('div');
+  const timeLog = document.createElement('div');
   debugLog.classList.add('debugger');
   document.body.appendChild(debugLog);
+  debugLog.appendChild(timeLog);
+  timeLog.id = "timeLog";
   }
 
 // start the flow

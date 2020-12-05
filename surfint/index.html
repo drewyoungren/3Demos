@@ -181,7 +181,7 @@
               <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
                 <div>
                   <span>$f(x,y,z) = $ </span>
-                  <span><input class="custom-input" type="text" name="customD" id="customD" value="x^2 + y^2"><span
+                  <span><input class="custom-input" type="text" name="customE" id="customE" value="x^2 + y^2"><span
                       style="color: red;" class="form-warning"></span></span>
                 </div>
               </div>
@@ -290,7 +290,15 @@
   <div><label for="cNum">v-meshes :</label>
     <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
     <output style='font-family: monospace;'>10</output></div>
-  <div><label for="frameBall">frame : </label><input type="checkbox" name="frameBallVisible" id="frameBallVisible"></div>
+    <div><label for="frameBallVisible">frame : </label><label class="switch">
+      <input type="checkbox" name="frameBallVisible" id="frameBallVisible">
+      <span class="slider round"></span>
+    </label></div>
+    <div><label for="trailsVisible">trails : </label><label class="switch">
+      <input type="checkbox" name="trailsVisible" id="trailsVisible">
+      <span class="slider round"></span>
+    </label></div>
+  <div><label for="nVec">vectors : </label><input type="range" name="nVec" id="nVec" min="1" max="12" step="1" value="5"><output style='font-family: monospace;'>5</output></div>
 
 </div>
 
