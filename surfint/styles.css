@@ -151,9 +151,10 @@ body {
     right : 10px;
     top : 10px;
     z-index : 32;
-    width : 125px;
+    /* width : 125px; */
     height : 125px;
     padding: 5px;
+    overflow: auto;
 }
 
 #faucetButton {
