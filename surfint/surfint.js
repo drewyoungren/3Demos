@@ -223,20 +223,25 @@ const fields = {
     R: "-z/4"
   },
   'gravity': {
-    P: "(x^2 + y^2 + z^2) > 0.2 ? -x/(x^2 + y^2 + z^2)^(3/2) : 0",
-    Q: "(x^2 + y^2 + z^2) > 0.2 ? -y/(x^2 + y^2 + z^2)^(3/2) : 0",
-    R: "(x^2 + y^2 + z^2) > 0.2 ? -z/(x^2 + y^2 + z^2)^(3/2) : 0"
+    P: "(x^2 + y^2 + z^2) > 0.2  ? -x/(x^2 + y^2 + z^2)^(3/2)  : 0",
+    Q: "(x^2 + y^2 + z^2) > 0.2  ? -y/(x^2 + y^2 + z^2)^(3/2) : 0",
+    R: "(x^2 + y^2 + z^2) > 0.2  ? -z/(x^2 + y^2 + z^2)^(3/2) : 0"
+  },
+  '2body': {
+    P: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(x+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (x-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5) : 0",
+    Q: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(y+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (y-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0",
+    R: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(z+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (z-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0"
   },
   'magnet': {
     P: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (x-1/2) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (x + 1/2) / ((x + 1/2)^2 + y^2 + z^2)^(0.6): 0",
     Q: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (y) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (y) / ((x + 1/2)^2 + y^2 + z^2)^(0.6) : 0",
     R: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (z) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (z) / ((x + 1/2)^2 + y^2 + z^2)^(0.6) : 0",
   },
-  'magnet2': {
-    P: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? ((x - 0.5)*(y^2 + z^2 + (x + 0.5)^2)^1.5 - (x + 0.5)*(y^2 + z^2 + (x - 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5): 0",
-    Q: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? y*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
-    R: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? z*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
-  },
+  // 'magnet2': {
+  //   P: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? ((x - 0.5)*(y^2 + z^2 + (x + 0.5)^2)^1.5 - (x + 0.5)*(y^2 + z^2 + (x - 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5): 0",
+  //   Q: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? y*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
+  //   R: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? z*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
+  // },
   // 'test': {
   //   P: "x^2",
   //   Q: "1/2",
@@ -317,7 +322,7 @@ function makeQueryStringObject() {
   return query;
 }
 
-document.querySelectorAll("#settings-box>div>input").forEach( (element) => {
+document.querySelectorAll(".setting-thing>input").forEach( (element) => {
   element.oninput = () => {
     data[element.name] = parseInt(element.value);
     updateSurface();
@@ -360,8 +365,23 @@ if (debug) {
   const element = document.querySelector("input#frameBallVisible");
   element.oninput = () => {
     frameBall.visible = element.checked;
-    // console.log("frameball checked", element.checked)
-    // updateSurface
+  }
+}
+
+let acidTrails = false;
+{
+  const element = document.querySelector("input#trailsVisible");
+  element.oninput = () => {
+    trails.visible = element.checked;
+    acidTrails = element.checked;
+    freeBalls(trails);
+  }
+}
+
+{
+  const element = document.querySelector("input#surfaceVisible");
+  element.oninput = () => {
+    surfaceMesh.visible = element.checked;
   }
 }
 
@@ -619,6 +639,7 @@ class BallMesh extends THREE.Mesh {
     this.start = new THREE.Vector3();
     this.lim = lim;
     this.trail = [];
+    this.trailColors = [];
   }
 
   initiate(F, dt=0.01, maxSteps=500, tol = 1e-3 ) {
@@ -644,10 +665,15 @@ class BallMesh extends THREE.Mesh {
 const balls = new THREE.Object3D();
 const trails = new THREE.Object3D();
 const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
-const trailMaterial = new THREE.LineBasicMaterial( { color: 0x373765, vertexColors: true } );
+const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
 const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
 const arrowArgs = {radiusTop: vfScale/30, radiusBottom: vfScale/100, heightTop: vfScale/8};
+const trailColors = [0,0,1];
 
+for( let j= 1; j <= 250; j++) {
+  trailColors.push((j/250), (j/250), 1-j/250 );
+  trailColors.push((j/250), (j/250), 1-j/250 );
+}
 
 for (let i = 1; i <= heightResolution; i++) {
   const geometry = new ArrowBufferGeometry( {
@@ -669,13 +695,18 @@ function initBalls( balls, lim=1, N=data.nVec ) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
         const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2);
-        const trail = new THREE.Line( new THREE.BufferGeometry(), trailMaterial);
+        const trail = new THREE.LineSegments( new THREE.BufferGeometry(), trailMaterial);
         ball.trailObject = trail;
         trails.add(trail);
 
-        ball.position.set(i*2/(N) - 1 + .01*Math.random(), j*2/(N) - 1 + .01*Math.random(), k*2/(N) - 1 + .01*Math.random());
-        // ball.position.set(lim*(Math.random() - 0.5), lim*(Math.random() - 0.5), lim*(Math.random() - 0.5));
+        ball.position.set(((i + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
+          ((j + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
+          ((k + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random());
         ball.initiate(fieldF);
+        const posr = new THREE.Vector3();
+        // posr.copy(ball.position);
+        ball.trail.push(ball.position.clone());
+
         fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
         const len = vec.length();
         maxLength = Math.max(maxLength, len);
@@ -694,32 +725,36 @@ function initBalls( balls, lim=1, N=data.nVec ) {
 function updateBalls(balls, F, dt, lim=1) {
   const vec = new THREE.Vector3();
   balls.children.forEach( (ball) => {
-    // if (ball.geometry) {
-    // ball.geometry.dispose()
-    // } else {
-    //   console.error ("uh oh", ball);
-    // }
     const {x,y,z} = ball.position;
     const pos1 = new THREE.Vector3(); 
     pos1.set(...rk4(x,y,z,F,dt));
-    if (true) {
-      ball.trail.push(pos1);
-      if (ball.trail.length > 250) {
-        // console.log("too long", ball.trail[ball.trail.length - 1]);
-        ball.trail.shift();
+
+    if (acidTrails) {
+      ball.trail.unshift(ball.trail.pop()) // move the last position, stored at the back, to the front. 
+      ball.trail.unshift(pos1);            // move the current position in to complete the line segment
+      
+      if (ball.trail.length > 501) {       // truncate trail
+        ball.trail.pop();
+        ball.trail.pop();
       }
+
       const trail = ball.trailObject;
       if (trail && ball.trail.length > 1) {
         trail.geometry.setFromPoints(ball.trail);
-        // console.log(ball.trail);
+        trail.geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( trailColors.slice(0,ball.trail.length*3), 3 ) );
       }
     }
     if (norm1(pos1) > ball.lim || pos1.clone().sub(ball.position).length() < 1e-6 ) {
       ball.position.copy(ball.start);
-      ball.trail = [];
+      // ball.trail = [];
     } else {
       ball.position.copy(pos1);
     }
+
+    if (acidTrails) {
+      ball.trail.push(ball.position.clone());               // store the current position at the back
+    }
+
     let height = F(ball.position.x,ball.position.y,ball.position.z,vec).length();
     height = Math.round(height / maxLength * heightResolution) - 1;
     
@@ -730,16 +765,11 @@ function updateBalls(balls, F, dt, lim=1) {
   })
 }
 
-function freeBalls(balls, trails) {
+function freeBalls(balls) {
   for (let i = balls.children.length - 1; i >= 0 ; i--) {
     const element = balls.children[i];
     if (element.geometry.dispose) element.geometry.dispose();
     balls.remove(element);
-  }
-  for (let i = trails.children.length - 1; i >= 0 ; i--) {
-    const element = trails.children[i];
-    if (element.geometry.dispose) element.geometry.dispose();
-    trails.remove(element);
   }
 }
 
@@ -867,14 +897,16 @@ for (let [rho,func] of Object.entries(rhos)) {
   const stop = document.querySelector("#field-stop");
   stop.onclick = () => {
     faucet = false;
-    freeBalls(balls, trails);
+    freeBalls(balls);
+    freeBalls(trails);
     console.log("stop");
   }
 
   const rew = document.querySelector("#field-rewind");
   rew.onclick = () => {
     faucet = false;
-    freeBalls(balls,trails);
+    freeBalls(balls);
+    freeBalls(trails);
     maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
     faucet = true;
     console.log("rewind");
@@ -1058,7 +1090,7 @@ function animate(time) {
   if (debug) {
     stats.begin() ;
     const element = document.querySelector("div#timeLog");
-    timeLog.innerText = (Math.round((time - last)*1000)*.00001).toString();
+    timeLog.innerText = (Math.round((time - last)*1000)/1000).toString();
   }
 
   if (faucet) {
