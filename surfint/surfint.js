@@ -230,7 +230,7 @@ const fields = {
   '2body': {
     P: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(x+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (x-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5) : 0",
     Q: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(y+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (y-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0",
-    R: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(z+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (z-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0"
+    R: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(z+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (z-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0",
   },
   'magnet': {
     P: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (x-1/2) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (x + 1/2) / ((x + 1/2)^2 + y^2 + z^2)^(0.6): 0",
@@ -248,6 +248,36 @@ const fields = {
   //   R: "0",
   // },
 }
+
+// Add bodies to the "physical" fields.
+
+{
+  const gravityMesh = new THREE.Object3D();
+  const sph = new THREE.SphereBufferGeometry(.22, 16, 16 );
+  let mesh = new THREE.Mesh(sph, new THREE.MeshLambertMaterial({color: 0xdddd33}));
+  mesh.position.set(1,1,1);
+  gravityMesh.add(mesh);
+  mesh = new THREE.Mesh(sph, new THREE.MeshLambertMaterial({color: 0xddaa33}));
+  mesh.position.set(-1,-1,-1);
+  gravityMesh.add(mesh);
+  mesh = new THREE.Mesh(sph, new THREE.MeshLambertMaterial({color: 0xddddbc}));
+  mesh.visible = false;
+  scene.add(mesh)
+  fields['gravity'].body = mesh;
+  gravityMesh.visible = false;
+  fields["2body"].body = gravityMesh;
+  scene.add(gravityMesh);
+
+  mesh = new THREE.Mesh(new THREE.CylinderGeometry( .1, .1, 1.4), new THREE.MeshLambertMaterial({color: 0xff8888}));
+  mesh.rotation.z = Math.PI/2;
+  fields.magnet.body = mesh;
+  mesh.visible = false;
+  scene.add(mesh);
+
+  // scene.add(mesh);
+}
+
+
 let fieldChoice = 'rain';
 
 for (let c of "PQR") {
@@ -815,6 +845,11 @@ for (let [field,pqr] of Object.entries(fields)) {
       el.value = pqr[c];
       rData[c] = math.parse(pqr[c]).compile();
       // el.dispatchEvent(new Event('change'));
+    }
+    for (let [key, obj] of Object.entries(fields)) {
+      if (obj.body) {
+        obj.body.visible = key === field;
+      }
     }
   }
 }
