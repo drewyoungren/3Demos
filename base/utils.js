@@ -69,14 +69,11 @@ export function colorBufferVertices( mesh , f ) {
     let colors = [];
     let vec = new THREE.Vector3();
     const points = mesh.geometry.attributes.position.array;
-    console.log("=======");
+    // console.log("=======");
     for (let i = 0; i < points.length; i += 3) {
         vec.set(points[i],points[i+1],points[i+2]);
-        // vec.add(mesh.position);
-        // console.log(vec);
         let {x,y,z} = mesh.localToWorld(vec);
         let {r,g,b} = f(x,y,z);
-        // console.log([x,y,z]);
         colors.push(r,g,b);
     }
     mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute( colors, 3 ));
@@ -134,7 +131,6 @@ export function addColorBar(vMin=-1, vMax=1) {
     // grd.addColorStop(0,"#3D003D");
     // grd.addColorStop(0.5,"#FFFFFF")
     // grd.addColorStop(1,"#8E1400");
-    console.log(grd,canvas.width,canvas.height,canvas.clientHeight);
     // light blue
     // dark blue
     // grd.addColorStop(1, '#004CB3');
