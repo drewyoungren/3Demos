@@ -45,24 +45,6 @@ camera.lookAt( 0,0,0 );
 
 // soft white light
 scene.add( new THREE.AmbientLight( 0xA0A0A0 ) );
-// let directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-// directionalLight.position.set(0,50,0)
-// scene.add( directionalLight );
-// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-// directionalLight.position.set(0,-50,0)
-// scene.add( directionalLight );
-// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-// directionalLight.position.set(50,0,50)
-// scene.add( directionalLight );
-// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-// directionalLight.position.set(-50,0,-50)
-// scene.add( directionalLight );
-// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-// directionalLight.position.set(50,0,-50)
-// scene.add( directionalLight );
-// directionalLight = new THREE.PointLight( 0xffffff, 0.5 );
-// directionalLight.position.set(-50,0,50)
-// scene.add( directionalLight );
 
 //something to make shiny things shine - a chandelier
 const chandelier = new THREE.Object3D();
@@ -138,14 +120,6 @@ const surfaces = {
     b: "1",
     c: "-1",
     d: "1",
-    // tex: {
-    //   x: "u",
-    //   y: "v",
-    //   z: " \\frac12\\sin(3u - v) e^{-\\frac{u^2 + v^2}{2}}",
-    //   ru: "\\vec i + f_u\\,\\vec k",
-    //   rv: "\\vec j + f_v\\,\\vec k",
-    //   n: "-f_u\\,\\vec i -f_v\\,\\vec j + \\vec k",
-    // },
   },
   revolutions: {
     x: "u", 
@@ -300,7 +274,7 @@ const rData = {
 }
 
 const data = {
-  r: 'graphs',
+  S: 'graphs',
   nX: 30,
   rNum: 10,
   cNum: 10,
@@ -430,8 +404,8 @@ function updateSurface() {
   }, data.nX, data.nX);
   const meshGeometry = meshLines(rData, data.rNum, data.cNum, data.nX);
   let material = plusMaterial;
-  if (surfaces[data.r].material) {
-    material = surfaces[data.r].material;
+  if (surfaces[data.S].material) {
+    material = surfaces[data.S].material;
   }
   if (surfaceMesh) {
     for (let i = 0; i < surfaceMesh.children.length; i++) {
@@ -580,7 +554,7 @@ for (let i = 0; i < surfs.length; i++) {
   const element = document.getElementById(surf);
 
   element.onclick = () => {
-    data.r = surf;
+    data.S = surf;
     const sf = surfaces[surf];
     let el;
     for (let i = 0; i < "xyzabcd".length; i++) {;
@@ -939,11 +913,11 @@ for (let [rho,func] of Object.entries(rhos)) {
 
   const rew = document.querySelector("#field-rewind");
   rew.onclick = () => {
-    faucet = false;
+    // faucet = false;
     freeBalls(balls);
     freeBalls(trails);
     maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
-    faucet = true;
+    // faucet = true;
     console.log("rewind");
   }
 }
