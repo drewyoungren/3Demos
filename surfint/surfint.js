@@ -282,30 +282,39 @@ const data = {
   nVec: 5,
 }
 
-const urlParams = new URLSearchParams(location.search)
-// console.log(urlParams.keys() ? true : false);
 let debug = false;
-if (urlParams.keys()) {
-  urlParams.forEach((val, key) => {
-    const element = document.querySelector(`input#custom${key.toUpperCase()}`);
-    if (element) {
-      rData[key] = math.parse(val).compile();
-      element.value = val.toString();
-      return;
-    } 
-    if (["nX", "rNum", "cNum"].indexOf(key) > -1) {
-      data[key] = parseInt(val);
-      return console.log(key, val);
-    }
-    if (key === 'debug') {
-      debug = val.toLowerCase() === 'true';
-    }
-    // const [s,c] = key.split("camera");
-    // if (!s) {
-    //   camera.position[c.toLowerCase()] = parseFloat(val);
-    // }
-    
-  });
+function processURLSearch() {
+  const urlParams = new URLSearchParams(location.search)
+  // console.log(urlParams.keys() ? true : false);
+  if (urlParams.keys()) {
+    urlParams.forEach((val, key) => {
+      let element = document.querySelector(`input#custom${key.toUpperCase()}`);
+      if (element) {
+        rData[key] = math.parse(val).compile();
+        element.value = val.toString();
+        return;
+      } 
+      if (["nX", "rNum", "cNum"].indexOf(key) > -1) {
+        data[key] = parseInt(val);
+        return console.log(key, val);
+      }
+      if (key === 'debug') {
+        debug = val.toLowerCase() === 'true';
+        return;
+      }
+      element = document.querySelector(`input[name=${key}]`);
+      if (element) {
+        element.checked = val.toLowerCase() === 'true';
+        element.oninput();
+        
+      }
+      // const [s,c] = key.split("camera");
+      // if (!s) {
+      //   camera.position[c.toLowerCase()] = parseFloat(val);
+      // }
+      
+    });
+  }
 }
 
 function makeQueryStringObject() {
@@ -315,6 +324,9 @@ function makeQueryStringObject() {
     if (element) {
       query[key] = element.value;
     }
+  });
+  document.querySelectorAll('input[type=checkbox]').forEach( el => {
+    query[el.name] = el.checked;
   });
   query = {
     ...query,
@@ -329,7 +341,15 @@ function makeQueryStringObject() {
 document.querySelectorAll(`.setting-thing>input[type="range"]`).forEach( (element) => {
   element.oninput = () => {
     data[element.name] = parseInt(element.value);
+    if (element.name === 'nVec') {
+      freeBalls( balls );
+      freeTrails( balls );
+
+      if (faucet) initBalls( balls );
+      
+    } else {
     updateSurface();
+    }
     if (debug) {
       let element = document.querySelector("div#dataLog");
       if (! element) {
@@ -381,6 +401,7 @@ let acidTrails = false;
     acidTrails = element.checked;
     
     freeTrails(balls);
+    requestFrameIfNotRequested();
 
   }
 }
@@ -648,8 +669,8 @@ class BallMesh extends THREE.Mesh {
 
     this.start = new THREE.Vector3();
     this.lim = lim;
-    this.trail = [];
-    this.trailColors = [];
+    this.lastPosition = null;
+    
   }
 
   initiate(F, dt=0.01, maxSteps=500, tol = 1e-3 ) {
@@ -673,17 +694,33 @@ class BallMesh extends THREE.Mesh {
 }
 
 const balls = new THREE.Object3D();
-const trails = new THREE.Object3D();
 const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
 const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
+const trails = new THREE.LineSegments(new THREE.BufferGeometry(), trailMaterial );
 const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
 const arrowArgs = {radiusTop: vfScale/30, radiusBottom: vfScale/100, heightTop: vfScale/8};
-const trailColors = [0,0,1];
+let trailColors = [], trailPoints = [], colors = [];
+const trailLength = 250; 
+// scene.add(trails);
 
-for( let j= 1; j <= 250; j++) {
-  trailColors.push((j/250), (j/250), 1-j/250 );
-  trailColors.push((j/250), (j/250), 1-j/250 );
+function resetTrailColors(trailLength = trailLength, N=data.nVec ) {
+  trailColors = [];
+   
+  for (let j = 0; j < trailLength; j++) {
+    for (let k = 1; k <= Math.pow(N, 3); k++) {
+      trailColors.push(j / trailLength, j / trailLength, 1);
+      // trailColors.push(j / trailLength, j / trailLength, 1 - j / trailLength);
+      trailColors.push(
+        (j + 1) / trailLength,
+        (j + 1) / trailLength,
+        // 1 - (j + 1) / trailLength
+        1,
+      );
+    }
+  }
+  trails.geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( trailColors, 3 ), )
 }
+
 
 for (let i = 1; i <= heightResolution; i++) {
   const geometry = new ArrowBufferGeometry( {
@@ -697,6 +734,8 @@ for (let i = 1; i <= heightResolution; i++) {
 
 
 function initBalls( balls, lim=1, N=data.nVec ) {
+  resetTrailColors( trailLength, N);
+
   const vec = new THREE.Vector3();
   let maxLength = 0;
   const arrowDefaultGeometry = new ArrowBufferGeometry( {...arrowArgs, height: gridStep/gridMax } );
@@ -705,11 +744,9 @@ function initBalls( balls, lim=1, N=data.nVec ) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
         const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2);
-        const trail = new THREE.LineSegments( new THREE.BufferGeometry(), trailMaterial);
-        ball.trailObject = trail;
-        trails.add(trail);
 
-        ball.position.set(((i + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
+        ball.position.set(
+          ((i + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
           ((j + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
           ((k + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random());
         ball.initiate(fieldF);
@@ -729,6 +766,9 @@ function initBalls( balls, lim=1, N=data.nVec ) {
       }
     }
   }
+
+  trailPoints = [];
+
   return maxLength; // 
 }
 
@@ -736,34 +776,27 @@ function updateBalls(balls, F, dt=0.016, lim=1) {
   const vec = new THREE.Vector3();
   balls.children.forEach( (ball) => {
     const {x,y,z} = ball.position;
+
+    // if (!ball.lastPosition) {ball.lastPosition = [x,y,z];}
+
     const pos1 = new THREE.Vector3(); 
     pos1.set(...rk4(x,y,z,F,dt));
 
-    if (acidTrails && ball.trail.length > 0) {
-      ball.trail.unshift(ball.trail.pop()) // move the last position, stored at the back, to the front. 
-      ball.trail.unshift(pos1);            // move the current position in to complete the line segment
+    if (acidTrails ) {
+      trailPoints.unshift(ball.position.x, ball.position.y, ball.position.z);
+      trailPoints.unshift(pos1.x, pos1.y, pos1.z);       
       
-      if (ball.trail.length > 501) {       // truncate trail
-        ball.trail.pop();
-        ball.trail.pop();
-      }
-
-      const trail = ball.trailObject;
-      if (trail && ball.trail.length > 1) {
-        trail.geometry.setFromPoints(ball.trail);
-        trail.geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( trailColors.slice(0,ball.trail.length*3), 3 ) );
+      while (trailPoints.length > 2*3*Math.pow(data.nVec,3)*trailLength) {       // truncate trail
+        trailPoints.pop();
       }
     }
-    if (norm1(pos1) > ball.lim || pos1.clone().sub(ball.position).length() < 1e-6 ) {
-      ball.position.copy(ball.start);
+    if (norm1(pos1) > ball.lim || (dt > 1e-6 && pos1.clone().sub(ball.position).length() < 1e-6 )) {
+      ball.position.copy(ball.start.clone().add(new THREE.Vector3(Math.random()*0.01, Math.random()*0.01, Math.random()*0.01)));
       // ball.trail = [];
     } else {
       ball.position.copy(pos1);
     }
 
-    if (acidTrails) {
-      ball.trail.push(ball.position.clone());               // store the current position at the back
-    }
 
     let height = F(ball.position.x,ball.position.y,ball.position.z,vec).length();
     height = Math.round(height / maxLength * heightResolution) - 1;
@@ -772,7 +805,9 @@ function updateBalls(balls, F, dt=0.016, lim=1) {
     
     ball.lookAt(vec.add(ball.position));
     // if Math.ball.position.x
-  })
+  });
+  trails.geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( trailPoints, 3 ) );
+
 }
 
 function freeBalls(balls) {
@@ -783,13 +818,8 @@ function freeBalls(balls) {
   }
 }
 
-function freeTrails(balls) {
-  for (let i = balls.children.length - 1; i >= 0 ; i--) {
-    const ball = balls.children[i];
-    console.log(ball.trail.length)
-    ball.trail = [];
-    
-  }
+function freeTrails() {
+  trailPoints = [];
 }
 
  
@@ -909,12 +939,14 @@ for (let [rho,func] of Object.entries(rhos)) {
     }
     faucet = true;
     cancelAnimationFrame(myReq);
+    last = undefined;
     myReq = requestAnimationFrame(animate);
   }
 
   const pause = document.querySelector("#field-pause");
   pause.onclick = () => {
     cancelAnimationFrame(myReq);
+    last = undefined
     frameRequested = false;
     faucet = false;
     console.log("pause");
@@ -923,11 +955,17 @@ for (let [rho,func] of Object.entries(rhos)) {
   const stop = document.querySelector("#field-stop");
   stop.onclick = () => {
     cancelAnimationFrame(myReq);
+    last = undefined;
     frameRequested = false;
     faucet = false;
     freeBalls(balls);
     freeBalls(trails);
+    trails.geometry.setAttribute('position', new THREE.Float32BufferAttribute( [], 3));
+    
+    freeTrails();
+    
     console.log("stop");
+    requestFrameIfNotRequested();
   }
 
   const rew = document.querySelector("#field-rewind");
@@ -1167,8 +1205,8 @@ if (debug) {
   timeLog.id = "timeLog";
   }
 
-// start the flow
-let faucet = !debug;
+// start the tap closed
+let faucet = false;
 
 let colorFunc = false; // do density
 const colorFuncCheckbox = document.querySelector("input#colorFunc");
@@ -1222,6 +1260,8 @@ document.querySelector("#cameraReset").onclick = () => {
 }
 
 // gui.domElement.style.zIndex = 2000;
+processURLSearch()
+
 updateSurface();
 
 function render() {
@@ -1249,6 +1289,7 @@ function render() {
   point.position.set(rData.x.evaluate(uv));
   tangentVectors();
 }
+
 
 // go
 // requestAnimationFrame(animate);
