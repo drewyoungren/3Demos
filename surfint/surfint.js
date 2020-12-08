@@ -72,9 +72,9 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
 controls.target.set( 0,0,0);
-// controls.addEventListener('change',render);
+controls.addEventListener('change', requestFrameIfNotRequested);
 
-// window.addEventListener('resize', render);
+window.addEventListener('resize', requestFrameIfNotRequested);
 
 //axes
 
@@ -92,7 +92,7 @@ const axesHolder = drawAxes( {gridMax, gridStep, axesMaterial});
 scene.add(axesHolder)
 
 // Fonts
-const [axesText, font] = labelAxes( { scene } );
+const [axesText, font] = labelAxes( { scene , render: requestFrameIfNotRequested } );
 
 
 const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
@@ -326,7 +326,7 @@ function makeQueryStringObject() {
   return query;
 }
 
-document.querySelectorAll(".setting-thing>input").forEach( (element) => {
+document.querySelectorAll(`.setting-thing>input[type="range"]`).forEach( (element) => {
   element.oninput = () => {
     data[element.name] = parseInt(element.value);
     updateSurface();
@@ -369,6 +369,7 @@ if (debug) {
   const element = document.querySelector("input#frameBallVisible");
   element.oninput = () => {
     frameBall.visible = element.checked;
+    requestFrameIfNotRequested();
   }
 }
 
@@ -378,7 +379,9 @@ let acidTrails = false;
   element.oninput = () => {
     trails.visible = element.checked;
     acidTrails = element.checked;
-    freeBalls(trails);
+    
+    freeTrails(balls);
+
   }
 }
 
@@ -386,6 +389,7 @@ let acidTrails = false;
   const element = document.querySelector("input#surfaceVisible");
   element.oninput = () => {
     surfaceMesh.visible = element.checked;
+    requestFrameIfNotRequested();
   }
 }
 
@@ -456,6 +460,8 @@ function updateSurface() {
   }
   tangentVectors();
   updateShards(data.shards);
+  if (!frameRequested) render();
+   
 }
 
 
@@ -709,7 +715,7 @@ function initBalls( balls, lim=1, N=data.nVec ) {
         ball.initiate(fieldF);
         const posr = new THREE.Vector3();
         // posr.copy(ball.position);
-        ball.trail.push(ball.position.clone());
+        // ball.trail.push(ball.position.clone());
 
         fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
         const len = vec.length();
@@ -726,14 +732,14 @@ function initBalls( balls, lim=1, N=data.nVec ) {
   return maxLength; // 
 }
 
-function updateBalls(balls, F, dt, lim=1) {
+function updateBalls(balls, F, dt=0.016, lim=1) {
   const vec = new THREE.Vector3();
   balls.children.forEach( (ball) => {
     const {x,y,z} = ball.position;
     const pos1 = new THREE.Vector3(); 
     pos1.set(...rk4(x,y,z,F,dt));
 
-    if (acidTrails) {
+    if (acidTrails && ball.trail.length > 0) {
       ball.trail.unshift(ball.trail.pop()) // move the last position, stored at the back, to the front. 
       ball.trail.unshift(pos1);            // move the current position in to complete the line segment
       
@@ -777,6 +783,15 @@ function freeBalls(balls) {
   }
 }
 
+function freeTrails(balls) {
+  for (let i = balls.children.length - 1; i >= 0 ; i--) {
+    const ball = balls.children[i];
+    console.log(ball.trail.length)
+    ball.trail = [];
+    
+  }
+}
+
  
 let fieldF = (x,y,z,vec) => {
   vec.set(rData.P.evaluate( {x,y,z} ), rData.Q.evaluate( {x,y,z} ), rData.R.evaluate( {x,y,z} ));
@@ -784,8 +799,6 @@ let fieldF = (x,y,z,vec) => {
 }
 
 let maxLength = 2;
-// let maxLength = initBalls(balls);
-// updateBalls(balls, fieldF, 1);
 scene.add(balls);
 scene.add(trails);
 
@@ -876,7 +889,7 @@ for (let [rho,func] of Object.entries(rhos)) {
         const expr = math.parse(element.value).compile();
         rData[ch] = expr;
         form.innerText = '';
-        if (ch === 'D') updateSurface();
+        if (ch === 'E') updateSurface();
 
       } catch (e) {
         console.error( e );
@@ -895,16 +908,22 @@ for (let [rho,func] of Object.entries(rhos)) {
       maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
     }
     faucet = true;
+    cancelAnimationFrame(myReq);
+    myReq = requestAnimationFrame(animate);
   }
 
   const pause = document.querySelector("#field-pause");
   pause.onclick = () => {
+    cancelAnimationFrame(myReq);
+    frameRequested = false;
     faucet = false;
     console.log("pause");
   }
 
   const stop = document.querySelector("#field-stop");
   stop.onclick = () => {
+    cancelAnimationFrame(myReq);
+    frameRequested = false;
     faucet = false;
     freeBalls(balls);
     freeBalls(trails);
@@ -917,8 +936,12 @@ for (let [rho,func] of Object.entries(rhos)) {
     freeBalls(balls);
     freeBalls(trails);
     maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
+    updateBalls(balls, fieldF)
+    requestFrameIfNotRequested();
+
     // faucet = true;
     console.log("rewind");
+    // animate();
   }
 }
 
@@ -1026,12 +1049,17 @@ window.addEventListener('mousemove',onMouseMove,false);
 window.addEventListener('keydown',(e) => {
   if (e.key === "Shift") {
     selectNewPoint = true;
+    cancelAnimationFrame(myReq);
+    frameRequested = true;
+    myReq = requestAnimationFrame(animate);
     // frameBall.visible = true;
   }
 },false);
 window.addEventListener('keyup',(e) => {
   if (e.key === "Shift") {
     selectNewPoint = false;
+    cancelAnimationFrame(myReq);
+    frameRequested = false;
     // frameBall.visible = false;
   }
 },false);
@@ -1083,7 +1111,14 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize;
   }
 
-let myReq,last;
+let myReq,last,frameRequested = false;
+
+function requestFrameIfNotRequested() {
+  if (!frameRequested) {
+    frameRequested = true;
+    myReq = requestAnimationFrame(render);
+  }
+}
 
 function animate(time) {
   controls.update();
@@ -1153,13 +1188,14 @@ colorFuncCheckbox.oninput = () => {
 document.getElementById("encodeURL").onclick = () => {
     // console.log();
     const qString = new URLSearchParams( makeQueryStringObject() );
-    console.log(qString.toString());
+    // console.log(qString.toString());
     window.location.search = qString.toString();
 };
 
 document.querySelector("#cameraReset").onclick = () => {
   // console.log();
   controls.target.set(0,0,0);
+  requestFrameIfNotRequested();
 };
 
 {
@@ -1188,6 +1224,25 @@ document.querySelector("#cameraReset").onclick = () => {
 // gui.domElement.style.zIndex = 2000;
 updateSurface();
 
+function render() {
+    frameRequested = false;
+
+    for (let index = 0; index < axesText.length; index++) {
+      const element = axesText[index];
+      element.lookAt(camera.position);
+    }
+
+    if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+  
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+
 //initialize frame
 {
   const uv = {u: 0.5, v: 0.5};
@@ -1196,4 +1251,5 @@ updateSurface();
 }
 
 // go
-requestAnimationFrame(animate);
+// requestAnimationFrame(animate);
+requestFrameIfNotRequested();
