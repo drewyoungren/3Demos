@@ -810,6 +810,7 @@ class BallMesh extends THREE.Mesh {
 
 const balls = new THREE.Object3D();
 const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
+const curlMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
 const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
 const trails = new THREE.LineSegments(new THREE.BufferGeometry(), trailMaterial );
 const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
@@ -976,10 +977,11 @@ function drawCurl(N=6)  {
       
       const vec = new THREE.Vector3(Ry - Qz, Pz - Rx, Qx - Py); // curl, baby
       // const vec = fieldF(x,y,z,new THREE.Vector3());
-      console.log(u,v,x,y,z,fieldF(x,y,z,new THREE.Vector3()));
+      // console.log(u,v,x,y,z,fieldF(x,y,z,new THREE.Vector3()));
+      const mag = vec.length();
       const arrow = new THREE.Mesh(new ArrowBufferGeometry(
-        { radiusTop: gridStep/6, radiusBottom: gridStep/16, height:vec.length()*gridStep, heightTop:gridStep/4 }
-      ), minusMaterial );
+        { radiusTop: gridStep/6, radiusBottom: gridStep/16, height:mag*gridStep, heightTop:Math.min(0.25,mag)*gridStep }
+      ), curlMaterial );
       arrow.position.set(x,y,z);
       
       arrow.lookAt(vec.add(arrow.position));
@@ -1085,6 +1087,8 @@ for (let [rho,func] of Object.entries(rhos)) {
         form.innerText = ' ' + e.name;
         return;
       }
+      requestFrameIfNotRequested();
+      
     };
   }
 }
