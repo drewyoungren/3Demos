@@ -643,5 +643,33 @@ const gaussLegendre = (fn, a, b, n) => {
 }
 // console.log(gaussLegendre(x => Math.exp(x), -3, 3, 5));
 
+// Runge-Kutta method
+function rk4(x, y, z, F, dt) {
+  // Returns final (x1,y1,z1) array after time dt has passed.
+  //        x,y,z: initial position
+  //        F: r' function a(x,v,dt) (must be callable)
+  //        dt: timestep
+  const vec = new THREE.Vector3(),
+        f1 = new THREE.Vector3(),
+        f2 = new THREE.Vector3(),
+        f3 = new THREE.Vector3(),
+        f4 = new THREE.Vector3();
+  
+  f1.copy(F(x,y,z,vec).multiplyScalar(dt));
+  f2.copy(F(x + f1.x/2, y + f1.y/2, z + f1.z/2,vec).multiplyScalar(dt));
+  f3.copy(F(x + f2.x/2, y + f2.y/2, z + f2.z/2,vec).multiplyScalar(dt));
+  f4.copy(F(x + f3.x, y + f3.y, z + f3.z,vec).multiplyScalar(dt));
 
-export { ArrowBufferGeometry, ParametricCurve, drawGrid, drawAxes, labelAxes, gaussLegendre };
+  const x1 = x + (f1.x + 2*f2.x + 2*f3.x + f4.x)/6;
+  const y1 = y + (f1.y + 2*f2.y + 2*f3.y + f4.y)/6;
+  const z1 = z + (f1.z + 2*f2.z + 2*f3.z + f4.z)/6;
+
+  return [x1, y1, z1];
+}
+
+// 1-norm
+function norm1(v) {
+  return Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
+}
+
+export { ArrowBufferGeometry, ParametricCurve, drawGrid, drawAxes, labelAxes, gaussLegendre, rk4, norm1 };
