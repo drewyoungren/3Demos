@@ -459,6 +459,7 @@ function updateSurface() {
         if (colorFunc) {
           mesh.material = materialColors;
           let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.E.evaluate({x,y,z}));
+          if (vMax == vMin) { vMax += 3/4; vMin -= 1/4;}
           colorBufferVertices( mesh, (x,y,z) => {
             const value = rData.E.evaluate({x,y,z});
             return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
@@ -523,65 +524,126 @@ function gcd(x, y) {
 
 let cMin, dMax; // make these globals as useful for tangents.
 
-function meshLines( rData, rNum=10, cNum=10 , nX=30) {
-  const {a,b,c,d,x,y,z} = rData;
-  const N = lcm(lcm(rNum,cNum),nX);
-  const A = a.evaluate(), B = b.evaluate();
-  const du = (B - A)/rNum;
-  const dx = (B - A)/lcm(nX,cNum);
+function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
+  const { a, b, c, d, x, y, z } = rData;
+  const N = lcm(lcm(rNum, cNum), nX);
+  const A = a.evaluate(),
+    B = b.evaluate();
+  const du = (B - A) / rNum;
+  const dx = (B - A) / lcm(nX, cNum);
   const points = [];
-  for (let u=A; u <= B; u += du ) {
-    const C = c.evaluate( {u: u} ), D = d.evaluate( {u: u} );
-    const dy = (D - C)/lcm(nX,rNum);
-    const params = {u: u, v: C};
-    points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
-    for (let v=C + dy; v < D; v += dy) {
+  for (let u = A; u <= B; u += du) {
+    const C = c.evaluate({ u: u }),
+      D = d.evaluate({ u: u });
+    const dy = (D - C) / lcm(nX, rNum);
+    const params = { u: u, v: C };
+    points.push(
+      new THREE.Vector3(
+        x.evaluate(params),
+        y.evaluate(params),
+        z.evaluate(params)
+      )
+    );
+    for (let v = C + dy; v < D; v += dy) {
       params.v = v;
-      points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
-      points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
+      points.push(
+        new THREE.Vector3(
+          x.evaluate(params),
+          y.evaluate(params),
+          z.evaluate(params)
+        )
+      );
+      points.push(
+        new THREE.Vector3(
+          x.evaluate(params),
+          y.evaluate(params),
+          z.evaluate(params)
+        )
+      );
     }
     params.v = D;
-    points.push(new THREE.Vector3(x.evaluate( params ), y.evaluate( params ), z.evaluate( params )))
-  }
-  
-  // v-Meshes
-  const params = {u: A};
-  cMin = c.evaluate( params ), dMax = d.evaluate( params );
-  for (let u=A+dx; u <= B; u += dx) {
-    params.u = u;
-    cMin = Math.min(cMin, c.evaluate( params ) );
-    dMax = Math.max(dMax, d.evaluate( params ) );
+    points.push(
+      new THREE.Vector3(
+        x.evaluate(params),
+        y.evaluate(params),
+        z.evaluate(params)
+      )
+    );
   }
 
-  for (let v = cMin; v <= dMax; v += (dMax - cMin)/cNum ) {
-    const zs = marchingSegments( x => (c.evaluate( {u: x} ) - v)*(v - d.evaluate( {u: x} )), A, B, nX);
+  // v-Meshes
+  const params = { u: A };
+  (cMin = c.evaluate(params)), (dMax = d.evaluate(params));
+  for (let u = A + dx; u <= B; u += dx) {
+    params.u = u;
+    cMin = Math.min(cMin, c.evaluate(params));
+    dMax = Math.max(dMax, d.evaluate(params));
+  }
+
+  for (let v = cMin; v <= dMax; v += (dMax - cMin) / cNum) {
+    const zs = marchingSegments(
+      (x) => (c.evaluate({ u: x }) - v) * (v - d.evaluate({ u: x })),
+      A,
+      B,
+      nX
+    );
     params.v = v;
     let nextZero = zs.shift();
-    for (let u=A; u <= B - dx + tol; u += dx) {
+    for (let u = A; u <= B - dx + tol; u += dx) {
       params.u = u;
-      if (c.evaluate( params ) <= v && v <= d.evaluate( params )) {
-        points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+      if (c.evaluate(params) <= v && v <= d.evaluate(params)) {
+        points.push(
+          new THREE.Vector3(
+            x.evaluate(params),
+            y.evaluate(params),
+            z.evaluate(params)
+          )
+        );
         if (nextZero < u + dx) {
           params.u = nextZero;
-          points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+          points.push(
+            new THREE.Vector3(
+              x.evaluate(params),
+              y.evaluate(params),
+              z.evaluate(params)
+            )
+          );
           nextZero = zs.shift();
         } else {
           params.u = u + dx;
-          points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
+          points.push(
+            new THREE.Vector3(
+              x.evaluate(params),
+              y.evaluate(params),
+              z.evaluate(params)
+            )
+          );
         }
       } else {
-          if (nextZero < u + dx) {
-            params.u = nextZero;
-            points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
-            nextZero = zs.shift();
-            params.u = u + dx;
-            points.push(new THREE.Vector3( x.evaluate( params ), y.evaluate( params ), z.evaluate( params )));
-          }
+        if (nextZero < u + dx) {
+          params.u = nextZero;
+          points.push(
+            new THREE.Vector3(
+              x.evaluate(params),
+              y.evaluate(params),
+              z.evaluate(params)
+            )
+          );
+          nextZero = zs.shift();
+          params.u = u + dx;
+          points.push(
+            new THREE.Vector3(
+              x.evaluate(params),
+              y.evaluate(params),
+              z.evaluate(params)
+            )
+          );
+        }
       }
     }
   }
-  
-  const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
   return geometry;
 }
 
