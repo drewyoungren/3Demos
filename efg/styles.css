@@ -1,0 +1,274 @@
+.button {
+    /* border: 1px solid #000;
+    border-radius: 5px;
+    padding: 5px; */
+    background-color: rgba(1,1,1,0.0);
+    font-size: medium;
+}
+
+.w3-button:hover {
+    color: #ddd;
+    background-color: rgba(1,1,1,0.0);
+}
+
+.button.active {
+    background-color: #323232;
+    color: #ddd;
+}
+
+.surface-choices {
+    position: relative;
+    display: block;
+    height: 239px;
+}
+
+.surface-choices-item {
+    visibility: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+}
+
+/* #customSurf {
+    position: relative;
+    margin: 100px;
+  } */
+
+#custom-table td {
+    padding: 3px;
+}
+
+.sans {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.page-selector {
+    display: inherit;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    text-align: center;
+    padding-top: 10px;
+}
+
+.page-item.active {
+    font-weight: bold;
+}
+
+body {
+    font-family: Times, 'Times New Roman', serif;
+}
+
+.infobox {
+    background-color: rgba(128, 128, 128, 0.75);
+    width: 600px;
+    max-width: calc(100% - 10px);
+    max-height: calc(100% - 60px);
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    /* bottom: 5px;
+     */
+    /* right: 5px; */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    border: 1px solid #000;
+    overflow: auto;
+}
+
+.info-header {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    align-items: baseline;
+} 
+
+.info-header > .title {
+    font-size: 30px;
+    text-align: center;
+    text-justify: auto;
+    padding-left: 10px;
+} 
+
+.settings-box {
+    background-color: rgba(128, 128, 128, 0.75);
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    border: 1px solid #000;
+    overflow: auto;
+    display: block;
+    z-index: 12;
+    position: absolute;
+    top: unset;
+    left: 5px;
+    bottom: 4%;
+    padding: 20px;
+    /* width: max-content; */
+}
+
+.setting-choice {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: baseline;
+}
+
+.setting-label {
+    flex: 1;
+    text-align: right;
+}
+
+.setting-thing {
+    flex: 2;
+    text-align: left;
+    padding-left: 10px;
+}
+
+
+.menu-page-item:hover {
+    color: #ddd;
+    cursor: pointer;
+}
+
+.card {
+    /* Add shadows to create the "card" effect */
+    width: 150px;
+    max-width: 100%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+  }
+  
+  /* On mouse-over, add a deeper shadow */
+  .card:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+  }
+  
+  /* Add some padding inside the card container */
+  .card-container {
+      display: flex;
+      justify-content: space-evenly;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+    
+    .card .container {
+        padding: 2px 16px;
+        background-color: #ababaf;
+    }
+
+  .card .container h4 {
+     text-align: center;
+  }
+
+  .choice-row {
+      font-size: large;
+      /* margin-left: auto; */
+      margin-right: auto;
+      text-align: center;
+  }
+
+  .debugger {
+    display : block;
+    position : absolute;
+    color : white;
+    background-color : black;
+    font-family : monospace;
+    right : 10px;
+    top : 10px;
+    z-index : 32;
+    /* width : 125px; */
+    height : 125px;
+    padding: 5px;
+    overflow: auto;
+}
+
+#faucetButton {
+    padding: 5px;
+    display: block;
+    position: fixed;
+    right: 10px;
+    top: 200px;
+    background-color: rgba(128, 128, 128, 0.75);
+    color: white;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: smaller;
+  }
+
+  .choice-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+  }
+
+  .function-tray {
+      position: absolute;
+      bottom: 0px;
+      z-index: 100;
+  }
+
+  .page-box {
+      overflow: auto;
+  }
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 2em;
+    height: 1.2em;
+    text-align: right;
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 1em;
+    width: 1em;
+    left: .1em;
+    bottom: .1em;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(1em);
+    -ms-transform: translateX(1em);
+    transform: translateX(1em);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }

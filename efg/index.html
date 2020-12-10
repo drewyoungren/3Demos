@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Surface Integrals</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./w3.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        macros: {
+          RR: "{\\mathbb R}",
+          bold: ["{\\bf #1}", 1],
+          vec: "\\mathbf "
+    }
+      }
+    };
+
+    function openPage(pageName) {
+      var i;
+      var x = document.getElementsByClassName("page");
+      for (i = 0; i < x.length; i++) {
+        x[i].classList.add("w3-hide");
+      }
+      document.getElementById(pageName).classList.remove("w3-hide");
+    }
+
+    function openSettings() {
+      const el = document.querySelector('#settings-box');
+      if ( el.classList.contains('w3-hide') ){
+        el.classList.remove('w3-hide');
+      } else { el.classList.add('w3-hide');} 
+    }
+
+  </script>
+
+
+</head>
+
+<body>
+
+
+  <canvas id="c"></canvas>
+  <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
+
+  <div class="infobox" id="infobox">
+
+    <header class=" sans info-header">
+      <div class="info-header-item title"> Electric Field Goal </div>
+      
+      <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+        <span class="menu-page-item" onclick="openPage('main')">info</span> | 
+        <span class="menu-page-item" onclick="openPage('game')">game</span> | 
+      </div>
+    </header>
+
+    <div class="page-box">
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="game"> 
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+          &otimes;
+        </span>
+          
+        <p>level: <input type="radio" name="warmup" id="warmup"> <input type="radio" name="20-yarder" id="20-yarder"> <input type="radio" name="35-yarder" id="35-yarder">
+          </p>
+
+          <button class="w3-button button" id="proton">Add proton</button><button class="button w3-button">Add electron</button>
+      </div>
+
+
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+        <p>This is a straight <strike>ripoff of</strike> homage to <a href="https://phet.colorado.edu/">PhET</a>'s brilliant <a href="https://phet.colorado.edu/sims/cheerpj/electric-hockey/latest/electric-hockey.html?simulation=electric-hockey">Electric Field Hockey</a>. </p>
+      </div>
+    </div>
+  </div>
+    
+          <div class="function-tray">
+            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
+            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+            <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
+            <button class="w3-button  button" id="screenshot"><i class="fa fa-camera" title="Take screenshot"></i></button>
+          </div>
+
+
+<div class="settings-box" id="settings-box" >
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Settings </div>
+  </header>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="segments">segments :</label></div>
+    <div class="setting-thing"><input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
+      <output>30</output></div>
+  </div>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="rNum">u-meshes :</label></div>
+    <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+      <output>10</output></div>
+  </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="cNum">v-meshes :</label></div>
+      <div class="setting-thing">
+        <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+        <output>10</output>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="surfaceVisible">surface : </label></div>
+      <div class="setting-thing">
+        <label class="switch">
+          <input type="checkbox" name="surfaceVisible" id="surfaceVisible" checked="true">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="fieldVisible">field : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="fieldVisible" id="fieldVisible">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="trailsVisible">trails : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="trailsVisible" id="trailsVisible">
+          <span class="slider round"></span>
+        </label></div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="nVec">vectors : </label></div>
+      <div class="setting-thing"><input type="range" name="nVec" id="nVec" min="1" max="12" step="1" value="5"><output></output></div>
+    </div>
+
+</div>
+
+
+</body>
+<script src="https://unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
+<script type="module" src="./efg.js"></script>
+
+</html>
