@@ -61,9 +61,9 @@
       <div class="info-header-item title"> Surface Integrals </div>
       
       <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
-        <span class="menu-page-item" onclick="openPage('main')">surfaces</span> | 
-        <span class="menu-page-item" onclick="openPage('areas')">areas</span> | 
-        <span class="menu-page-item" onclick="openPage('scalars')">densities</span> | 
+        <span class="menu-page-item" onclick="openPage('main')">surface</span> | 
+        <span class="menu-page-item" onclick="openPage('areas')">area</span> | 
+        <span class="menu-page-item" onclick="openPage('scalars')">density</span> | 
         <span class="menu-page-item" onclick="openPage('flux')">flux</span> | 
         <span class="menu-page-item" onclick="openPage('divcurl')">div &amp; curl</span>
       </div>
@@ -71,10 +71,11 @@
 
     <div class="page-box">
 
-      <div class="page w3-padding w3-hide w3-animate-left" id="divcurl"> 
-        <p>We have two measures of rates of change of a vector field $ \vec F(x,y,z) = P(x,y,z) \,\vec i + Q(x,y,z) \,\vec j + R(x,y,z) \,\vec k.</p>
+      <div class="page w3-padding w3-hide w3-animate-left" id="divcurl"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+        <p>We have two measures of rates of change of a vector field $ \vec F(x,y,z) = P(x,y,z) \,\vec i + Q(x,y,z) \,\vec j + R(x,y,z) \,\vec k.$</p>
         <p>The <b>divergence</b> of a vector field is a scalar that measures the rate at which the associated vector field is expanding or compressing. 
-        $$ \div \vec F = \nabla \cdot \vec F = P_x + Q_y + R_z $$</p>
+        $$ \operatorname{div} \vec F = \nabla \cdot \vec F = P_x + Q_y + R_z $$</p>
 
         <p> The <b>curl</b> of a vector field is a vector that indicates the spin or rotation of a flow at a point. The direction of the curl indicates the axis and direction of rotation (via the right-hand rule). The magnitude is proportional to the rate of spin.
         $$\operatorname{curl}\vec F = \nabla \times \vec F = \begin{vmatrix}
@@ -301,7 +302,7 @@
           </div>
 
 
-<div class="settings-box" id="settings-box" >
+<div class="settings-box w3-hide" id="settings-box" >
   <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
   <header>
     <div class="info-header-item title"> Settings </div>
