@@ -64,11 +64,36 @@
         <span class="menu-page-item" onclick="openPage('main')">info</span> | 
         <span class="menu-page-item" onclick="openPage('areas')">areas</span> | 
         <span class="menu-page-item" onclick="openPage('scalars')">scalars</span> | 
-        <span class="menu-page-item" onclick="openPage('flux')">flux</span>
+        <span class="menu-page-item" onclick="openPage('flux')">flux</span> | 
+        <span class="menu-page-item" onclick="openPage('divcurl')">div &amp; curl</span>
       </div>
     </header>
 
     <div class="page-box">
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="divcurl"> 
+        <p>We have two measures of rates of change of a vector field $ \vec F(x,y,z) = P(x,y,z) \,\vec i + Q(x,y,z) \,\vec j + R(x,y,z) \,\vec k.</p>
+        <p>The <b>divergence</b> of a vector field is a scalar that measures the rate at which the associated vector field is expanding or compressing. 
+        $$ \div \vec F = \nabla \cdot \vec F = P_x + Q_y + R_z $$</p>
+
+        <p> The <b>curl</b> of a vector field is a vector that indicates the spin or rotation of a flow at a point. The direction of the curl indicates the axis and direction of rotation (via the right-hand rule). The magnitude is proportional to the rate of spin.
+        $$\operatorname{curl}\vec F = \nabla \times \vec F = \begin{vmatrix}
+        \vec i & \vec j & \vec k \\ \partial_x & \partial_y & \partial_z \\ P & Q & R \\ \end{vmatrix} $$ $$= (R_y - Q_z) \,\vec i + (P_z - R_x) \,\vec j + (Q_x - P_y) \,\vec k$$
+        </p>
+
+        <div class="interact"><p>
+          <b>Interact:</b> Choose a surface and a vector field via the tabs at top. Then turn on divergence <span><label class="switch">
+            <input type="checkbox" name="divergence" id="divergence">
+            <span class="slider round"></span>
+          </label></span> or the curl <span><label class="switch">
+            <input type="checkbox" name="curl" id="curl">
+            <span class="slider round"></span>
+          </label></span> to see each graphed on the surface.
+        </p></div>
+
+        
+
+        </div>
 
       <div class="page w3-padding w3-hide w3-animate-left" id="areas"> 
         <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
@@ -236,7 +261,7 @@
             </div>
             <div>
               <span>$z(u,v) = $ </span>
-              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1/4 - u/4"><span
+              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="u^3 - u"><span
                   style="color: red;" class="form-warning"></span></span>
             </div>
           </div>

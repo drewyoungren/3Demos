@@ -415,6 +415,20 @@ let acidTrails = false;
 }
 
 
+
+{
+  const element = document.querySelector("input[type=checkbox]#curl");
+  element.oninput = () => {
+    if (element.checked) {drawCurl();}
+    curlies.visible = element.checked;
+    
+    requestFrameIfNotRequested();
+  }
+}
+
+
+
+
 let surfaceMesh;
 function updateSurface() {
   const {a,b,c,d,x,y,z} = rData;
@@ -480,6 +494,8 @@ function updateSurface() {
     scene.add(surfaceMesh);
   }
   tangentVectors();
+  if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
+
   updateShards(data.shards);
   if (!frameRequested) render();
    
@@ -832,7 +848,49 @@ let maxLength = 2;
 scene.add(balls);
 scene.add(trails);
 
+// compute curl field
 
+const curlies = new THREE.Object3D();
+scene.add(curlies);
+
+function drawCurl(N=6)  {
+  if (curlies.children){ 
+    freeBalls(curlies);
+  }
+
+  const [P,Q,R] = ['P','Q','R'].map(arg => document.querySelector(`input#custom${arg}`).value);
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      const u = rData.a.evaluate() + (rData.b.evaluate() - rData.a.evaluate())*((i+0.5)/N);
+      const v = rData.c.evaluate( {u} ) + (rData.d.evaluate( {u} ) - rData.c.evaluate( {u} ))*((j+0.5)/N);
+      const x = rData.x.evaluate({u,v});
+      const y = rData.y.evaluate({u,v});
+      const z = rData.z.evaluate({u,v});
+      const Py = math.derivative(P,'y').evaluate({x,y,z});
+      const Pz = math.derivative(P,'z').evaluate({x,y,z});
+      const Qx = math.derivative(Q,'x').evaluate({x,y,z});
+      const Qz = math.derivative(Q,'z').evaluate({x,y,z});
+      const Rx = math.derivative(R,'x').evaluate({x,y,z});
+      const Ry = math.derivative(R,'y').evaluate({x,y,z});
+      
+      
+      const vec = new THREE.Vector3(Ry - Qz, Pz - Rx, Qx - Py); // curl, baby
+      // const vec = fieldF(x,y,z,new THREE.Vector3());
+      console.log(u,v,x,y,z,fieldF(x,y,z,new THREE.Vector3()));
+      const arrow = new THREE.Mesh(new ArrowBufferGeometry(
+        { radiusTop: gridStep/6, radiusBottom: gridStep/16, height:vec.length()*gridStep, heightTop:gridStep/4 }
+      ), minusMaterial );
+      arrow.position.set(x,y,z);
+      
+      arrow.lookAt(vec.add(arrow.position));
+      curlies.add(arrow);
+      
+    }
+  }
+  console.log(math.derivative(P, 'x').evaluate({x: 1, y: 2}), "is Px");
+
+}
 
 //
 //   UI for field
@@ -868,6 +926,8 @@ for (let [field,pqr] of Object.entries(fields)) {
         obj.body.visible = key === field;
       }
     }
+    if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
+
   }
 }
 
@@ -918,6 +978,7 @@ for (let [rho,func] of Object.entries(rhos)) {
         // console.log("got here");
         const expr = math.parse(element.value).compile();
         rData[ch] = expr;
+        if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
         form.innerText = '';
         if (ch === 'E') updateSurface();
 
