@@ -414,7 +414,36 @@ let acidTrails = false;
   }
 }
 
+let densityStash;
 
+{
+  const element = document.querySelector("input[type=checkbox]#divergence");
+  element.oninput = () => {
+    const densityInput = document.querySelector(`#customE`);
+    
+    if (element.checked) {
+      densityStash = densityInput.value;
+      const [P,Q,R] = ['P','Q','R'].map(arg => document.querySelector(`input#custom${arg}`).value);
+      const Px = math.derivative(P, 'x')
+      const Qy = math.derivative(Q, 'y')
+      const Rz = math.derivative(R, 'z')
+      let divF = new math.OperatorNode('+', 'add', [Px, Qy]);
+      divF = new math.OperatorNode('+', 'add', [divF,Rz]);
+      divF = math.simplify(divF);
+      console.log(divF.toString());
+      densityInput.value = divF.toString();
+      densityInput.onchange()
+    } else {
+      densityInput.value = densityStash ? densityStash : "2*x*y";
+      densityInput.onchange();
+    }
+    colorFuncCheckbox.checked = element.checked;
+    colorFuncCheckbox.oninput();
+    
+
+    requestFrameIfNotRequested();
+  }
+}
 
 {
   const element = document.querySelector("input[type=checkbox]#curl");
@@ -459,7 +488,15 @@ function updateSurface() {
         if (colorFunc) {
           mesh.material = materialColors;
           let [vMax, vMin] = vMaxMin(mesh, (x,y,z) => rData.E.evaluate({x,y,z}));
-          if (vMax == vMin) { vMax += 3/4; vMin -= 1/4;}
+          if (vMax == vMin) { 
+            if (vMax == 0) {
+              vMax = 1;
+              vMin = -1;
+            } else {
+              vMax = 4/3*Math.abs(vMax);
+              vMin = -4/3*Math.abs(vMin);
+            }
+          }
           colorBufferVertices( mesh, (x,y,z) => {
             const value = rData.E.evaluate({x,y,z});
             return blueUpRedDown( 2 * (value - vMin) / (vMax - vMin) - 1 );
@@ -868,7 +905,7 @@ function updateBalls(balls, F, dt=0.016, lim=1) {
         trailPoints.pop();
       }
     }
-    if (norm1(pos1) > ball.lim || (dt > 1e-6 && pos1.clone().sub(ball.position).length() < 1e-6 )) {
+    if (norm1(pos1) > ball.lim || (dt > 1e-6 && pos1.clone().sub(ball.position).length() < 1e-3 )) {
       ball.position.copy(ball.start.clone().add(new THREE.Vector3(Math.random()*0.01, Math.random()*0.01, Math.random()*0.01)));
       // ball.trail = [];
     } else {
@@ -950,7 +987,6 @@ function drawCurl(N=6)  {
       
     }
   }
-  console.log(math.derivative(P, 'x').evaluate({x: 1, y: 2}), "is Px");
 
 }
 
