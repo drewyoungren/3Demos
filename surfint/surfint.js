@@ -14,14 +14,9 @@ import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, draw
 THREE.Object3D.DefaultUp.set(0,0,1);
 
 /* Some constants */
-const nX = 30; // resolution for surfaces
 const tol = 1e-12 //tolerance for comparisons
-const xmin = -1; // domain of function
-const xmax = 1;
-const ymin = -1;
-const ymax = 1;
-const gridMax = Math.max(...[xmin,xmax,ymin,ymax].map(Math.abs));
-const gridStep = gridMax / 10;
+let gridMax = 1;
+let gridStep = gridMax / 10;
 const pi = Math.PI;
 
 
@@ -88,11 +83,37 @@ scene.add(gridMeshes);
 
 // Axes
 const axesMaterial = new THREE.MeshLambertMaterial( {color: 0x320032} );
-const axesHolder = drawAxes( {gridMax, gridStep, axesMaterial});
+let axesHolder = drawAxes( {gridMax, gridStep, axesMaterial});
 scene.add(axesHolder)
 
 // Fonts
 const [axesText, font] = labelAxes( { scene , render: requestFrameIfNotRequested } );
+
+
+function rescale(newGridMax=1) {
+  gridMax = newGridMax;
+  gridStep = gridMax / 10;
+
+  freeBalls(gridMeshes);
+
+  gridMeshes.copy(drawGrid( {lineMaterial, gridMax, gridStep}));
+
+  freeBalls(axesHolder)
+  // Axes
+  axesHolder.copy(drawAxes( {gridMax, gridStep, axesMaterial}));
+  
+  // Fonts
+
+  for (let index = axesText.length - 1; index >= 0 ; index--) {
+    const textObject = axesText[index];
+    freeBalls(textObject);
+    scene.remove(textObject);
+    axesText.remove(textObject);
+  }
+  console.log(axesText.length);
+   
+  axesText.push(...labelAxes( { scene , gridMax, gridStep, render: requestFrameIfNotRequested } )[0]);
+}
 
 
 const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
@@ -1453,6 +1474,7 @@ function render() {
   tangentVectors();
 }
 
+rescale(4);
 
 // go
 // requestAnimationFrame(animate);
