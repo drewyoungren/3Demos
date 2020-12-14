@@ -272,3 +272,33 @@ body {
   .slider.round:before {
     border-radius: 50%;
   }
+
+  #practice-flux {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #practice-flux > * {
+    padding-right = 3px;
+  }
+
+  #practice-answer {
+    height: 2em;
+  }
+
+  #check-answer {
+    margin-left: 5px;
+  }
+
+  #answer-report {
+    width: 2em;
+    text-align: center;
+    font-size: 2em;
+  }
+
+  .button-border {
+    padding: 3px;
+    border: 1px solid black;
+    border-radius: 5px;
+  }

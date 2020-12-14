@@ -65,12 +65,46 @@
         <span class="menu-page-item" onclick="openPage('areas')">area</span> | 
         <span class="menu-page-item" onclick="openPage('scalars')">density</span> | 
         <span class="menu-page-item" onclick="openPage('flux')">flux</span> | 
-        <span class="menu-page-item" onclick="openPage('divcurl')">div &amp; curl</span>
+        <span class="menu-page-item" onclick="openPage('divcurl')">div &amp; curl</span> | 
+        <span class="menu-page-item" onclick="openPage('practice')">practice</span>
       </div>
     </header>
 
     <div class="page-box">
 
+      <div class="page w3-padding w3-hide w3-animate-left" id="practice"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+        <p><b>Disclaimer</b>: This section is experimental.
+        </p>
+        <p>Practice your surface integrals. Clicking the button below will generate a vector field $\vec F$ and a surface $\Sigma$. Your job is to <ol>
+          <li>Parametrize $\Sigma$ (using the <span class="sans">surface</span> tab above) to match the wireframe.</li>
+          <li>Form a double integral and compute the flux. of the vector field through it. For this, you might want to use <a href="https://www.wolframalpha.com/calculators/double-integral-calculator" target="_blank">some computational tool</a> as not all can be solved by hand. </li>
+        </ol></p>
+
+        
+        
+        
+        
+        <div class="interact"><p>
+          <b>Interact:</b> 
+          <button class="button w3-button sans button-border" id="generateProblem">Generate problem</button> 
+          <button class="button w3-button sans button-border" id="clearProblem">Clear</button> 
+        </p>
+          
+          <p><div id="practice-field"></div></p>
+          <p><div id="practice-surface"></div></p>
+
+          <div id="practice-flux"> 
+            <div>$$ \iint_\Sigma \vec F \cdot \vec N\,dS = \,$$ </div>
+            <input type="number" name="practice-answer" id="practice-answer" /> 
+            <button class="button w3-button sans button-border" id="check-answer">Check answer</button> 
+            <div id="answer-report"></div>
+          </div>
+        
+        
+
+        </div>
+      </div>
       <div class="page w3-padding w3-hide w3-animate-left" id="divcurl"> <span onclick="this.parentElement.classList.add('w3-hide');"
         class="w3-button w3-display-topright">&otimes;</span>
         <p>We have two measures of rates of change of a vector field $ \vec F(x,y,z) = P(x,y,z) \,\vec i + Q(x,y,z) \,\vec j + R(x,y,z) \,\vec k.$</p>

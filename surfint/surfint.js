@@ -8,7 +8,7 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry, vMaxMin } from "../base/utils.js";
+import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry, vMaxMin, gaussLegendre } from "../base/utils.js";
 
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
@@ -560,6 +560,168 @@ function updateSurface() {
    
 }
 
+// Exercises
+// 
+
+const exerciseData = {
+  surfaces: {
+    cylinder: {
+      desc:
+        "$\\Sigma$ is the piece of the cylinder $x^2 + y^2 = 1$, oriented outward, between $z=0$ and $z=1$.",
+      r: (u, v) => [ Math.cos(2 * Math.PI * u), Math.sin(2 * Math.PI * u), v ],
+    },
+    paraboloid: {
+      desc:
+        "$\\Sigma$ is the piece of the paraboloid $x^2 + y^2 = z$ below $z=1$, oriented upward.",
+      r: (u, v) => [
+          u * Math.cos(2 * Math.PI * v),
+          u * Math.sin(2 * Math.PI * v),
+          u * u
+      ],
+    },
+    hemisphere: {
+      desc:
+        "$\\Sigma$ is the piece of the sphere $x^2 + y^2 + z^2 = 1$ for $y \\geq 0$, oriented outward.",
+      r: (u, v) => [
+          Math.sin(u * Math.PI) * Math.cos(v * Math.PI),
+          Math.sin(u * Math.PI) * Math.sin(v * Math.PI),
+          Math.cos(u * Math.PI)
+      ],
+    },
+    sphere: {
+      desc: "$\\Sigma$ is the sphere $x^2 + y^2 + z^2 = 1$, oriented outward.",
+      r: (u, v) => [
+          Math.sin(u * Math.PI) * Math.cos(v * Math.PI * 2),
+          Math.sin(u * Math.PI) * Math.sin(v * Math.PI * 2),
+          Math.cos(u * Math.PI)
+         ],
+    },
+  },
+  fields: {
+    source: {
+      desc: "$$ \\vec F(x,y,z) = x\\,\\vec i + y\\,\\vec j + z\\,\\vec k $$",
+      P: "x",
+      Q: "y",
+      R: "z",
+    },
+    sink: {
+      desc: "$$ \\vec F(x,y,z) = x\\,\\vec i + y\\,\\vec j + z\\,\\vec k $$",
+      P: "-x",
+      Q: "-z",
+      R: "y",
+    },
+    swirl: {
+      desc: "$$ \\vec F(x,y,z) = x\\,\\vec i + y\\,\\vec j + z\\,\\vec k $$",
+      P: "-x",
+      Q: "y",
+      R: "1/2",
+    },
+  },
+};
+
+const ghostMesh = new THREE.Mesh(undefined, wireMaterial);
+scene.add(ghostMesh);
+
+function makeExercise() {
+
+  // clear previous
+  document.querySelector("#answer-report").innerHTML = '';
+  document.querySelector("#practice-answer").value = '';
+
+  let r, ruCrossRv;
+  {
+    const pickField = document.querySelector("#practice-surface");
+
+    const N = Object.keys(exerciseData.surfaces).length;
+    const choice = Math.floor(Math.random() * N);
+    console.log(N, choice, "choice");
+    const key = Object.keys(exerciseData.surfaces)[choice];
+    const surf = exerciseData.surfaces[key];
+
+    pickField.innerHTML = surf.desc;
+    r = surf.r
+
+    if (ghostMesh.geometry) ghostMesh.geometry.dispose();
+    ghostMesh.geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => vec.set(...surf.r(u,v)), 16, 16) ;
+    ghostMesh.visible = true;
+  }
+  {
+    const pickField = document.querySelector("#practice-field");
+
+    const N = Object.keys(exerciseData.fields).length;
+    const choice = Math.floor(Math.random() * N);
+    console.log(N, choice, "choice");
+    const key = Object.keys(exerciseData.fields)[choice];
+    const surf = exerciseData.fields[key];
+    const fieldString = "$$ \\vec F(x,y,z) = \\begin{bmatrix} P \\\\ Q \\\\ R \\\\ \\end{bmatrix} $$";
+
+    pickField.innerHTML = fieldString.replace("P", surf.P).replace("Q", surf.Q).replace("R", surf.R);
+
+    for (let c of ["P","Q","R"]) {
+      const fieldInput = document.querySelector(`input#custom${c}`)
+      fieldInput.value = surf[c];
+      fieldInput.onchange();
+    }
+    document.querySelector(`#field-rewind`).click();
+
+  }
+  ruCrossRv = (u, v, du = 1e-3) => {
+    const [xu1, yu1, zu1] = r(u + du / 2, v);
+    const [xu0, yu0, zu0] = r(u - du / 2, v);
+    const [xu, yu, zu] = [(xu1 - xu0) / du, (yu1 - yu0) / du, (zu1 - zu0) / du];
+
+    const [xv1, yv1, zv1] = r(u, v + du / 2);
+    const [xv0, yv0, zv0] = r(u, v - du / 2);
+    const [xv, yv, zv] = [(xv1 - xv0) / du, (yv1 - yv0) / du, (zv1 - zv0) / du];
+
+    return [yu * zv - zu * yv, zu * xv - xu * zv, xu * yv - yu * xv];
+  };
+
+  const dotFN = (u, v) => {
+    const [x, y, z] = r(u, v);
+
+    const Fx = rData.P.evaluate({ x, y, z });
+    const Fy = rData.Q.evaluate({ x, y, z });
+    const Fz = rData.R.evaluate({ x, y, z });
+
+    const [Nx, Ny, Nz] = ruCrossRv(u, v);
+
+    return Fx * Nx + Fy * Ny + Fz * Nz;
+  };
+
+  data.currentAnswer = gaussLegendre( u => gaussLegendre(v => dotFN(u,v), 0, 1, 25), 0, 1, 25);
+  console.log("Integral is ", data.currentAnswer);
+
+  MathJax.typeset();
+  requestFrameIfNotRequested();
+}
+
+const genButton = document.querySelector("button#generateProblem");
+genButton.onclick = makeExercise;
+
+const clearButton = document.querySelector("button#clearProblem");
+clearButton.onclick = () => {
+  ghostMesh.visible = false;
+  document.querySelector("#field-stop").click();
+};
+
+const checkButton = document.querySelector("button#check-answer");
+checkButton.onclick = () => {
+  const answerReport = document.querySelector("#answer-report");
+  try {
+    const guess = parseFloat(document.querySelector("#practice-answer").value);
+    const err = Math.abs(data.currentAnswer - guess);
+    if (err < 1e-2) {
+      answerReport.innerHTML = '<span class="fa fa-check" style="color: green;"></span>';
+    } else {
+      answerReport.innerHTML = '<span class="fa fa-times" style="color: red;"></span>';
+    }
+  }
+  catch (e) {
+    // answerReport.innerText = e;
+    console.log(e);
+  }
+};
 
 // let [vMax, vMin] = vMaxMin(surfaceMesh.children[0])
 
@@ -1474,7 +1636,7 @@ function render() {
   tangentVectors();
 }
 
-rescale(4);
+// rescale(4);
 
 // go
 // requestAnimationFrame(animate);
