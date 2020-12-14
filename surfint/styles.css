@@ -279,9 +279,9 @@ body {
     align-items: center;
   }
 
-  #practice-flux > * {
-    padding-right = 3px;
-  }
+  /* #practice-flux > * {
+    padding-right: 3px;
+  } */
 
   #practice-answer {
     height: 2em;
