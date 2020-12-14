@@ -563,39 +563,78 @@ function updateSurface() {
 // Exercises
 // 
 
+function simpleMathString(s) {return math.simplify(math.parse(s)).toTex()}
+
 const exerciseData = {
   surfaces: {
+    cone: {
+      desc:
+        (a,b) => {
+          let A = Math.pow( -1,Math.floor(a*6) % 2 ) * Math.floor(a*4 + 1), B = -1*Math.sign(A)*Math.floor(b*4 + 1);
+          A = simpleMathString(`${A}/3`), B = simpleMathString(`${Math.floor(B)}/3`);  
+          return `$\\Sigma$ is the piece of the cone along the $z$-axis with largest radius 1 at $z=${A}$ and the point at $z=${B}$.`
+        },
+      r: (a,b) => {
+        const A = Math.pow( -1,Math.floor(a*6) % 2 ) * Math.floor(a*4 + 1)/3, B = -1*Math.sign(A)*Math.floor(b*4 + 1)/3;
+        return (u, v) => [ 
+          u*Math.cos(2 * Math.PI * v), 
+          u*Math.sin(2 * Math.PI * v), 
+          B - (B - A)*u ]
+      },
+    },
     cylinder: {
       desc:
-        "$\\Sigma$ is the piece of the cylinder $x^2 + y^2 = 1$, oriented outward, between $z=0$ and $z=1$.",
-      r: (u, v) => [ Math.cos(2 * Math.PI * u), Math.sin(2 * Math.PI * u), v ],
+        (a,b) => {
+          const A = simpleMathString(`-${Math.floor(a*4 + 1)}/3`), B = simpleMathString(`${Math.floor(b*4 + 1)}/3`);  
+          return `$\\Sigma$ is the piece of the cylinder $x^2 + y^2 = 1$, oriented outward, between $z=${A}$ and $z=${B}$.`
+        },
+      r: (a,b) => {
+        const A = -Math.floor(a*4 + 1)/3, B = Math.floor(b*4 + 1)/3;
+        return (u, v) => [ Math.cos(2 * Math.PI * u), Math.sin(2 * Math.PI * u), A + (B - A)*v ]
+      },
     },
-    paraboloid: {
-      desc:
-        "$\\Sigma$ is the piece of the paraboloid $x^2 + y^2 = z$ below $z=1$, oriented upward.",
-      r: (u, v) => [
-          u * Math.cos(2 * Math.PI * v),
-          u * Math.sin(2 * Math.PI * v),
-          u * u
-      ],
-    },
+    // paraboloid: {
+    //   desc:
+    //     "$\\Sigma$ is the piece of the paraboloid $x^2 + y^2 = z$ below $z=1$, oriented upward.",
+    //   r: (u, v) => [
+    //       u * Math.cos(2 * Math.PI * v),
+    //       u * Math.sin(2 * Math.PI * v),
+    //       u * u
+    //   ],
+    // },
     hemisphere: {
       desc:
-        "$\\Sigma$ is the piece of the sphere $x^2 + y^2 + z^2 = 1$ for $y \\geq 0$, oriented outward.",
-      r: (u, v) => [
+        (a,b) => "$\\Sigma$ is the piece of the sphere $x^2 + y^2 + z^2 = 1$ for $y \\geq 0$, oriented outward.",
+      r: (a,b) => (u, v) => [
           Math.sin(u * Math.PI) * Math.cos(v * Math.PI),
           Math.sin(u * Math.PI) * Math.sin(v * Math.PI),
           Math.cos(u * Math.PI)
       ],
     },
-    sphere: {
-      desc: "$\\Sigma$ is the sphere $x^2 + y^2 + z^2 = 1$, oriented outward.",
-      r: (u, v) => [
-          Math.sin(u * Math.PI) * Math.cos(v * Math.PI * 2),
-          Math.sin(u * Math.PI) * Math.sin(v * Math.PI * 2),
-          Math.cos(u * Math.PI)
+    // sphere: {
+    //   desc: "$\\Sigma$ is the sphere $x^2 + y^2 + z^2 = 1$, oriented outward.",
+    //   r: (u, v) => [
+    //       Math.sin(u * Math.PI) * Math.cos(v * Math.PI * 2),
+    //       Math.sin(u * Math.PI) * Math.sin(v * Math.PI * 2),
+    //       Math.cos(u * Math.PI)
+    //      ],
+    // },
+    plane: {
+      desc: (a,b) => `$\\Sigma$ is the piece of the plane $x/${Math.floor(a*3 + 1)} + y/${Math.floor(b*3 + 1)} = z$ above the square $[-1,1]\\times [-1,1]$, oriented upward.`,
+      r: (a,b) => (u, v) => [
+          2*u - 1,
+          2*v - 1,
+          (2*u - 1)/Math.floor(a*3 + 1) + (2*v - 1)/Math.floor(b*3 + 1)
          ],
     },
+    // cone: {
+    //   desc: "$\\Sigma$ is the sphere $x^2 + y^2 + z^2 = 1$, oriented outward.",
+    //   r: (u, v) => [
+    //       Math.sin(u * Math.PI) * Math.cos(v * Math.PI * 2),
+    //       Math.sin(u * Math.PI) * Math.sin(v * Math.PI * 2),
+    //       Math.cos(u * Math.PI)
+    //      ],
+    // },
   },
   fields: {
     source: {
@@ -632,36 +671,45 @@ function makeExercise() {
   {
     const pickField = document.querySelector("#practice-surface");
 
+    const a = Math.random(), b = Math.random();
+    console.log(math.simplify(math.parse(`Math.floor(${a}*6)/2`)).toTex())
+
     const N = Object.keys(exerciseData.surfaces).length;
     const choice = Math.floor(Math.random() * N);
     console.log(N, choice, "choice");
     const key = Object.keys(exerciseData.surfaces)[choice];
     const surf = exerciseData.surfaces[key];
 
-    pickField.innerHTML = surf.desc;
-    r = surf.r
+    pickField.innerHTML = surf.desc(a,b);
+    r = surf.r(a,b);
 
     if (ghostMesh.geometry) ghostMesh.geometry.dispose();
-    ghostMesh.geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => vec.set(...surf.r(u,v)), 16, 16) ;
+    ghostMesh.geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => vec.set(...surf.r(a,b)(u,v)), 16, 16) ;
     ghostMesh.visible = true;
   }
   {
     const pickField = document.querySelector("#practice-field");
 
-    const N = Object.keys(exerciseData.fields).length;
-    const choice = Math.floor(Math.random() * N);
-    console.log(N, choice, "choice");
-    const key = Object.keys(exerciseData.fields)[choice];
-    const surf = exerciseData.fields[key];
-    const fieldString = "$$ \\vec F(x,y,z) = \\begin{bmatrix} P \\\\ Q \\\\ R \\\\ \\end{bmatrix} $$";
+    const PQR = ['x', 'y', 'z', '1/2', '0','x^2','y^2','z^2']
 
-    pickField.innerHTML = fieldString.replace("P", surf.P).replace("Q", surf.Q).replace("R", surf.R);
+    // const N = Object.keys(exerciseData.fields).length;
+    // const choice = Math.floor(Math.random() * N);
+    // console.log(N, choice, "choice");
+    // const key = Object.keys(exerciseData.fields)[choice];
+    // const surf = exerciseData.fields[key];
+    let fieldString = "$$ \\vec F(x,y,z) = \\begin{bmatrix} P \\\\ Q \\\\ R \\\\ \\end{bmatrix} $$";
 
+    
     for (let c of ["P","Q","R"]) {
+      let componentString = (Math.random() > 0.5 ? '-' : '') + PQR[Math.floor(PQR.length * Math.random())];
+      fieldString = fieldString.replace(c,simpleMathString(componentString));
+
       const fieldInput = document.querySelector(`input#custom${c}`)
-      fieldInput.value = surf[c];
+      fieldInput.value = componentString;
       fieldInput.onchange();
     }
+
+    pickField.innerHTML = fieldString;
     document.querySelector(`#field-rewind`).click();
 
   }
@@ -703,6 +751,8 @@ const clearButton = document.querySelector("button#clearProblem");
 clearButton.onclick = () => {
   ghostMesh.visible = false;
   document.querySelector("#field-stop").click();
+  document.querySelector("#practice-surface").innerHTML = '';
+  document.querySelector("#practice-field").innerHTML = '';
 };
 
 const checkButton = document.querySelector("button#check-answer");
