@@ -560,8 +560,19 @@ function updateSurface() {
    
 }
 
+//
 // Exercises
 // 
+
+//
+// DOEnet
+//
+
+let worksheet = new doenet.Worksheet();
+
+// worksheet.progress = 0;
+console.log(worksheet.ready);
+
 
 function simpleMathString(s) {return math.simplify(math.parse(s)).toTex()}
 
@@ -758,11 +769,15 @@ clearButton.onclick = () => {
 const checkButton = document.querySelector("button#check-answer");
 checkButton.onclick = () => {
   const answerReport = document.querySelector("#answer-report");
+  console.log(worksheet.ready, worksheet.progress, worksheet.state);
   try {
     const guess = parseFloat(document.querySelector("#practice-answer").value);
     const err = Math.abs(data.currentAnswer - guess);
     if (err < 1e-2) {
       answerReport.innerHTML = '<span class="fa fa-check" style="color: green;"></span>';
+      if (worksheet.ready & !worksheet.progress) {worksheet.progress = 0;}
+
+      if (worksheet.ready) worksheet.progress += 0.1;
     } else {
       answerReport.innerHTML = '<span class="fa fa-times" style="color: red;"></span>';
     }
