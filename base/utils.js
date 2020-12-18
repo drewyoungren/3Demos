@@ -562,6 +562,15 @@ function labelAxes({
     // resource URL
     fontFile,
     function (font) {
+      // clear out the old
+      for (let index = 0; index < axesText.length; index++) {
+        const element = axesText[index];
+        if (element.children) {
+          element.children[0].geometry.dispose();
+        }
+        scene.remove(element);
+      }
+      axesText.length = 0;
       const xyz = ['x', 'y', 'z'];
       const tPos = 1.7 * gridMax;
       const textGeometryArguments = {
@@ -574,14 +583,14 @@ function labelAxes({
       const tickGeos = [];
       for (let i = 0; i <= 6; i++) {
         if (i !== 3) {
-          const textGeo = new THREE.TextGeometry(((-3/2 + i/2)*gridMax).toString(), textGeometryArguments);
+          const textGeo = new THREE.TextGeometry(( Math.round(100*((-3/2 + i/2)*gridMax)) / 100 ).toString(), textGeometryArguments);
           tickGeos.push(textGeo);
           textGeo.computeBoundingBox();
         }
       }
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 6; j++) {
-          const text = new THREE.Mesh( tickGeos[j], textMaterial );
+          const text = new THREE.Mesh( new THREE.BufferGeometry().fromGeometry( tickGeos[j] ), textMaterial );
           const textHolder = new THREE.Object3D();
           tickGeos[j].boundingBox.getCenter(text.position).multiplyScalar(-1);
           textHolder.position[xyz[i]] = (-3/2 + j/2 + (j > 2 ? 1/2 : 0))*gridMax ;

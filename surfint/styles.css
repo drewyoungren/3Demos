@@ -107,7 +107,7 @@ body {
 
 .setting-choice {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     flex-wrap: nowrap;
     align-items: baseline;
 }
@@ -118,11 +118,29 @@ body {
 }
 
 .setting-thing {
+    display: flex;
     flex: 2;
-    text-align: left;
+    flex-wrap: nowrap;
+    justify-content: space-between;
     padding-left: 10px;
 }
 
+.setting-thing > span {
+  width: 3em;
+  font-family: monospace;
+  flex: 1;
+}
+.setting-thing > output {
+  width: 3em;
+  font-family: monospace;
+  flex: 1;
+}
+
+.setting-thing > input {
+  /* width: 3em; */
+  flex: 4;
+  font-family: monospace;
+}
 
 .menu-page-item:hover {
     color: #ddd;
@@ -302,3 +320,4 @@ body {
     border: 1px solid black;
     border-radius: 5px;
   }
+

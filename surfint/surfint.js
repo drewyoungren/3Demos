@@ -87,10 +87,12 @@ let axesHolder = drawAxes( {gridMax, gridStep, axesMaterial});
 scene.add(axesHolder)
 
 // Fonts
-const [axesText, font] = labelAxes( { scene , render: requestFrameIfNotRequested } );
+let [axesText, font] = labelAxes( { scene , render: requestFrameIfNotRequested } );
 
+console.log(axesText, font, "Font");
 
 function rescale(newGridMax=1) {
+  const oldGridMax = gridMax;
   gridMax = newGridMax;
   gridStep = gridMax / 10;
 
@@ -104,15 +106,17 @@ function rescale(newGridMax=1) {
   
   // Fonts
 
-  for (let index = axesText.length - 1; index >= 0 ; index--) {
-    const textObject = axesText[index];
-    freeBalls(textObject);
-    scene.remove(textObject);
-    axesText.remove(textObject);
-  }
+  // for (let index = axesText.length - 1; index >= 0 ; index--) {
+  //   const textObject = axesText[index];
+  //   freeBalls(textObject);
+  //   scene.remove(textObject);
+  //   axesText.remove(textObject);
+  // }
   console.log(axesText.length);
    
-  axesText.push(...labelAxes( { scene , gridMax, gridStep, render: requestFrameIfNotRequested } )[0]);
+  [axesText, font] = labelAxes( { scene , gridMax, gridStep, render: requestFrameIfNotRequested, axesText } );
+
+  camera.position.multiplyScalar(newGridMax / oldGridMax);
 }
 
 
@@ -359,30 +363,50 @@ function makeQueryStringObject() {
   return query;
 }
 
-document.querySelectorAll(`.setting-thing>input[type="range"]`).forEach( (element) => {
-  element.oninput = () => {
-    data[element.name] = parseInt(element.value);
-    if (element.name === 'nVec') {
-      freeBalls( balls );
-      freeTrails( balls );
-
-      if (faucet) initBalls( balls );
-      
-    } else {
-    updateSurface();
-    }
-    if (debug) {
-      let element = document.querySelector("div#dataLog");
-      if (! element) {
-        element = document.createElement('div');
-        element.id = "dataLog";
-        debugLog.appendChild(element);
+document
+  .querySelectorAll(`.setting-thing>input[type="range"]`)
+  .forEach((element) => {
+    if (element.id === "scale") {
+      element.onchange = () => {
+        const val = parseFloat(element.value);
+        data[element.name] = val;
+        let scala = Math.pow(10, Math.floor(val)) * Math.floor(Math.pow(10,val) / Math.pow(10,Math.floor(val)) );
+        scala = Math.round(100 * scala) / 100;
+        console.log("Scale to ", scala);
+        rescale( scala );
+      };
+      element.oninput = () => {
+        const val = element.value;
+        let scala = Math.pow(10, Math.floor(val)) * Math.floor(Math.pow(10,val) / Math.pow(10,Math.floor(val)) );
+        scala = Math.round(100 * scala) / 100
+        // console.log(scala, "oninput")
+        element.nextElementSibling.innerText =  scala.toString() ;
+        // rescale (scala);
       }
-      element.innerText = JSON.stringify(data, null, " ");
+    } else {
+      element.oninput = () => {
+        data[element.name] = parseInt(element.value);
+        if (element.name === "nVec") {
+          freeBalls(balls);
+          freeTrails(balls);
+
+          if (faucet) initBalls(balls, gridMax);
+        } else {
+          updateSurface();
+        }
+        if (debug) {
+          let element = document.querySelector("div#dataLog");
+          if (!element) {
+            element = document.createElement("div");
+            element.id = "dataLog";
+            debugLog.appendChild(element);
+          }
+          element.innerText = JSON.stringify(data, null, " ");
+        }
+        element.nextElementSibling.value = element.value;
+      };
     }
-    element.nextElementSibling.value = element.value;
-  }
-});
+  });
 
 document.querySelectorAll("#shards").forEach( (element) => {
   element.oninput = () => {
@@ -1022,7 +1046,6 @@ class BallMesh extends THREE.Mesh {
   }
 
   initiate(F, dt=0.01, maxSteps=500, tol = 1e-3 ) {
-    // Flow this.position backward on F until 1) it moves less than tol*lim, 2) has 1-norm  > lim, or 3) maxSteps reached
     const counter = 0, vec = new THREE.Vector3(), vec1 = new THREE.Vector3();
     vec.copy(this.position);
     for (let i = 0; i< maxSteps; i++ ) {
@@ -1082,7 +1105,7 @@ for (let i = 1; i <= heightResolution; i++) {
 }
 
 
-function initBalls( balls, lim=1, N=data.nVec ) {
+function initBalls( balls, lim=gridMax, N=data.nVec ) {
   resetTrailColors( trailLength, N);
 
   const vec = new THREE.Vector3();
@@ -1092,8 +1115,8 @@ function initBalls( balls, lim=1, N=data.nVec ) {
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
-        const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2);
-
+        const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2*lim);
+        ball.scale.set(gridMax, gridMax, gridMax);
         ball.position.set(
           ((i + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
           ((j + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
@@ -1121,7 +1144,7 @@ function initBalls( balls, lim=1, N=data.nVec ) {
   return maxLength; // 
 }
 
-function updateBalls(balls, F, dt=0.016, lim=1) {
+function updateBalls(balls, F, dt=0.016 ) {
   const vec = new THREE.Vector3();
   balls.children.forEach( (ball) => {
     const {x,y,z} = ball.position;
@@ -1331,7 +1354,7 @@ for (let [rho,func] of Object.entries(rhos)) {
   play.onclick = () => {
     if (balls.children.length < 1) {
       console.log("play from the top");
-      maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
+      maxLength = initBalls(balls, gridMax, data.nVec);
     }
     faucet = true;
     cancelAnimationFrame(myReq);
@@ -1369,7 +1392,7 @@ for (let [rho,func] of Object.entries(rhos)) {
     // faucet = false;
     freeBalls(balls);
     freeBalls(trails);
-    maxLength = initBalls(balls, 1.2*gridMax, data.nVec);
+    maxLength = initBalls(balls, gridMax, data.nVec);
     updateBalls(balls, fieldF)
     requestFrameIfNotRequested();
 
@@ -1686,8 +1709,18 @@ function render() {
   tangentVectors();
 }
 
-// rescale(4);
-
+// setTimeout(() => {
+//   console.log(axesText, "first");
+//   rescale(4);
+//   setTimeout(() => {
+//     console.log(axesText, "second");
+//     rescale(7);
+//     setTimeout(() => {
+//       console.log(axesText, "third");
+//       rescale(3)
+//     }, 5000);
+//   }, 5000);
+// }, 5000);
 // go
 // requestAnimationFrame(animate);
 requestFrameIfNotRequested();
