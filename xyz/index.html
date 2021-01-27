@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Points, Vectors, Lines, and Planes</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./w3.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        macros: {
+          RR: "{\\mathbb R}",
+          bold: ["{\\bf #1}", 1],
+          vec: "\\mathbf "
+    }
+      }
+    };
+
+    function openPage(pageName) {
+      var i;
+      var x = document.getElementsByClassName("page");
+      for (i = 0; i < x.length; i++) {
+        x[i].classList.add("w3-hide");
+      }
+      document.getElementById(pageName).classList.remove("w3-hide");
+    }
+
+    function openSettings() {
+      const el = document.querySelector('#settings-box');
+      if ( el.classList.contains('w3-hide') ){
+        el.classList.remove('w3-hide');
+      } else { el.classList.add('w3-hide');} 
+    }
+
+  </script>
+
+
+</head>
+
+<body>
+
+
+  <canvas id="c"></canvas>
+  <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
+
+  <div class="infobox" id="infobox">
+
+    <header class=" sans info-header">
+      <div class="info-header-item title"> Points, Vectors, Lines &amp; Planes </div>
+      
+      <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+        <span class="menu-page-item" onclick="openPage('main')">3-space</span> | 
+        <span class="menu-page-item" onclick="openPage('loci')">loci</span> | 
+        <span class="menu-page-item" onclick="openPage('lines')">lines</span> | 
+        <span class="menu-page-item" onclick="openPage('planes')">planes</span> | 
+        <span class="menu-page-item" onclick="openPage('practice')">practice</span>
+      </div>
+    </header>
+
+    <div class="page-box">
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="practice"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+        <p><b>Disclaimer</b>: This section is experimental.
+        </p>
+        <p>Coming soon.</p>
+
+        </div>
+      </div>
+      <div class="page w3-padding w3-hide w3-animate-left" id="planes"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+        <p>
+          A <b>plane</b> is a 2-dimensional (affine) linear space. That is, it is a set of points describable by a position vector $\vec p$ plus any linear combinations of two independent dirction vectors $\vec u$ and $\vec v$. $$\vec r(s,t) = \vec p + s \vec u + t \vec v$$
+        </p>
+        <p>This is the parameterized form&mdash;note its similarity to that of lines&mdash;but in $$\RR^3$$ there is a better way to describe a plane using only two vectors: a position $\vec p $ and a (nonzero) <b>normal vector</b> $\vec n$, which is perpendicular to all directions in the plane. </p>
+        <p>The plane can thus be describes as "all positions $\vec x$ whose direction from $\vec p$ is perpendicular to $\vec n$," or $$\vec n \cdot (\vec x - \vec p) = 0.$$</p>
+
+        <p> Letting $\vec n = \langle a,b,c \rangle$, $\vec x = \langle x,y,z \rangle$, and $\vec n\cdot \vec p = d$, this can also be written $$ax + by + cz = d.$$ </p>
+
+        
+
+        <!-- <div class="interact"><p>
+          <b>Interact:</b> Choose a surface and a vector field via the tabs at top. Then turn on </p>
+          <div class="w3-center" > <span class="">divergence : </span><span><label class="switch">
+            <input type="checkbox" name="divergence" id="divergence">
+            <span class="slider round"></span>
+          </label></span> &nbsp; or &nbsp; curl : <span><label class="switch">
+            <input type="checkbox" name="curl" id="curl">
+            <span class="slider round"></span>
+          </label></span></div> <p> to see each graphed on the surface.
+        </p></div> -->
+
+        
+
+        </div>
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="lines"> 
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+          &otimes;
+        </span>
+          
+        <p>A <b>line</b> is a 1-dimensional (affine) linear space. That is, it is a set of positions describable by a position $\vec r_0$ plus any scalar multiple of a given nonzero direction $\vec v$ $$\vec r(t) = \vec r_0 + t\vec v.$$ </p>
+
+          <div class="interact"><p>
+            <b>Interact:</b> Chop up the $u$- and $v$-spaces into equal segments and view the "tangent trapezoids" that approximate the surface. <span style="float: inline-end;"><input type="range" name="shards" id="shards" min="0" max="30" step="1" value="0"><output></output></span>
+          </p></div>
+
+          <p>
+          
+          In the limit, this becomes the elegant $$dS = |\vec r_u \times \vec r_v| \,du\,dv$$
+          
+          which allows us to define the <b>surface integral with respect to surface area</b>: 
+          $$ \iint_\Sigma f\, dS = \iint_D f(x(u,v), y(u,v), z(u,v))\,|\vec r_u \times \vec r_v| \,du\,dv$$
+        </p>
+        <p>Of course, if $f\equiv 1$, we just get the surface area.</p>
+
+      </div>
+
+
+      <!-- Flux page -->
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="flux">
+        <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        <p>
+          A <b>vector field</b> has the form $$ \vec F(x,y,z) = P(x,y,z) \,\vec i + Q(x,y,z) \,\vec j + R(x,y,z) \,\vec k .$$ Though visualizing them can be tricky, it is sometimes useful to thing of their "flows," that is, paths of moving particles whose tangent vectors are $P \,\vec i + Q \,\vec j + R \,\vec k$ at each point. 
+        </p>
+
+
+
+        <div class="interact">
+          <b>Interact:</b> Make the vector field move along its flow lines. 
+          <button class="w3-button button" id="field-play"><i class="fa fa-play"></i></button>
+          <button class="w3-button button" id="field-pause"><i class="fa fa-pause"></i></button>
+          <button class="w3-button button" id="field-stop"><i class="fa fa-stop"></i></button>
+          <button class="w3-button button" id="field-rewind"><i class="fa fa-fast-backward"></i></button>
+        </div>
+
+        <div class="noselect choice-row sans" id="field-row">
+          <span id="field-sink">sink</span>
+          <span>
+            | 
+          </span>
+          <span id="field-source">source</span>
+          <span>
+            | 
+          </span>
+          <span id="field-swirl">swirl</span>
+          <span>
+            | 
+          </span>
+          <span id="field-wacky">wacky</span>
+          <span>
+            | 
+          </span>
+          <span id="field-rain">rain</span>
+        </div>
+
+        <div class="w3-container" id="custom-field">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$P(x,y,z) = $ </span>
+              <span><input class="custom-input" type="text" name="customP" id="customP" value="0"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$Q(x,y,z) = $ </span>
+              <span><input class="custom-input" type="text" name="customQ" id="customQ" value="0"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$R(x,y,z) = $ </span>
+              <span><input class="custom-input" type="text" name="customR" id="customR" value="-z"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+          </div>
+          </div>
+
+      </div>
+
+<!-- Scalar field page -->
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="scalars"> <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        
+          <p>We can integrate any (continuous) scalar field $f(x,y,z)$ on a parametric surface by using the surface area form $dS$. Indeed, $$\iint_\Sigma f\,dS = \iint_{\mathcal D} f(x(u,v),y(u,v),z(u,v))\, |\vec r_u \times \vec r_v |\,du\,dv . $$
+
+            <p><b>Interact</b>: Turn on coloring to shade the surface by a scalar field $f(x,y,z)$. &nbsp;&nbsp;&nbsp; <label class="switch">
+              <input type="checkbox" name="colorFunc" id="colorFunc">
+              <span class="slider round"></span>
+            </label> </p>
+
+            <div class="noselect choice-row sans" id="density-row">
+              <span id="density-moment">moment of inertia $I_z$</span>
+              <span>
+                | 
+              </span>
+              <span id="density-north">distance from $(0,0,2)$</span>
+            </div>
+            
+            <div class="w3-container" id="custom-density">
+              <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+                <div>
+                  <span>$f(x,y,z) = $ </span>
+                  <span><input class="custom-input" type="text" name="customE" id="customE" value="x^2 + y^2"><span
+                      style="color: red;" class="form-warning"></span></span>
+                </div>
+              </div>
+              </div>
+            
+
+        
+      
+      </div>
+
+
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+        <p>A <b>parametric surface</b> $\Sigma$ is the image of a continuous, vector-valued function of two variables
+          (parameters).</p>
+
+          <p>
+            $$\mathbf r(u,v) = \begin{bmatrix} x(u,v) \\ y(u,v) \\ z(u,v) \end{bmatrix} $$
+            for $(u,v)$ in some domain $ D \subset \mathbb{R}^2$.
+          </p>
+          <p>Assuming the components of $\vec r$ are differentiable, can compute the tangent vectors
+            \begin{align*} 
+              \vec r_u &= \frac{\partial x}{\partial u}\,\vec i + \frac{\partial y}{\partial u} \,\vec j + \frac{\partial z}{\partial u} \,\vec k \\
+              \vec r_v &= \frac{\partial x}{\partial v}\,\vec i + \frac{\partial y}{\partial v} \,\vec j + \frac{\partial z}{\partial v} \,\vec k \\
+            \end{align*} We say the parametrization is <em>smooth</em> if these span a tangent plane. That is, they form a nonzero <em>normal vector</em> $$\vec n = \vec r_u \times r_v $$ for each $(u,v)$ pair. 
+          </p>
+
+          <div class="interact">
+            <p><b>Interact:</b>  Turn on <span class="sans">frame</span> in the settings menu <i class="fa fa-cog" onclick="openSettings()"></i> below. Then hold <kbd>Shift</kbd> and use your mouse to select a point.</p>
+          </div>
+        <!-- 
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+        <!-- <h2>Classes of surfaces:</h2> -->
+        <div class="noselect choice-row sans">
+          <span><span id="graphs">graphs of functions</span> </span> | <span> <span id="revolutions">surfaces of
+              revolution</span> </span> | <span><span id="spheres">parts of spheres</span> </span> | <span> <span
+              id="customSurf">non-orientable</span></span></div>
+
+
+        <div class="w3-container" id="custom-uvs">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$x(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$y(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$z(u,v) = $ </span>
+              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="u^3 - u"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+          </div>
+
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+                  id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq u \leq $
+              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                  value="1"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+                  id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq v \leq $
+              <span>
+                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                  style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div> 
+  </div>
+          <div class="function-tray">
+            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
+            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+            <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
+            <button class="w3-button  button" id="screenshot"><i class="fa fa-camera" title="Take screenshot"></i></button>
+          </div>
+
+
+<div class="settings-box w3-hide" id="settings-box" >
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Settings </div>
+  </header>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="segments">segments :</label></div>
+    <div class="setting-thing"><input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
+      <output>30</output></div>
+  </div>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="rNum">u-meshes :</label></div>
+    <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+      <output>10</output></div>
+  </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="cNum">v-meshes :</label></div>
+      <div class="setting-thing">
+        <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+        <output>10</output>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="surfaceVisible">surface : </label></div>
+      <div class="setting-thing">
+        <label class="switch">
+          <input type="checkbox" name="surfaceVisible" id="surfaceVisible" checked="true">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="frameBallVisible">frame : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="frameBallVisible" id="frameBallVisible">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="trailsVisible">trails : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="trailsVisible" id="trailsVisible">
+          <span class="slider round"></span>
+        </label></div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="nVec">vectors : </label></div>
+      <div class="setting-thing"><input type="range" name="nVec" id="nVec" min="1" max="12" step="1" value="5"><output></output></div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="scale">scale : </label></div>
+      <div class="setting-thing"><input type="range" name="scale" id="scale" min="-2" max="3" step=".02" value="0"><span>1</span></div>
+    </div>
+
+</div>
+
+
+</body>
+<script src="https://unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
+<script type="module" src="./surfint.js"></script>
+
+</html>
