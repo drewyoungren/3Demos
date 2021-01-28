@@ -176,6 +176,7 @@ const data = {
   cNum: 10,
   shards: 0,
   nVec: 5,
+  normalizeTNB: false,
 }
 
 let debug = false;
@@ -245,6 +246,7 @@ document
         scala = Math.round(100 * scala) / 100;
         console.log("Scale to ", scala);
         rescale( scala );
+        updateCurve();
       };
       element.oninput = () => {
         const val = element.value;
@@ -289,12 +291,11 @@ if (debug) {
 
 let acidTrails = false;
 {
-  const element = document.querySelector("input#trailsVisible");
+  const element = document.querySelector("input#normalizeTNB");
   element.oninput = () => {
-    trails.visible = element.checked;
-    acidTrails = element.checked;
+    data.normalizeTNB = element.checked;
     
-    freeTrails(balls);
+    tangentVectors();
     requestFrameIfNotRequested();
 
   }
@@ -430,7 +431,7 @@ frameBall.visible = false;
 
 scene.add(frameBall);
 
-function tnbFrame({u = 0.5, dt = .001, du = 1 } = {} ) {
+function tnbFrame({u = 0.5, dt = .001, du = 1, normalized = false } = {} ) {
   const {a,b,x,y,z} = rData;
   const A = a.evaluate(), B = b.evaluate()
   const U = (1 - u)*A + u*B; 
@@ -449,14 +450,19 @@ function tnbFrame({u = 0.5, dt = .001, du = 1 } = {} ) {
     // console.log("inside ruF",dMax,cMin,{p: p, u: rForward, v: rvForward, n: rForward.clone().cross(rvForward)}dv);
   // console.log(p,ru,rv);
 
+  if (normalized) {
+    rForward.normalize();
+    acc.addScaledVector(rForward, rForward.dot(acc)*(-1)).normalize()
+  }
 
-  return {p: p, u: rForward, v: acc, n: rForward.clone().cross(acc)}
+
+  return {p: p, u: rForward, v: acc, n: rForward.clone().cross(acc).normalize()}
 }
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
 function tangentVectors( {u = 0.5, dt = .001 } = {} ) {
 
-  const dr = tnbFrame( {u, dt, du: 1});
+  const dr = tnbFrame( {u, dt, du: 1, normalized: data.normalizeTNB});
 
   point.position.copy(dr.p);
 
@@ -711,18 +717,5 @@ function render() {
   tangentVectors();
 }
 
-// setTimeout(() => {
-//   console.log(axesText, "first");
-//   rescale(4);
-//   setTimeout(() => {
-//     console.log(axesText, "second");
-//     rescale(7);
-//     setTimeout(() => {
-//       console.log(axesText, "third");
-//       rescale(3)
-//     }, 5000);
-//   }, 5000);
-// }, 5000);
-// go
-// requestAnimationFrame(animate);
+
 requestFrameIfNotRequested();
