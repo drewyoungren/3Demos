@@ -1182,11 +1182,11 @@ function updateBalls(balls, F, dt=0.016 ) {
 
 }
 
-function freeBalls(balls) {
-  for (let i = balls.children.length - 1; i >= 0 ; i--) {
-    const element = balls.children[i];
+function freeBalls(objectHolder) {
+  for (let i = objectHolder.children.length - 1; i >= 0 ; i--) {
+    const element = objectHolder.children[i];
     if (element.geometry.dispose) element.geometry.dispose();
-    balls.remove(element);
+    objectHolder.remove(element);
   }
 }
 
