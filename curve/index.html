@@ -241,7 +241,7 @@
     <div class="setting-thing"><input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
       <output>30</output></div>
   </div>
-  <div class="setting-choice">
+  <!-- <div class="setting-choice">
     <div class="setting-label"><label for="rNum">u-meshes :</label></div>
     <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
       <output>10</output></div>
@@ -252,9 +252,9 @@
         <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
         <output>10</output>
       </div>
-    </div>
+    </div> -->
     <div class="setting-choice">
-      <div class="setting-label"><label for="tubeVisible">surface : </label></div>
+      <div class="setting-label"><label for="tubeVisible">curve : </label></div>
       <div class="setting-thing">
         <label class="switch">
           <input type="checkbox" name="tubeVisible" id="tubeVisible" checked="true">
@@ -271,7 +271,15 @@
       </div>
     </div>
     <div class="setting-choice">
-      <div class="setting-label"><label for="normalizeTNB">normalize TNB : </label></div>
+      <div class="setting-label"><label for="posVisibility">position : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="posVisibility" id="posVisibility">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="normalizeTNB">TNB : </label></div>
       <div class="setting-thing"><label class="switch">
           <input type="checkbox" name="normalizeTNB" id="normalizeTNB">
           <span class="slider round"></span>

@@ -289,13 +289,13 @@ if (debug) {
   }
 }
 
-let acidTrails = false;
+let currentUPosition = 0.5;
 {
   const element = document.querySelector("input#normalizeTNB");
   element.oninput = () => {
     data.normalizeTNB = element.checked;
     
-    tangentVectors();
+    tangentVectors({u: currentUPosition});
     requestFrameIfNotRequested();
 
   }
@@ -332,7 +332,7 @@ function updateCurve() {
     // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
   }
 
-  tangentVectors();
+  tangentVectors({ u: currentUPosition });
   // if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
 
   // updateShards(data.shards);
@@ -416,8 +416,8 @@ for (let i = 0; i < curveKeys.length; i++) {
 
 // Select a point
 const frameBall = new THREE.Object3D();
-const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh()};
-const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6};
+const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh(), r: new THREE.Mesh()};
+const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6, r: 0x121212};
 for (let key of Object.keys(arrows)) {
   arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
   frameBall.add(arrows[key])
@@ -471,10 +471,20 @@ function tangentVectors( {u = 0.5, dt = .001 } = {} ) {
 
   for (const [key, arrow] of Object.entries(arrows)) {
     const pos = dr.p.clone();
-    arrow.position.copy(pos);
     if ( arrow.geometry ) arrow.geometry.dispose();
-    arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
-    arrow.lookAt(pos.add(dr[key]));
+
+    if (key === "r") {
+      arrow.position.set(0,0,0);
+      arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: pos.length() } )
+      arrow.lookAt(pos);
+    } else{
+      arrow.position.copy(pos);
+      arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
+      arrow.lookAt(pos.add(dr[key]));
+    }
+    if (key ==="n") {
+      arrow.visible = data.normalizeTNB;
+    }
   }
 
 }
@@ -514,7 +524,8 @@ function onMouseMove( e ) {
         point.position.z = intersect.point.z;
 
         const u = intersect.uv.x, v = intersect.uv.y;
-        tangentVectors({u,v});
+        currentUPosition = u;
+        tangentVectors({u: currentUPosition});
       }    
     }
 	}
@@ -714,7 +725,7 @@ function render() {
 {
   const uv = {t: 0.5, v: 0.5};
   point.position.set(rData.x.evaluate(uv),rData.y.evaluate(uv),rData.z.evaluate(uv));
-  tangentVectors();
+  tangentVectors( {u: currentUPosition });
 }
 
 
