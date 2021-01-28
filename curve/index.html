@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Space Curves</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./w3.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        macros: {
+          RR: "{\\mathbb R}",
+          bold: ["{\\bf #1}", 1],
+          vec: "\\mathbf "
+    }
+      }
+    };
+
+    function openPage(pageName) {
+      var i;
+      var x = document.getElementsByClassName("page");
+      for (i = 0; i < x.length; i++) {
+        x[i].classList.add("w3-hide");
+      }
+      document.getElementById(pageName).classList.remove("w3-hide");
+    }
+
+    function openSettings() {
+      const el = document.querySelector('#settings-box');
+      if ( el.classList.contains('w3-hide') ){
+        el.classList.remove('w3-hide');
+      } else { el.classList.add('w3-hide');} 
+    }
+
+  </script>
+
+
+</head>
+
+<body>
+
+
+  <canvas id="c"></canvas>
+  <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
+
+  <div class="infobox" id="infobox">
+
+    <header class=" sans info-header">
+      <div class="info-header-item title"> Space Curves </div>
+      
+      <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+        <span class="menu-page-item" onclick="openPage('main')">curve</span> | 
+        <span class="menu-page-item" onclick="openPage('deriv')">derivatives</span> | 
+        <span class="menu-page-item" onclick="openPage('arclength')">arc length</span> | 
+        <span class="menu-page-item" onclick="openPage('curvature')">curvature</span> | 
+      </div>
+    </header>
+
+    <div class="page-box">
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="practice"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+        <p><b>Disclaimer</b>: This section is experimental.
+        </p>
+      </div>
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="arclength"> <span onclick="this.parentElement.classList.add('w3-hide');"
+        class="w3-button w3-display-topright">&otimes;</span>
+        <p>The distance between two points on a curve given by positions $\vec r(t_1)$ and $\vec r(t_2)$ is of course $|\vec r(t_2) - r(t_1)|$. Thus, we can approximate the length of a piece of curve by sampling points along it, connecting them via line segments, and then compute the length of the resulting polygonal path by adding up the distances of consecutive points. </p>
+        <p>More specifically, suppose a curve is parameterized by $\vec r(t)$ for $a \leq t \leq b$.</p>
+
+        <p>Let $n$ by the number of segments we use. Then we define $\Delta t = \frac{b - a}{n}$ and $t_i = a + i\Delta t$ so that $\{t_0 = a, t_1, \ldots, t_n = b\}$ is a partition of $[a,b]$. Then, 
+
+          $$ \text{arc length} \approx \sum_{i=1}^n |\vec r(t_{i} - \vec r(t_{i-1})| $$
+        </p>
+
+        <div class="interact">
+          <p>
+            <b>Interact:</b> Make the polygonal path that approximates the curve and measure it. 
+          </p>
+          <div class="w3-center"> <span class="">polygonal path : </span><span><label class="switch">
+                <input type="checkbox" name="polypath" id="polypath">
+                <span class="slider round"></span>
+              </label></span> &nbsp; $n$ : <span style="float: inline-end;"><input type="range" name="shards" id="shards"
+                min="0" max="30" step="1" value="0"><output></output></span>
+            </label></span></div>
+        </div>
+
+        <p>To define arc length precisely, we simply take the limit as $n\to \infty$. 
+
+          $$ \text{arc length} = \lim_{n\to \infty} \sum_{i=1}^n \left|\frac{\vec r(t_{i} - \vec r(t_{i-1})}{\Delta t}\right| \,\Delta t = \int_a^b |\vec r'(t)|\,dt $$
+
+        </p>
+
+        </div>
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="deriv"> 
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+          &otimes;
+        </span>
+          
+        <p>The derivative of a space curve $$\vec r'(t) = \lim_{h \to 0} \frac{\vec r(t + h) - \vec r(t)}{h} $$
+          is the <b>tangent vector</b> to the curve at position $\vec r(t)$. 
+          </p>
+
+          <div class="interact"><p>
+            <b>Interact:</b> Chop up the $u$- and $v$-spaces into equal segments and view the "tangent trapezoids" that approximate the surface. 
+          </p></div>
+
+          <p>
+            <div class="interact">
+              <p><b>Interact:</b>  Turn on <span class="sans">frame</span> in the settings menu <i class="fa fa-cog" onclick="openSettings()"></i> below. Then hold <kbd>Shift</kbd> and use your mouse to select a point.</p>
+            </div>
+          </p>
+
+      </div>
+
+
+      
+
+<!-- Scalar field page -->
+
+      <!-- <div class="page w3-padding w3-hide w3-animate-left" id="scalars"> <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        
+          <p>We can integrate any (continuous) scalar field $f(x,y,z)$ on a parametric surface by using the surface area form $dS$. Indeed, $$\iint_\Sigma f\,dS = \iint_{\mathcal D} f(x(u,v),y(u,v),z(u,v))\, |\vec r_u \times \vec r_v |\,du\,dv . $$
+
+            <p><b>Interact</b>: Turn on coloring to shade the surface by a scalar field $f(x,y,z)$. &nbsp;&nbsp;&nbsp; <label class="switch">
+              <input type="checkbox" name="colorFunc" id="colorFunc">
+              <span class="slider round"></span>
+            </label> </p>
+
+            <div class="noselect choice-row sans" id="density-row">
+              <span id="density-moment">moment of inertia $I_z$</span>
+              <span>
+                | 
+              </span>
+              <span id="density-north">distance from $(0,0,2)$</span>
+            </div>
+            
+            <div class="w3-container" id="custom-density">
+              <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+                <div>
+                  <span>$f(x,y,z) = $ </span>
+                  <span><input class="custom-input" type="text" name="customE" id="customE" value="x^2 + y^2"><span
+                      style="color: red;" class="form-warning"></span></span>
+                </div>
+              </div>
+              </div>
+            
+
+        
+      
+      </div> -->
+
+      <!-- Main Page -->
+
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+        <p>A <b>space curve</b> $C$ is the image of a continuous, vector-valued function of one variable
+          (parameter).</p>
+
+          <p>
+            $$\mathbf r(t) = \begin{bmatrix} x(t) \\ y(t) \\ z(t) \end{bmatrix} $$
+            for $t$ in some interval $ [a,b] \subset \mathbb{R}$.
+          </p>
+          
+
+
+        <!-- 
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+        <!-- <h2>Classes of surfaces:</h2> -->
+        <div class="noselect choice-row sans">
+          <span><span id="twist">twisted cubic</span> </span> | <span> <span id="helix">helix</span> </span> | <span><span id="wacky">wacky</span> </span> </div>
+
+
+        <div class="w3-container" id="custom-uvs">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$x(t) = $ </span>
+              <span><input class="custom-input" type="text" name="customX" id="customX" value="t"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$y(t) = $ </span>
+              <span><input class="custom-input" type="text" name="customY" id="customY" value="t^2"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+            <div>
+              <span>$z(t) = $ </span>
+              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="t^3"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+          </div>
+
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+                  id="customA" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq t \leq $
+              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                  value="1"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+  
+          </div>
+        </div>
+
+      </div>
+    </div> 
+  </div>
+          <div class="function-tray">
+            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog" title="Settings"></i></button>
+            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+            <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
+            <button class="w3-button  button" id="screenshot"><i class="fa fa-camera" title="Take screenshot"></i></button>
+          </div>
+
+
+<div class="settings-box w3-hide" id="settings-box" >
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Settings </div>
+  </header>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="segments">segments :</label></div>
+    <div class="setting-thing"><input type="range" name="nX" id="segments" min="4" max="80" step="1" value="30">
+      <output>30</output></div>
+  </div>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="rNum">u-meshes :</label></div>
+    <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+      <output>10</output></div>
+  </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="cNum">v-meshes :</label></div>
+      <div class="setting-thing">
+        <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+        <output>10</output>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="tubeVisible">surface : </label></div>
+      <div class="setting-thing">
+        <label class="switch">
+          <input type="checkbox" name="tubeVisible" id="tubeVisible" checked="true">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="frameBallVisible">frame : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="frameBallVisible" id="frameBallVisible">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="trailsVisible">trails : </label></div>
+      <div class="setting-thing"><label class="switch">
+          <input type="checkbox" name="trailsVisible" id="trailsVisible">
+          <span class="slider round"></span>
+        </label></div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="nVec">vectors : </label></div>
+      <div class="setting-thing"><input type="range" name="nVec" id="nVec" min="1" max="12" step="1" value="5"><output></output></div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="scale">scale : </label></div>
+      <div class="setting-thing"><input type="range" name="scale" id="scale" min="-2" max="3" step=".02" value="0"><span>1</span></div>
+    </div>
+
+</div>
+
+
+</body>
+<script src="https://unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
+<script type="module" src="./curve.js"></script>
+
+</html>
