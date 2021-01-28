@@ -177,6 +177,8 @@ const data = {
   shards: 0,
   nVec: 5,
   normalizeTNB: false,
+  showPositionVector: false,
+  currentUPosition: 0.5
 }
 
 let debug = false;
@@ -256,7 +258,18 @@ document
         element.nextElementSibling.innerText =  scala.toString() ;
         // rescale (scala);
       }
-    } 
+    } else {
+      element.oninput = () => {
+        const val = parseFloat(element.value);
+        data[element.name] = val;
+        element.nextElementSibling.innerText =  '' ;
+        // element.nextElementSibling.innerText =  val.toString() ;
+        if (element.name === "currentUPosition") {
+          // tangentVectors( {u: val });
+          updateCurve()
+        }
+      }
+    }
   });
 
 document.querySelectorAll("#shards").forEach( (element) => {
@@ -289,13 +302,24 @@ if (debug) {
   }
 }
 
-let currentUPosition = 0.5;
+// data.currentUPosition = 0.5;
 {
   const element = document.querySelector("input#normalizeTNB");
   element.oninput = () => {
     data.normalizeTNB = element.checked;
     
-    tangentVectors({u: currentUPosition});
+    tangentVectors({u: data.currentUPosition});
+    requestFrameIfNotRequested();
+
+  }
+}
+
+{
+  const element = document.querySelector("input#showPositionVector");
+  element.oninput = () => {
+    data.showPositionVector = element.checked;
+    
+    tangentVectors({u: data.currentUPosition});
     requestFrameIfNotRequested();
 
   }
@@ -332,7 +356,7 @@ function updateCurve() {
     // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
   }
 
-  tangentVectors({ u: currentUPosition });
+  tangentVectors({ u: data.currentUPosition });
   // if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
 
   // updateShards(data.shards);
@@ -477,6 +501,7 @@ function tangentVectors( {u = 0.5, dt = .001 } = {} ) {
       arrow.position.set(0,0,0);
       arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: pos.length() } )
       arrow.lookAt(pos);
+      arrow.visible = data.showPositionVector;
     } else{
       arrow.position.copy(pos);
       arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
@@ -524,8 +549,9 @@ function onMouseMove( e ) {
         point.position.z = intersect.point.z;
 
         const u = intersect.uv.x, v = intersect.uv.y;
-        currentUPosition = u;
-        tangentVectors({u: currentUPosition});
+        data.currentUPosition = u;
+        document.querySelector("#currentUPosition").value = data.currentUPosition;
+        tangentVectors({u: data.currentUPosition});
       }    
     }
 	}
@@ -725,7 +751,7 @@ function render() {
 {
   const uv = {t: 0.5, v: 0.5};
   point.position.set(rData.x.evaluate(uv),rData.y.evaluate(uv),rData.z.evaluate(uv));
-  tangentVectors( {u: currentUPosition });
+  tangentVectors( {u: data.currentUPosition });
 }
 
 
