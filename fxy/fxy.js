@@ -309,6 +309,8 @@ const data = {
   shards: 0,
   nVec: 0,
   shiftLevel: 0.0,
+  nL: 10,
+  levelDelta: -1,
 }
 
 let debug = false;
@@ -446,14 +448,15 @@ if (debug) {
 
 let acidTrails = false;
 {
-  const element = document.querySelector("input#trailsVisible");
+  const element = document.querySelector("input#flattenContours");
   element.oninput = () => {
-    trails.visible = element.checked;
-    acidTrails = element.checked;
-    
-    freeTrails(balls);
-    requestFrameIfNotRequested();
+    data.levelDelta = element.checked ? 1 : -1;
 
+    if ( frameRequested ) {
+      cancelAnimationFrame( myReq );
+    }
+    frameRequested = true;
+    requestAnimationFrame( animateLevel );
   }
 }
 
@@ -1026,7 +1029,7 @@ function requestFrameIfNotRequested() {
   }
 }
 
-function animate(time) {
+function animateLevel(time) {
   controls.update();
   for (let index = 0; index < axesText.length; index++) {
     const element = axesText[index];
@@ -1043,11 +1046,18 @@ function animate(time) {
     timeLog.innerText = (Math.round((time - last)*1000)/1000).toString();
   }
 
-  if (faucet) {
-    updateBalls(balls, fieldF, (time - last)*0.001 );
+  if (((data.shiftLevel < 3) && data.levelDelta > 0 ) || ((data.shiftLevel > 0) && data.levelDelta < 0)) {
+    const newLevel = data.shiftLevel + data.levelDelta*(time - last)*0.001;
+    data.shiftLevel = Math.max(0,Math.min(3,newLevel));
+    changeLevels( data.shiftLevel );
+
+    myReq = requestAnimationFrame(animateLevel);
+    last = time;
+  } else {
+    frameRequested = false;
+    last = null;
   }
 
-  last = time;
 
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
@@ -1055,7 +1065,6 @@ function animate(time) {
     camera.updateProjectionMatrix();
 
   }
-  myReq = requestAnimationFrame(animate);
 
 
   renderer.render(scene, camera);
@@ -1206,7 +1215,7 @@ function updateLevels() {
       const levelMesh = new THREE.LineSegments( levelGeometry, new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3, transparent: false } ));
       
       levelMesh.level = lev;
-      levelMesh.position.set(0,0,shiftInterpolation(shiftLevel, lev))
+      levelMesh.position.set(0,0,shiftInterpolation(data.shiftLevel, lev))
 
       levelHolder.add(levelMesh);
     }
@@ -1215,7 +1224,7 @@ function updateLevels() {
 
 // updateLevels();
 updateSurface();
-changeLevels( 2.5 );
+// changeLevels( 2.5 );
 
 
 // setTimeout(() => {
