@@ -2,42 +2,101 @@
 
 import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 
+
+export function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30}) {
+  
+  const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
+  const z = zLevel === null ? level : zLevel;
+  let points = [];
+  for (let x=xmin; x < xmax; x += dx) {
+    for (let y = ymin; y < ymax; y += dy) {
+        let [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
+        marchingSquare(a,b,c,d,e,level).forEach(element => {
+          const [c,d] = element;
+          points.push(new THREE.Vector3(x + c*dx, y + d*dy, z));
+        });
+        // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
+        //     corners.push((f(...xy) > level) ? 1 : 0);
+        // }
+    }
+  }
+  return points;
+}
+
+
+// binary value for val >= lev for a,b,c,d, starting from most significant bit (perhaps stupidly)
 const squaresTable = {
-    "0000": [],
-    "1111": [],
-    "0111": [0,1,0,3],
-    "1011": [1,0,1,2],
-    "1101": [2,1,2,3],
-    "1110": [3,0,3,2],
-    "1000": [3,0,3,2],
-    "0100": [],
-    "0010": [],
-    "0001": [],
-    "1100": [3,0,2,1],
-    "0110": [0,1,3,2],
-    "0011": [0,3,1,2],
-    "1001": [1,0,2,3],
-    // "0101": [], // saddle point
-    // "1010": []
+  0b0000: [],
+  0b1111: [],
+  0b0111: [0,3],
+  0b1011: [0,1],
+  0b1101: [1,2],
+  0b1110: [2,3],
+  0b1000: [0,3],
+  0b0100: [0,1],
+  0b0010: [1,2],
+  0b0001: [2,3],
+  0b1100: [1,3],
+  0b0110: [0,2],
+  0b0011: [1,3],
+  0b1001: [0,2],
+  // "0101": [], // saddle point
+  // "1010": []
 };
 
+const msPositions = [[0,0],[1,0],[1,1],[0,1]], msDirections = [[1,0],[0,1],[-1,0],[0,-1]];
+
 // return line segments ([pairs of triples])
-export function marchingSquares(f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30) {
-    const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
-    const z = zLevel == null ? level : zLevel;
-    let points = new Float32Array();
-    for (let x=xmin; x < xmax; x += dx) {
-        for (let y = ymin; y < ymax; y += dy) {
-            let cornerValues = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy)];
-            let cornerComps = cornerValues.reduce((result,val) => {
-                return result + ((val >= z) ? "1" : "0");
-            },"");
-            // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
-            //     corners.push((f(...xy) > level) ? 1 : 0);
-            // }
-        console.log(cornerValues,cornerComps);
-        }
+function marchingSquare(a,b,c,d,e,lev) {
+  
+  /*
+    a,b,c,d values on corner of unit square {0,1}x{0,1} counter-clockwise from origin
+    e is center value for resolving saddle points
+    return line segment endpoints pairwise in normalized coordinates
+  */
+
+
+  const values = [a,b,c,d];
+
+  let code = 0;
+
+  const cs = [null, null, null, null];
+
+  for (let index = 0; index < values.length; index++) {
+    const m = values[index], M = values[(index + 1) % 4];
+    
+    if (m >= lev) { code += Math.pow(2,3 - index); }
+
+    if (((m < lev) && (M >= lev)) || ((m >= lev) && (M < lev))) {
+      cs[index] = (lev - m) / (M - m);
     }
+
+  }
+
+  const endPoints = [];
+  let edges = [];
+
+  if (squaresTable.hasOwnProperty(code)) {
+    edges = squaresTable[code];
+  } else {
+    if (((a < lev) && (e < lev)) || (!(a < lev) && !(e < lev))) {
+      edges = [0,1,2,3];
+    } else {
+      edges = [3,0,1,2];
+    }
+  }
+
+  // console.log(code, code.toString(2), edges);
+
+  for (let index = 0; index < edges.length; index++) {
+    const i = edges[index];
+    const [p1, p2] = msPositions[i];
+    const [v1, v2] = msDirections[i];
+    const c = cs[i];
+    
+    endPoints.push([p1 + c*v1, p2 + c*v2]);
+  }
+  return endPoints;
 }
 
 // const getMethods = (obj) => {
