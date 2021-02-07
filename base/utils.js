@@ -8,12 +8,15 @@ export function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = nul
   const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
   const z = zLevel === null ? level : zLevel;
   let points = [];
-  for (let x=xmin; x < xmax; x += dx) {
-    for (let y = ymin; y < ymax; y += dy) {
-        let [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
+  // for (let i=0; i < nX; i++) {
+  //   for (let j=0; j < nY; j++) {
+  //       const x = xmin + i*dx, y = ymin + j*dy;
+  for (let x = xmin; x < xmax - dx/3; x += dx) {
+    for (let y = ymin; y < ymax - dy/3; y += dy) {
+        const [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
         marchingSquare(a,b,c,d,e,level).forEach(element => {
-          const [c,d] = element;
-          points.push(new THREE.Vector3(x + c*dx, y + d*dy, z));
+          const [s,t] = element;
+          points.push(new THREE.Vector3(x + s*dx, y + t*dy, z));
         });
         // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
         //     corners.push((f(...xy) > level) ? 1 : 0);
@@ -86,7 +89,6 @@ function marchingSquare(a,b,c,d,e,lev) {
     }
   }
 
-  // console.log(code, code.toString(2), edges);
 
   for (let index = 0; index < edges.length; index++) {
     const i = edges[index];
