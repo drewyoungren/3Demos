@@ -341,6 +341,14 @@ if (debug) {
   }
 }
 
+{
+  const element = document.querySelector("input#levelsVisible");
+  element.oninput = () => {
+    levelHolder.visible = element.checked;
+    requestFrameIfNotRequested();
+  }
+}
+
 let acidTrails = false;
 {
   const element = document.querySelector("input#flattenContours");
@@ -355,13 +363,7 @@ let acidTrails = false;
   }
 }
 
-{
-  const element = document.querySelector("input#surfaceVisible");
-  element.oninput = () => {
-    surfaceMesh.visible = element.checked;
-    requestFrameIfNotRequested();
-  }
-}
+
 
 
 
@@ -442,7 +444,6 @@ function updateSurface() {
   }
   tangentVectors();
 
-  updateShards(data.shards);
   updateLevels();
   if (!frameRequested) render();
    
@@ -457,7 +458,13 @@ function simpleMathString(s) {return math.simplify(math.parse(s)).toTex()}
 const ghostMesh = new THREE.Mesh(undefined, wireMaterial);
 scene.add(ghostMesh);
 
-
+{
+  const element = document.querySelector("input#surfaceVisible");
+  element.oninput = () => {
+    surfaceMesh.visible = element.checked;
+    requestFrameIfNotRequested();
+  }
+}
 
 
 
@@ -771,6 +778,10 @@ const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
 const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
 
 frameBall.add(point);
+
+const planeBall = new THREE.Mesh();
+frameBall.add(planeBall);
+
 frameBall.visible = false;
 
 scene.add(frameBall);
@@ -800,7 +811,7 @@ function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
 }
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
-function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
+function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
 
   const dr = ruFrame( {u,v,dt,du: 1/data.rNum, dv: 1/data.cNum});
 
@@ -816,6 +827,18 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
     arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
     arrow.lookAt(pos.add(dr[key]));
   }
+
+  planeBall.geometry.dispose();
+
+  const tangentPlaneGeometry = new THREE.ParametricBufferGeometry((u,v,vec) => {
+    const U = -2 + 4*u, V = -2 + 4*v;
+
+    vec.copy(dr.p).add(dr.u.clone().multiplyScalar(U)).add(dr.v.clone().multiplyScalar(V));
+    vec.add(new THREE.Vector3(0,0,0.0001));
+  }, 2,2)
+
+  planeBall.geometry = tangentPlaneGeometry;
+  planeBall.material = shardMaterial;
 
 }
 
@@ -872,6 +895,7 @@ window.addEventListener('keyup',(e) => {
     selectNewPoint = false;
     cancelAnimationFrame(myReq);
     frameRequested = false;
+    last = null;
     // frameBall.visible = false;
   }
 },false);
@@ -880,35 +904,8 @@ window.addEventListener('keyup',(e) => {
 // Add surface area pieces
 
 const shards = new THREE.Object3D();
-const shardMaterial = new THREE.MeshPhongMaterial( {color: 0xb4b4b4, shininess: 80, side: THREE.DoubleSide })
+const shardMaterial = new THREE.MeshPhongMaterial( {color: 0x4b4b4b, shininess: 80, side: THREE.DoubleSide, transparent: true, opacity: 0.5})
 scene.add(shards);
-
-function updateShards(N=0) {
-  for (let index = shards.children.length - 1; index >= 0 ; index--) {
-    const element = shards.children[index];
-    element.geometry.dispose()
-    shards.remove(element);
-  }
-  if (N < 1) return;
-  const dt = 1/N;
-  const vec = new THREE.Vector3();
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < N; j++) {
-      const {p,u,v} = ruFrame( {u: i*dt, v: j*dt, du: dt, dv: dt } );
-      const geometry = new THREE.ParametricBufferGeometry( (x,y,vec) => {
-        vec.copy(p);
-        vec.add(u.clone().multiplyScalar(x)).add(v.clone().multiplyScalar(y));
-        vec.z += 0.001;
-        // console.log(x, y, vec)
-      },1,1);
-      const shard = new THREE.Mesh( geometry, shardMaterial );
-      shards.add(shard);
-    }
-  }
-}
-
-// updateShards(22);
-// console.log(shards.children)
 
 
 // from https://threejsfundamentals.org 
@@ -957,8 +954,13 @@ function animateLevel(time) {
     myReq = requestAnimationFrame(animateLevel);
     last = time;
   } else {
-    frameRequested = false;
-    last = null;
+    if (selectNewPoint) {
+      myReq = requestAnimationFrame(animateLevel);
+      last = time;
+    } else {
+      frameRequested = false;
+      last = null;
+    }
   }
 
 
@@ -1027,7 +1029,6 @@ document.querySelector("#cameraReset").onclick = () => {
 }
 
 // gui.domElement.style.zIndex = 2000;
-processURLSearch()
 
 
 function render() {
@@ -1126,6 +1127,9 @@ function updateLevels() {
     }
   }
 }
+
+processURLSearch()
+
 
 // updateLevels();
 updateSurface();
