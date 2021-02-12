@@ -321,3 +321,21 @@ body {
     border-radius: 5px;
   }
 
+  .menu-choice-centered {
+    display: flex;
+    padding-top: 10px;
+    justify-content: center;
+    flex-flow: row wrap;
+    color: red;
+  }
+  .menu-choice-centered>div {
+    display: flex;
+    padding-top: 10px;
+    justify-content: center;
+    flex-flow: column wrap;
+  }
+  
+  .menu-choice-centered>div>span {
+    flex: 1;
+    color: blueviolet;
+  }

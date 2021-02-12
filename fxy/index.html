@@ -61,11 +61,11 @@
       <div class="info-header-item title"> Scalar Fields </div>
       
       <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
-        <span class="menu-page-item" onclick="openPage('main')">functions</span> | 
-        <span class="menu-page-item" onclick="openPage('levels')">level sets</span> | 
-         <span class="menu-page-item" onclick="openPage('linear')">tangents</span> <!--| 
-        <span class="menu-page-item" onclick="openPage('flux')">flux</span> | 
-        <span class="menu-page-item" onclick="openPage('divcurl')">div &amp; curl</span> | 
+        <span class="menu-page-item" onclick="openPage('main')">function</span> | 
+        <span class="menu-page-item" onclick="openPage('levels')">level set</span> | 
+         <span class="menu-page-item" onclick="openPage('tangents')">tangent</span> | 
+        <span class="menu-page-item" onclick="openPage('linear')">linearization</span> <!--| 
+        <span class="menu-page-item" onclick="openPage('gradient')">div &amp; curl</span> | 
         <span class="menu-page-item" onclick="openPage('practice')">practice</span> -->
       </div>
     </header>
@@ -115,7 +115,7 @@
 
 
       <!-- tangents page -->
-      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="linear">
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="tangents">
         <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
         <p>A differentiable function $f(x,y)$ has a well-defined <b>tangent plane</b> at the point $(a,b,f(a,b))$. </p>
 
@@ -134,6 +134,39 @@
 
         <p>This yields the tangent plane equation. $$z = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b)$$ The right-hand side is the <b>lineariztion</b> of $f$ at the point $(a,b)$.</p>
      </div>
+
+    <!-- lineariztion -->
+    <div class="page w3-container w3-animate-left w3-padding w3-hide" id="linear">
+      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+      <p>
+        The tangent plane is the graph of the best linear approximation to the function at a specified point. We say the <b>linearization</b> of a function $f(x,y)$ at a point $(a,b)$ is a linear function $$L(x,y) = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b).$$
+      </p>
+
+      <div class="w3-container" id="custom-linear">
+
+        <div class="menu-choice-centered" style="padding-top: 20px;">
+          <div>
+            <span>$a = $ <input class="custom-input" type="text" name="linearA" style="width: 4em; "
+                id="linearA" value="-1"><span style="color: red;" class="form-warning"></span>
+            </span> <span>$b = $ <input class="custom-input" type="text" name="linearB" style="width: 4em;" id="linearB"
+                value="1"><span style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+          <div>&nbsp;</div>
+          <div>
+            <span>$\Delta x = $ 
+              <input class="custom-input" type="text" name="linearDx" style="width: 4em; "
+                id="linearDx" value="0.1"><span style="color: red;" class="form-warning"></span>,
+            </span>
+            <span>$\Delta y = $
+              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDx" value="0.1"><span
+                style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
 <!-- Scalar field page -->
       <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
