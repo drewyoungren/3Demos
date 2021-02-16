@@ -857,8 +857,8 @@ function freeTrails() {
 
 // Select a point
 const frameBall = new THREE.Object3D();
-const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh()};
-const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6};
+const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh(), grad: new THREE.Mesh()};
+const ruColors = {u: 0x992525, v: 0x252599, grad: 0x259925, n: 0xb6b6b6};
 for (let key of Object.keys(arrows)) {
   arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
   frameBall.add(arrows[key])
@@ -908,10 +908,18 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
 
   for (const [key, arrow] of Object.entries(arrows)) {
     const pos = dr.p.clone();
-    arrow.position.copy(pos);
-    if ( arrow.geometry ) arrow.geometry.dispose();
-    arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
-    arrow.lookAt(pos.add(dr[key]));
+    if (key === "grad") {
+      pos.set(pos.x, pos.y, 0)
+      arrow.position.copy(pos);
+      const grad = new THREE.Vector3(dr.u.z, dr.v.z, 0);
+      arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: grad.length() } )
+      arrow.lookAt(pos.add(grad));
+    } else {
+      arrow.position.copy(pos);
+      if ( arrow.geometry ) arrow.geometry.dispose();
+      arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
+      arrow.lookAt(pos.add(dr[key]));
+    }
   }
 
 }
