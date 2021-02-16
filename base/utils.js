@@ -811,7 +811,7 @@ export function marchingCubes(f, level) {
     }
   }
 
-  console.log(vertices.length)
+  // console.log(vertices.length)
   
   geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
   geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
