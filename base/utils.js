@@ -795,9 +795,9 @@ export function marchingCubes(f, level) {
 
           const u = x + pt[0]*dx, v = y + pt[1]*dy, w = z + pt[2]*dz;
 
-          const fx = (f(u + h/2, v, w) - f(u - h/2, v, w)) / h;
-          const fy = (f(u, v + h/2, w) - f(u, v - h/2, w)) / h;
-          const fz = (f(u, v, w + h/2) - f(u, v, w - h/2)) / h;
+          const fx = -(f(u + h/2, v, w) - f(u - h/2, v, w)) / h;
+          const fy = -(f(u, v + h/2, w) - f(u, v - h/2, w)) / h;
+          const fz = -(f(u, v, w + h/2) - f(u, v, w - h/2)) / h;
 
           const norm = new THREE.Vector3(fx, fy, fz);
           norm.normalize();
