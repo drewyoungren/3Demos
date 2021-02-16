@@ -354,7 +354,7 @@ let acidTrails = false;
   const element = document.querySelector("input#flattenContours");
   element.oninput = () => {
     data.levelDelta = element.checked ? 1 : -1;
-
+    arrows.grad.visible = element.checked;
     if ( frameRequested ) {
       cancelAnimationFrame( myReq );
     }
@@ -828,6 +828,8 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
       const grad = new THREE.Vector3(dr.u.z, dr.v.z, 0);
       arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: grad.length() } )
       arrow.lookAt(pos.add(grad));
+      arrow.visible = document.querySelector("input#flattenContours").checked;
+      // console.log(document.querySelector("input#flattenContours").checked, "flat click")
     } else {
       arrow.position.copy(pos);
       if ( arrow.geometry ) arrow.geometry.dispose();
