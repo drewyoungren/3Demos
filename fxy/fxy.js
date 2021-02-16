@@ -89,7 +89,8 @@ const lineMaterial = new THREE.LineBasicMaterial( { color: 0x551122, transparent
 
 // Grid
 
-let gridMeshes = drawGrid( {lineMaterial});
+let gridMeshes = new THREE.Object3D();
+// gridMeshes = drawGrid( {lineMaterial});
 gridMeshes.renderDepth = -1;
 scene.add(gridMeshes);
 
@@ -110,7 +111,7 @@ function rescale(newGridMax=1) {
 
   freeBalls(gridMeshes);
 
-  gridMeshes.copy(drawGrid( {lineMaterial, gridMax, gridStep}));
+  // gridMeshes.copy(drawGrid( {lineMaterial, gridMax, gridStep}));
 
   freeBalls(axesHolder)
   // Axes
@@ -149,144 +150,38 @@ const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80
 
 
 const surfaces = {
-  graphs: {
-    x: "u",
-    y: "v", 
-    z: "sin(3*u - v)*exp(-u^2/2 - v^2/2)/2",
+  saddle: {
+    z: "x^2 + e^(-y^2) - 1",
     a: "-1",
     b: "1",
     c: "-1",
     d: "1",
   },
-  revolutions: {
-    x: "u", 
-    y: "4/5 cos(u) sin(v)",
-    z: "4/5 cos(u) cos(v)",
+  volcano: {
+    z: "3*(x^2 + y^2)*exp(-(x^2 + y^2))",
+    a: "-2",
+    b: "2",
+    c: "-2",
+    d: "2",
+  },
+  mtns: {
+    z: "cos(2*x)*sin(2*y)",
     a: "-pi/2",
     b: "pi/2",
-    c: "0",
-    d: "2*pi",
+    c: "-pi/2",
+    d: "pi/2",
   },
-  spheres: {
-    x: "sin(u) cos(v)", 
-    y: "sin(u) sin(v)",
-    z: "cos(u)",
-    a: "0.0001",
-    b: "pi/2",
-    c: "0",
-    d: "2 pi",
-  },
-  customSurf: {
-    x: "(1 + cos(u/2)*v/3)*cos(u)", 
-    y: "(1 + cos(u/2)*v/3)*sin(u)",
-    z: "(sin(u/2)*v/3)",
-    a: "0",
-    b: "2 pi",
-    c: "-1",
-    d: "1",
-  },
-  kiss: {
-    x: "(cos(u) + 1.001)sin(v) / 2", 
-    y: "(cos(u) + 1.001)cos(v) / 2",
-    z: "u/2",
-    a: "-pi/6",
-    b: "pi",
-    c: "0",
-    d: "2 pi",
-    material: new THREE.MeshStandardMaterial( {color: 0xffffff, roughness: 0.5, metalness: 0.7 } )
-  },
-  bugle: {
-    x: "u < 0 ? (1 + cos(v)*2^(-9*pi/20)/8) : (u < 9*pi/2 ? (1 + cos(v)*2^((-9*pi/2 + u)/10)/8)*cos(u) : -1.4*(u - 9*pi/2))", 
-    y: "u < 0 ? (u + cos(v)*2^(-9*pi/20)/8) : (u < 9*pi/2 ? (1 + cos(v)*2^((-9*pi/2 + u)/10)/8)*sin(u) : 1 + (2^((u - 9*pi/2)/10)/8 + (u - 9*pi/2)^2/2)*cos(v))", 
-    z: "u < 0 ? (sin(v)*2^(-9*pi/20)/8) : (u < 9*pi/2 ? (sin(v)*2^((-9*pi/2 + u)/10)/8) + ( (u*4/(9*pi) - 1)*((u*4/(9*pi) - 1)^2-1)^2/3 ) : (2^((u - 9*pi/2)/10)/8 + (u - 9*pi/2)^2/2)*sin(v))", 
-    a: "-1.3",
-    b: "9*pi/2 + 1",
-    c: "0",
-    d: "2 pi",
-    material: new THREE.MeshStandardMaterial( {color: 0xffffbb, roughness: 0.5, metalness: 0.7 } )
+  plane: {
+    z: "x / 5 + y / 2",
+    a: "-2",
+    b: "2",
+    c: "-2",
+    d: "2",
   },
 }
 
-const fields = {
-  'source': {
-    P: "x",
-    Q: "y",
-    R: "z"
-  },
-  'sink': {
-    P: "0",
-    Q: "0",
-    R: "-z"
-  },
-  'swirl': {
-    P: "-y",
-    Q: "x",
-    R: "x^2 - y^2"
-  },
-  'wacky': {
-    P: "sin(x*y)",
-    Q: "-atan(sin(3*z))",
-    R: "x^2 - y^2 - z^3/2"
-  },
-  'rain': {
-    P: "x/4",
-    Q: "y/4",
-    R: "-z/4"
-  },
-  'gravity': {
-    P: "(x^2 + y^2 + z^2) > 0.2  ? -x/(x^2 + y^2 + z^2)^(3/2)  : 0",
-    Q: "(x^2 + y^2 + z^2) > 0.2  ? -y/(x^2 + y^2 + z^2)^(3/2) : 0",
-    R: "(x^2 + y^2 + z^2) > 0.2  ? -z/(x^2 + y^2 + z^2)^(3/2) : 0"
-  },
-  '2body': {
-    P: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(x+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (x-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5) : 0",
-    Q: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(y+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (y-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0",
-    R: "((x+1)^2 + (y+1)^2 + (z+1)^2) > 0.2 & ((x-1)^2 + (y-1)^2 + (z-1)^2) > 0.025 ? -1.15*(z+1)/((x+1)^2 + (y+1)^2 + (z+1)^2)^(3/2) - (z-1)/((x-1)^2 + (y-1)^2 + (z-1)^2)^(1.5): 0",
-  },
-  'magnet': {
-    P: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (x-1/2) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (x + 1/2) / ((x + 1/2)^2 + y^2 + z^2)^(0.6): 0",
-    Q: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (y) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (y) / ((x + 1/2)^2 + y^2 + z^2)^(0.6) : 0",
-    R: "(((x-1/2)^2 + y^2 + z^2) > 0.01) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? (z) / ((x-1/2)^2 + y^2 + z^2)^(0.6) - (z) / ((x + 1/2)^2 + y^2 + z^2)^(0.6) : 0",
-  },
-  // 'magnet2': {
-  //   P: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? ((x - 0.5)*(y^2 + z^2 + (x + 0.5)^2)^1.5 - (x + 0.5)*(y^2 + z^2 + (x - 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5): 0",
-  //   Q: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? y*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
-  //   R: "(((x-1/2)^2 + y^2 + z^2) > 0.025) & (((x+1/2)^2 + y^2 + z^2) > 0.025) ? z*(-(y^2 + z^2 + (x - 0.5)^2)^1.5 + (y^2 + z^2 + (x + 0.5)^2)^1.5)*(y^2 + z^2 + (x - 0.5)^2)^(-0.5)*(y^2 + z^2 + (x + 0.5)^2)^(-0.5) : 0",
-  // },
-  // 'test': {
-  //   P: "x^2",
-  //   Q: "1/2",
-  //   R: "0",
-  // },
-}
 
-// Add bodies to the "physical" fields.
 
-{
-  const gravityMesh = new THREE.Object3D();
-  const sph = new THREE.SphereBufferGeometry(.22, 16, 16 );
-  let mesh = new THREE.Mesh(sph, new THREE.MeshLambertMaterial({color: 0xdddd33}));
-  mesh.position.set(1,1,1);
-  gravityMesh.add(mesh);
-  mesh = new THREE.Mesh(sph, new THREE.MeshLambertMaterial({color: 0xddaa33}));
-  mesh.position.set(-1,-1,-1);
-  gravityMesh.add(mesh);
-  mesh = new THREE.Mesh(sph, new THREE.MeshLambertMaterial({color: 0xddddbc}));
-  mesh.visible = false;
-  scene.add(mesh)
-  fields['gravity'].body = mesh;
-  gravityMesh.visible = false;
-  fields["2body"].body = gravityMesh;
-  scene.add(gravityMesh);
-
-  mesh = new THREE.Mesh(new THREE.CylinderGeometry( .1, .1, 1.4), new THREE.MeshLambertMaterial({color: 0xff8888}));
-  mesh.rotation.z = Math.PI/2;
-  fields.magnet.body = mesh;
-  mesh.visible = false;
-  scene.add(mesh);
-
-  // scene.add(mesh);
-}
 
 
 
@@ -297,12 +192,12 @@ const rData = {
   d: math.parse("1").compile(),
   x: math.parse("x").compile(),
   y: math.parse("y").compile(),
-  z: math.parse("x^2 + exp(-y^2)").compile(),
+  z: math.parse("x^2 + e^(-y^2) - 1").compile(),
   E: math.parse("x^2 + y^2").compile(),
 }
 
 const data = {
-  S: 'graphs',
+  S: 'mtns',
   nX: 30,
   rNum: 10,
   cNum: 10,
@@ -446,6 +341,14 @@ if (debug) {
   }
 }
 
+{
+  const element = document.querySelector("input#levelsVisible");
+  element.oninput = () => {
+    levelHolder.visible = element.checked;
+    requestFrameIfNotRequested();
+  }
+}
+
 let acidTrails = false;
 {
   const element = document.querySelector("input#flattenContours");
@@ -460,13 +363,7 @@ let acidTrails = false;
   }
 }
 
-{
-  const element = document.querySelector("input#surfaceVisible");
-  element.oninput = () => {
-    surfaceMesh.visible = element.checked;
-    requestFrameIfNotRequested();
-  }
-}
+
 
 
 
@@ -547,9 +444,8 @@ function updateSurface() {
   }
   tangentVectors();
 
-  updateShards(data.shards);
-  if (!frameRequested) render();
   updateLevels();
+  if (!frameRequested) render();
    
 }
 
@@ -562,7 +458,13 @@ function simpleMathString(s) {return math.simplify(math.parse(s)).toTex()}
 const ghostMesh = new THREE.Mesh(undefined, wireMaterial);
 scene.add(ghostMesh);
 
-
+{
+  const element = document.querySelector("input#surfaceVisible");
+  element.oninput = () => {
+    surfaceMesh.visible = element.checked;
+    requestFrameIfNotRequested();
+  }
+}
 
 
 
@@ -715,8 +617,15 @@ function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
 // UI for parametric surface
 //
 //
+// {
+//   const surfaceMenu = document.querySelector("#surfaceMenu");
+// Object.keys(surfaces).forEach(surf => {
+  
+// });
+// }
 
-const surfs = ["graphs","revolutions","spheres","customSurf"];
+
+const surfs = Object.keys(surfaces);
 for (let i = 0; i < surfs.length; i++) {
   const surf = surfs[i];
   const element = document.getElementById(surf);
@@ -725,8 +634,9 @@ for (let i = 0; i < surfs.length; i++) {
     data.S = surf;
     const sf = surfaces[surf];
     let el;
-    for (let i = 0; i < "xyzabcd".length; i++) {;
-      const c = "xyzabcd"[i];
+    for (let i = 0; i < "zabcd".length; i++) {;
+      const c = "zabcd"[i];
+      console.log(surf, c);
       el = document.querySelector(`#custom${c.toUpperCase()}`);
       el.value = sf[c];
       rData[c] = math.parse(sf[c]).compile();
@@ -868,6 +778,10 @@ const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
 const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
 
 frameBall.add(point);
+
+const planeBall = new THREE.Mesh();
+frameBall.add(planeBall);
+
 frameBall.visible = false;
 
 scene.add(frameBall);
@@ -897,7 +811,7 @@ function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
 }
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
-function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
+function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
 
   const dr = ruFrame( {u,v,dt,du: 1/data.rNum, dv: 1/data.cNum});
 
@@ -921,6 +835,18 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001 } = {} ) {
       arrow.lookAt(pos.add(dr[key]));
     }
   }
+
+  planeBall.geometry.dispose();
+
+  const tangentPlaneGeometry = new THREE.ParametricBufferGeometry((u,v,vec) => {
+    const U = -2 + 4*u, V = -2 + 4*v;
+
+    vec.copy(dr.p).add(dr.u.clone().multiplyScalar(U)).add(dr.v.clone().multiplyScalar(V));
+    vec.add(new THREE.Vector3(0,0,0.0001));
+  }, 2,2)
+
+  planeBall.geometry = tangentPlaneGeometry;
+  planeBall.material = shardMaterial;
 
 }
 
@@ -968,7 +894,7 @@ window.addEventListener('keydown',(e) => {
     selectNewPoint = true;
     cancelAnimationFrame(myReq);
     frameRequested = true;
-    myReq = requestAnimationFrame(animate);
+    myReq = requestAnimationFrame(animateLevel);
     // frameBall.visible = true;
   }
 },false);
@@ -977,6 +903,7 @@ window.addEventListener('keyup',(e) => {
     selectNewPoint = false;
     cancelAnimationFrame(myReq);
     frameRequested = false;
+    last = null;
     // frameBall.visible = false;
   }
 },false);
@@ -985,35 +912,8 @@ window.addEventListener('keyup',(e) => {
 // Add surface area pieces
 
 const shards = new THREE.Object3D();
-const shardMaterial = new THREE.MeshPhongMaterial( {color: 0xb4b4b4, shininess: 80, side: THREE.DoubleSide })
+const shardMaterial = new THREE.MeshPhongMaterial( {color: 0x4b4b4b, shininess: 80, side: THREE.DoubleSide, transparent: true, opacity: 0.5})
 scene.add(shards);
-
-function updateShards(N=0) {
-  for (let index = shards.children.length - 1; index >= 0 ; index--) {
-    const element = shards.children[index];
-    element.geometry.dispose()
-    shards.remove(element);
-  }
-  if (N < 1) return;
-  const dt = 1/N;
-  const vec = new THREE.Vector3();
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < N; j++) {
-      const {p,u,v} = ruFrame( {u: i*dt, v: j*dt, du: dt, dv: dt } );
-      const geometry = new THREE.ParametricBufferGeometry( (x,y,vec) => {
-        vec.copy(p);
-        vec.add(u.clone().multiplyScalar(x)).add(v.clone().multiplyScalar(y));
-        vec.z += 0.001;
-        // console.log(x, y, vec)
-      },1,1);
-      const shard = new THREE.Mesh( geometry, shardMaterial );
-      shards.add(shard);
-    }
-  }
-}
-
-// updateShards(22);
-// console.log(shards.children)
 
 
 // from https://threejsfundamentals.org 
@@ -1062,8 +962,13 @@ function animateLevel(time) {
     myReq = requestAnimationFrame(animateLevel);
     last = time;
   } else {
-    frameRequested = false;
-    last = null;
+    if (selectNewPoint) {
+      myReq = requestAnimationFrame(animateLevel);
+      last = time;
+    } else {
+      frameRequested = false;
+      last = null;
+    }
   }
 
 
@@ -1132,7 +1037,6 @@ document.querySelector("#cameraReset").onclick = () => {
 }
 
 // gui.domElement.style.zIndex = 2000;
-processURLSearch()
 
 
 function render() {
@@ -1191,17 +1095,17 @@ function updateLevels() {
   const {a,b,c,d,z} = rData;
   let C=0, D=0, zMin = 0, zMax = 0;
   const [A,B] = [a.evaluate(),b.evaluate()];
-  for (let i=0; i <= data.nX; i++) {
-    C = Math.min(C,c.evaluate({x: A + (B - A)*i/data.nX}));
-    D = Math.max(D,d.evaluate({x: A + (B - A)*i/data.nX}));
-    for (let j=0; j <= data.nX; j++) {
-      const Z = z.evaluate( {x: A + (B - A)*i/data.nX, y:C + (D - C)*j/data.nX});
+  for (let i=0; i <= data.nL; i++) {
+    C = Math.min(C,c.evaluate({x: A + (B - A)*i/data.nL}));
+    D = Math.max(D,d.evaluate({x: A + (B - A)*i/data.nL}));
+    for (let j=0; j <= data.nL; j++) {
+      const Z = z.evaluate( {x: A + (B - A)*i/data.nL, y:C + (D - C)*j/data.nL});
       zMin = Math.min(zMin, Z);
       zMax = Math.max(zMax, Z)
     }
   }
 
-  for (let lev = zMin; lev <= zMax; lev += Math.max((zMax - zMin) / data.nX ), 0.01) {
+  for (let lev = zMin; lev <= zMax; lev += Math.max((zMax - zMin) / data.nL ), 0.01) {
 
     const points = marchingSquares( {
       f: (x,y) =>  { return z.evaluate( {x, y} ); },
@@ -1211,6 +1115,8 @@ function updateLevels() {
       ymax: D,
       level: lev,
       zLevel: 0,
+      nX: data.nX,
+      nY: data.nX,
     } );
 
     // console.log(points[2]);
@@ -1229,6 +1135,9 @@ function updateLevels() {
     }
   }
 }
+
+processURLSearch()
+
 
 // updateLevels();
 updateSurface();
