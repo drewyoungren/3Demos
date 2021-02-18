@@ -771,14 +771,15 @@ export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zM
   const geometry = new THREE.BufferGeometry();
 
 
-  const N = 30 , h = 0.001;
+  const N = 30 , eps = Math.sqrt(1e-10);
+  let h = eps;
   const vertices = [], normals = [];
 
   for(let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
-        const [x,y,z] = [2*i/N - 1, 2*j/N - 1,2*k/N - 1];
-        const dx = 2/N, dy = 2/N, dz = 2/N;
+        const dx = (xMax - xMin)/N, dy = (yMax - yMin)/N, dz = (zMax - zMin)/N;
+        const [x,y,z] = [xMin + dx*i, yMin + dy*j,zMin + dz*k];
         
         const grid = [[x,y,z],[x,y + dy,z],[x + dx,y + dy,z],[x + dx,y,z],
                       [x,y,z + dz],[x,y + dy,z + dz],[x + dx,y + dy,z + dz],[x + dx,y,z + dz]]
@@ -795,12 +796,17 @@ export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zM
 
           const u = x + pt[0]*dx, v = y + pt[1]*dy, w = z + pt[2]*dz;
 
+          h = Math.max( u*eps, (2*eps)**2 );
           const fx = (f(u + h/2, v, w) - f(u - h/2, v, w)) / h;
+          h = Math.max( v*eps, (2*eps)**2 );
           const fy = (f(u, v + h/2, w) - f(u, v - h/2, w)) / h;
+          h = Math.max( w*eps, (2*eps)**2 );
           const fz = (f(u, v, w + h/2) - f(u, v, w - h/2)) / h;
+
 
           const norm = new THREE.Vector3(fx, fy, fz);
           norm.normalize();
+          console.log(norm.length());
 
           // console.log([u,v,w], norm);
 

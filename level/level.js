@@ -103,8 +103,6 @@ scene.add(axesHolder)
 // Fonts
 let [axesText, font] = labelAxes( { scene , render: requestFrameIfNotRequested } );
 
-console.log(axesText, font, "Font");
-
 function rescale(newGridMax=1) {
   const oldGridMax = gridMax;
   gridMax = newGridMax;
@@ -138,8 +136,8 @@ const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side
 const materialColors = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 70,side: THREE.DoubleSide, vertexColors: true});
 const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
 
-whiteLineMaterial.polygonOffset = true;
-whiteLineMaterial.polygonOffsetFactor = 0.1;
+// whiteLineMaterial.polygonOffset = true;
+// whiteLineMaterial.polygonOffsetFactor = 0.1;
 
 const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 14});
 
@@ -191,11 +189,12 @@ const rData = {
   b: math.parse("1").compile(),
   c: math.parse("-1").compile(),
   d: math.parse("1").compile(),
+  e: math.parse("-1").compile(),
+  f: math.parse("1").compile(),
   x: math.parse("x").compile(),
   y: math.parse("y").compile(),
-  z: math.parse("x^2 + y^2 - z^2 + 1/4").compile(),
-  E: math.parse("x^2 + y^2").compile(),
-  k: 0,
+  z: math.parse("x^2 + y^2 - z^2 - 1/4").compile(),
+  k: math.parse("0").compile(),
 }
 
 const data = {
@@ -351,7 +350,6 @@ if (debug) {
   }
 }
 
-let acidTrails = false;
 {
   const element = document.querySelector("input#flattenContours");
   element.oninput = () => {
@@ -373,16 +371,26 @@ let colorFunc;
 
 let surfaceMesh;
 function updateSurface() {
-  const {k,z} = rData;
-  const geometry = marchingCubes( (u,v,w) => {
-    return z.evaluate( {x: u, y: v, z: w} )
-  }, k);
+  const {k,z,a,b,c,d,e,f} = rData;
+  const geometry = marchingCubes({
+    f: (u, v, w) => {
+      return z.evaluate({ x: u, y: v, z: w });
+    },
+    level: k.evaluate(),
+    xMin: a.evaluate(),
+    xMax: b.evaluate(),
+    yMin: c.evaluate(),
+    yMax: d.evaluate(),
+    zMin: e.evaluate(),
+    zMax: f.evaluate(),
+  });
+  const wireGeometry = new THREE.WireframeGeometry( geometry );
   let material = plusMaterial;
   if (surfaceMesh) {
     for (let i = 0; i < surfaceMesh.children.length; i++) {
       const mesh = surfaceMesh.children[i];
       mesh.geometry.dispose()
-      mesh.geometry = i < 2 ? geometry : meshGeometry;
+      mesh.geometry = i < 2 ? geometry : wireGeometry;
       if (i < 1) {
         mesh.material = material;
       }
@@ -392,9 +400,9 @@ function updateSurface() {
     const backMesh = new THREE.Mesh( geometry, minusMaterial );
     const frontMesh = new THREE.Mesh( geometry, material );
 
-    // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
     surfaceMesh.add( frontMesh );
     surfaceMesh.add( backMesh );
+    surfaceMesh.add(new THREE.LineSegments( wireGeometry, wireMaterial ))
 
     scene.add(surfaceMesh);
   }
@@ -408,11 +416,11 @@ function updateSurface() {
 // Exercises
 // 
 
-function simpleMathString(s) {return math.simplify(math.parse(s)).toTex()}
+// function simpleMathString(s) {return math.simplify(math.parse(s)).toTex()}
 
 
-const ghostMesh = new THREE.Mesh(undefined, wireMaterial);
-scene.add(ghostMesh);
+// const ghostMesh = new THREE.Mesh(undefined, wireMaterial);
+// scene.add(ghostMesh);
 
 {
   const element = document.querySelector("input#surfaceVisible");
@@ -614,7 +622,7 @@ for (let i = 0; i < surfs.length; i++) {
 }
 
 {
-  const XYZ = "ZKBCD";
+  const XYZ = "ZKABCDEF";
   for (let i = 0; i < XYZ.length; i++) {
     const ch = XYZ[i];
     const id = `custom${ch}`;
@@ -626,6 +634,7 @@ for (let i = 0; i < surfs.length; i++) {
       const form = document.querySelector(`#${id} + .form-warning`);
       try {
         const expr = math.parse(element.value).compile();
+        expr.evaluate({ x: 0, y: 0, z: 0});
         rData[c] = expr;
         form.innerText = '';
       } catch (e) {
@@ -639,36 +648,7 @@ for (let i = 0; i < surfs.length; i++) {
   }
 }
 
-// Color based on scalar field
 
-// Runge-Kutta method
-function rk4(x, y, z, F, dt) {
-  // Returns final (x1,y1,z1) array after time dt has passed.
-  //        x,y,z: initial position
-  //        F: r' function a(x,v,dt) (must be callable)
-  //        dt: timestep
-  const vec = new THREE.Vector3(),
-        f1 = new THREE.Vector3(),
-        f2 = new THREE.Vector3(),
-        f3 = new THREE.Vector3(),
-        f4 = new THREE.Vector3();
-  
-  f1.copy(F(x,y,z,vec).multiplyScalar(dt));
-  f2.copy(F(x + f1.x/2, y + f1.y/2, z + f1.z/2,vec).multiplyScalar(dt));
-  f3.copy(F(x + f2.x/2, y + f2.y/2, z + f2.z/2,vec).multiplyScalar(dt));
-  f4.copy(F(x + f3.x, y + f3.y, z + f3.z,vec).multiplyScalar(dt));
-
-  const x1 = x + (f1.x + 2*f2.x + 2*f3.x + f4.x)/6;
-  const y1 = y + (f1.y + 2*f2.y + 2*f3.y + f4.y)/6;
-  const z1 = z + (f1.z + 2*f2.z + 2*f3.z + f4.z)/6;
-
-  return [x1, y1, z1];
-}
-
-// 1-norm
-function norm1(v) {
-  return Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
-}
 
 
 const balls = new THREE.Object3D();
