@@ -620,7 +620,7 @@ const triTable = [
   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
 ];
 
-const corners = [[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+const corners = [[0,0,0],[0,1,0],[1,1,0],[1,0,0],[0,0,1],[0,1,1],[1,1,1],[1,0,1]];
 
 function vertexInterp(
     level,
@@ -767,7 +767,7 @@ function marchingCube(vals, level) {
   return triangles;
 }
 
-export function marchingCubes(f, level) {
+export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zMin=-1, zMax=1 } = {}) {
   const geometry = new THREE.BufferGeometry();
 
 
@@ -780,8 +780,8 @@ export function marchingCubes(f, level) {
         const [x,y,z] = [2*i/N - 1, 2*j/N - 1,2*k/N - 1];
         const dx = 2/N, dy = 2/N, dz = 2/N;
         
-        const grid = [[x,y,z],[x + dx,y,z],[x + dx,y + dy,z],[x,y + dy,z],
-                      [x,y,z + dz],[x + dx,y,z + dz],[x + dx,y + dy,z + dz],[x,y + dy,z + dz]]
+        const grid = [[x,y,z],[x,y + dy,z],[x + dx,y + dy,z],[x + dx,y,z],
+                      [x,y,z + dz],[x,y + dy,z + dz],[x + dx,y + dy,z + dz],[x + dx,y,z + dz]]
 
         const vals = [];
         grid.forEach(corner => {
@@ -795,14 +795,14 @@ export function marchingCubes(f, level) {
 
           const u = x + pt[0]*dx, v = y + pt[1]*dy, w = z + pt[2]*dz;
 
-          const fx = -(f(u + h/2, v, w) - f(u - h/2, v, w)) / h;
-          const fy = -(f(u, v + h/2, w) - f(u, v - h/2, w)) / h;
-          const fz = -(f(u, v, w + h/2) - f(u, v, w - h/2)) / h;
+          const fx = (f(u + h/2, v, w) - f(u - h/2, v, w)) / h;
+          const fy = (f(u, v + h/2, w) - f(u, v - h/2, w)) / h;
+          const fz = (f(u, v, w + h/2) - f(u, v, w - h/2)) / h;
 
           const norm = new THREE.Vector3(fx, fy, fz);
           norm.normalize();
 
-          console.log([u,v,w], norm);
+          // console.log([u,v,w], norm);
 
           vertices.push(u,v,w);
           normals.push(norm.x, norm.y, norm.z);
@@ -1410,5 +1410,33 @@ const gaussLegendre = (fn, a, b, n) => {
 }
 // console.log(gaussLegendre(x => Math.exp(x), -3, 3, 5));
 
+// Runge-Kutta method
+function rk4(x, y, z, F, dt) {
+  // Returns final (x1,y1,z1) array after time dt has passed.
+  //        x,y,z: initial position
+  //        F: r' function a(x,v,dt) (must be callable)
+  //        dt: timestep
+  const vec = new THREE.Vector3(),
+        f1 = new THREE.Vector3(),
+        f2 = new THREE.Vector3(),
+        f3 = new THREE.Vector3(),
+        f4 = new THREE.Vector3();
+  
+  f1.copy(F(x,y,z,vec).multiplyScalar(dt));
+  f2.copy(F(x + f1.x/2, y + f1.y/2, z + f1.z/2,vec).multiplyScalar(dt));
+  f3.copy(F(x + f2.x/2, y + f2.y/2, z + f2.z/2,vec).multiplyScalar(dt));
+  f4.copy(F(x + f3.x, y + f3.y, z + f3.z,vec).multiplyScalar(dt));
 
-export { ArrowBufferGeometry, ParametricCurve, drawGrid, drawAxes, labelAxes, gaussLegendre };
+  const x1 = x + (f1.x + 2*f2.x + 2*f3.x + f4.x)/6;
+  const y1 = y + (f1.y + 2*f2.y + 2*f3.y + f4.y)/6;
+  const z1 = z + (f1.z + 2*f2.z + 2*f3.z + f4.z)/6;
+
+  return [x1, y1, z1];
+}
+
+// 1-norm
+function norm1(v) {
+  return Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
+}
+
+export { ArrowBufferGeometry, ParametricCurve, drawGrid, drawAxes, labelAxes, gaussLegendre, rk4, norm1 };
