@@ -62,7 +62,7 @@
       
       <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
         <span class="menu-page-item" onclick="openPage('main')">function</span> | 
-        <span class="menu-page-item" onclick="openPage('levels')">level set</span> | 
+        <span class="menu-page-item" onclick="openPage('levels')">traces</span> | 
          <span class="menu-page-item" onclick="openPage('tangents')">tangent</span> | 
         <span class="menu-page-item" onclick="openPage('linear')">linearization</span> <!--| 
         <span class="menu-page-item" onclick="openPage('gradient')">div &amp; curl</span> | 
@@ -79,20 +79,31 @@
           &otimes;
         </span>
           
-        <p>A <b>level curve</b> is the set of inputs of a function $f(x,y)$ associated to a particular output value. More specifically, we say the $k$-level set of $f$ is $$ f^{-1}(k) = \{(x,y): f(x,y) = k \}.$$
-        
-        This is also called the <em>inverse image</em> of $k$.
+        <p>Fixing one coordinate in the equation for a level set gives an equation with two unknowns. Its solution set is a <b>trace</b>. (A level curve can be thought of as a $z$-trace for the graph of a function of two variables.) </p>
+        <p>
+          Alternatively, a trace is the intersection of a surface with a plane parallel to on of the coordinate planes. 
         </p>
-
-        <p>Visually, this can be seen as the intersection of the graph $z = f(x,y)$ and the plane $z = k$.</p>
 
         <p><b>Settings:</b></p>     
 
         <div class="setting-choice">
-          <div class="setting-label"><label for="levelsVisible">show : </label></div>
+          <div class="setting-label"><label for="xTraces">$x$-traces : </label></div>
           <div class="setting-thing">
             <label class="switch">
-              <input type="checkbox" name="levelsVisible" id="levelsVisible" checked="true">
+              <input type="checkbox" name="xTraces" id="xTraces" checked="true">
+              <span class="slider round"></span>
+            </label></div>
+            <div class="setting-label"><label for="yTraces">$y$-traces : </label></div>
+            <div class="setting-thing">           
+            <label class="switch">
+              <input type="checkbox" name="yTraces" id="yTraces" checked="true">
+              <span class="slider round"></span>
+            </label>
+            </div>
+            <div class="setting-label"><label for="zTraces">$z$-traces : </label></div>
+            <div class="setting-thing">
+            <label class="switch">
+              <input type="checkbox" name="zTraces" id="zTraces" checked="true">
               <span class="slider round"></span>
             </label>
           </div>
@@ -159,7 +170,7 @@
                 id="linearDx" value="0.1"><span style="color: red;" class="form-warning"></span>,
             </span>
             <span>$\Delta y = $
-              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDx" value="0.1"><span
+              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDy" value="0.1"><span
                 style="color: red;" class="form-warning"></span>
             </span>
           </div>
@@ -184,7 +195,7 @@
 
         <!-- <h2>Classes of surfaces:</h2> -->
         <div class="noselect choice-row sans" id="surfaceMenu">
-          <span><span id="saddle">saddle</span> </span> | <span> <span id="volcano">volcano</span> </span> | <span><span id="mtns">mountain range</span> </span> | <span> <span id="plane">plane</span></span></div>
+        </div>
 
 
         <div class="w3-container" id="custom-uvs">
@@ -221,6 +232,17 @@
               $ \leq y \leq $
               <span>
                 <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                  style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customE" style="width: 4em; text-align: right;"
+                  id="customE" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq z \leq $
+              <span>
+                <input class="custom-input" type="text" name="customF" style="width: 4em;" id="customF" value="1"><span
                   style="color: red;" class="form-warning"></span>
               </span>
             </div>

@@ -149,33 +149,50 @@ const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80
 
 
 const surfaces = {
-  saddle: {
-    z: "x^2 + e^(-y^2) - 1",
+  hyperboloid: {
+    z: "x^2 + y^2 - z^2 - 1/4",
     a: "-1",
     b: "1",
     c: "-1",
     d: "1",
+    e: "-1.25",
+    f: "1.25",
   },
-  volcano: {
-    z: "3*(x^2 + y^2)*exp(-(x^2 + y^2))",
+  hyperboloid2: {
+    z: "x^2 + y^2 - z^2 + 1/4",
+    a: "-1",
+    b: "1",
+    c: "-1",
+    d: "1",
+    e: "-1.25",
+    f: "1.25",
+   },
+  knill1: {
+    z: "(6*x^2 - 5)^2*(x^2 + z^2 - 1)^2 + (6*y^2 - 5)^2*(x^2 + y^2 - 1)^2 + (y^2 + z^2 - 1)^2*(6*z^2 - 5)^2 - 3",
     a: "-2",
     b: "2",
     c: "-2",
     d: "2",
+    e: "-2",
+    f: "2",
   },
-  mtns: {
-    z: "cos(2*x)*sin(2*y)",
-    a: "-pi/2",
-    b: "pi/2",
-    c: "-pi/2",
-    d: "pi/2",
-  },
-  plane: {
-    z: "x / 5 + y / 2",
+  candy: {
+    z: "x^2y^2 + y^2z^2 + z^2x^2 +x^2 + y^2 + z^2 -12 ",
     a: "-2",
     b: "2",
     c: "-2",
     d: "2",
+    e: "-2",
+    f: "2",
+  },
+  ellipsoid: {
+    z: "3/4*x^2 + y^2 + 1.2z^2 - 1",
+    a: "-1.2",
+    b: "1.2",
+    c: "-1.2",
+    d: "1.2",
+    e: "-1.2",
+    f: "1.2",
   },
 }
 
@@ -343,10 +360,14 @@ if (debug) {
 }
 
 {
-  const element = document.querySelector("input#levelsVisible");
-  element.oninput = () => {
-    levelHolder.visible = element.checked;
-    requestFrameIfNotRequested();
+  for (let i = 0; i < 3; i++) {
+    const c = "xyz"[i];
+    
+    const element = document.querySelector(`input#${c}Traces`);
+    element.oninput = () => {
+      tracesHolder.children[i].visible = element.checked;
+      requestFrameIfNotRequested();
+    }
   }
 }
 
@@ -592,15 +613,27 @@ function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
 const surfs = Object.keys(surfaces);
 for (let i = 0; i < surfs.length; i++) {
   const surf = surfs[i];
-  const element = document.getElementById(surf);
+  let element = document.getElementById(surf);
+
+  if (! element) {
+    element = document.createElement("span");
+    parent = document.querySelector("#surfaceMenu");
+    element.innerHTML = `<span id="${surf}">${surf}</span>`;
+    if (parent.children.length > 0) {
+      const pipeSpan = document.createElement("span");
+      pipeSpan.innerText = " | ";
+      parent.appendChild(pipeSpan);
+    }
+    parent.appendChild(element);
+  }
 
   element.onclick = () => {
     data.S = surf;
     const sf = surfaces[surf];
     let el;
-    for (let i = 0; i < "zabcd".length; i++) {;
-      const c = "zabcd"[i];
-      console.log(surf, c);
+    for (let i = 0; i < Object.keys(sf).length; i++) {;
+      const c = Object.keys(sf)[i];
+      // console.log(surf, c);
       el = document.querySelector(`#custom${c.toUpperCase()}`);
       el.value = sf[c];
       rData[c] = math.parse(sf[c]).compile();
@@ -722,60 +755,65 @@ frameBall.visible = false;
 
 scene.add(frameBall);
 
-function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
-  const {a,b,c,d,x,y,z} = rData;
-  const A = a.evaluate(), B = b.evaluate()
-  const U = (1 - u)*A + u*B; 
-  const C = c.evaluate( {x: U} ), D = d.evaluate( {x: U} );
-  const V = (1 - v)*C + v*D; 
-  // const du = (B - A) / data.rNum, dv = (dMax - cMin) / data.cNum;
-
-  const p = new THREE.Vector3(x.evaluate({x: U, y: V}), y.evaluate({x: U, y: V}), z.evaluate({x: U, y: V})), 
-    ruForward = new THREE.Vector3(x.evaluate({x: U + dt/2, y: V}), y.evaluate({x: U + dt/2, y: V}), z.evaluate({x: U + dt/2, y: V})), 
-    ruBackward = new THREE.Vector3(x.evaluate({x: U - dt/2, y: V}), y.evaluate({x: U - dt/2, y: V}), z.evaluate({x: U - dt/2, y: V})), 
-    rvForward = new THREE.Vector3(x.evaluate({x: U, y: V + dt/2}), y.evaluate({x: U, y: V + dt/2}), z.evaluate({x: U, y: V + dt/2})),
-    rvBackward = new THREE.Vector3(x.evaluate({x: U, y: V - dt/2}), y.evaluate({x: U, y: V - dt/2}), z.evaluate({x: U, y: V - dt/2}));
+function nFrame({f = (x,y,z) => rData.z.evaluate( {x,y,z} ), point = point, eps = 1e-4, du = 1, dv = 1 } = {} ) {
   
-    
-    ruForward.sub(ruBackward).multiplyScalar((B - A) * du / dt);
-    rvForward.sub(rvBackward).multiplyScalar((D - C) * dv / dt);
-    // console.log("inside ruF",dMax,cMin,{p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward)}dv);
-  // console.log(p,ru,rv);
+  const [u,v,w] = [point.position.x, point.position.y, point.position.z];
+ 
+  let h;
 
+  h = Math.max( u*eps, (2*eps)**2 );
+  const fx = (f(u + h/2, v, w) - f(u - h/2, v, w)) / h;
+  h = Math.max( v*eps, (2*eps)**2 );
+  const fy = (f(u, v + h/2, w) - f(u, v - h/2, w)) / h;
+  h = Math.max( w*eps, (2*eps)**2 );
+  const fz = (f(u, v, w + h/2) - f(u, v, w - h/2)) / h;
 
-  return {p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward)}
+  return {p: point.position, n: new THREE.Vector3(fx, fy, fz) }
 }
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
-function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
+function tangentVectors( { point, eps = 1e-4, plane = true } = {} ) {
 
-  const dr = ruFrame( {u,v,dt,du: 1/data.rNum, dv: 1/data.cNum});
+  const {p, n} = nFrame( { point, eps, du: 1/data.rNum, dv: 1/data.cNum});
 
-  point.position.copy(dr.p);
+  // point.position.copy(dr.p);
 
 
   const arrowParams = { radiusTop: gridStep / 10,  radiusBottom: gridStep / 20, heightTop: gridStep/7 }
 
-  for (const [key, arrow] of Object.entries(arrows)) {
-    const pos = dr.p.clone();
-    arrow.position.copy(pos);
-    if ( arrow.geometry ) arrow.geometry.dispose();
-    arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: dr[key].length() } )
-    arrow.lookAt(pos.add(dr[key]));
-  }
+  const arrow = arrows.n;
+  const pos = p.clone();
+  arrow.position.copy(pos);
+  if ( arrow.geometry ) arrow.geometry.dispose();
+  arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: n.length() } )
+  arrow.lookAt(pos.add(n));
+  
 
   planeBall.geometry.dispose();
 
-  const tangentPlaneGeometry = new THREE.ParametricBufferGeometry((u,v,vec) => {
-    const U = -2 + 4*u, V = -2 + 4*v;
+  if (plane) {
+    const {a,b,c,d,e,f} = rData;
 
-    vec.copy(dr.p).add(dr.u.clone().multiplyScalar(U)).add(dr.v.clone().multiplyScalar(V));
-    vec.add(new THREE.Vector3(0,0,0.0001));
-  }, 2,2)
+    const tangentPlaneGeometry = marchingCubes({
+      f: (x,y,z) => {
+        const xVec = new THREE.Vector3(x,y,z);
+        return xVec.dot(n);
+      },
+      level: n.dot(p),
+      xMin: a.evaluate(),
+      xMax: b.evaluate(),
+      yMin: c.evaluate(),
+      yMax: d.evaluate(),
+      zMin: e.evaluate(),
+      zMax: f.evaluate(),
+      N: 2,
+    });
 
-  planeBall.geometry = tangentPlaneGeometry;
-  planeBall.material = shardMaterial;
+    // console.log(tangentPlaneGeometry);
 
+    planeBall.geometry = tangentPlaneGeometry;
+    planeBall.material = shardMaterial;
+  }
 }
 
 
@@ -802,12 +840,12 @@ function onMouseMove( e ) {
       if ( intersects.length > 0 ) {
         const intersect = intersects[0];
         // console.log(intersect.uv);
-        point.position.x = intersect.point.x;
-        point.position.y = intersect.point.y;
-        point.position.z = intersect.point.z;
+        point.position.copy(intersect.point)
+        // point.position.y = intersect.point.y;
+        // point.position.z = intersect.point.z;
 
-        const u = intersect.uv.x, v = intersect.uv.y;
-        // tangentVectors({u,v});
+        // const u = intersect.uv.x, v = intersect.uv.y;
+        tangentVectors( {point} );
       }    
     }
 	}
@@ -987,11 +1025,11 @@ function render() {
 }
 
 //initialize frame
-{
-  const uv = {x: 0.5, y: 0.5};
-  point.position.set(rData.x.evaluate(uv));
-  // tangentVectors();
-}
+// {
+//   const uv = {x: 0.5, y: 0.5};
+//   point.position.set(rData.x.evaluate(uv));
+//   // tangentVectors();
+// }
 
 const levelHolder = new THREE.Object3D();
 scene.add(levelHolder)

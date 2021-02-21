@@ -774,10 +774,11 @@ export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zM
   let h = eps;
   const vertices = [], normals = [];
 
+  const dx = (xMax - xMin)/N, dy = (yMax - yMin)/N, dz = (zMax - zMin)/N;
+
   for(let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
-        const dx = (xMax - xMin)/N, dy = (yMax - yMin)/N, dz = (zMax - zMin)/N;
         const [x,y,z] = [xMin + dx*i, yMin + dy*j,zMin + dz*k];
         
         const grid = [[x,y,z],[x,y + dy,z],[x + dx,y + dy,z],[x + dx,y,z],
@@ -806,8 +807,6 @@ export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zM
           const norm = new THREE.Vector3(fx, fy, fz);
           norm.normalize();
 
-          // console.log([u,v,w], norm);
-
           vertices.push(u,v,w);
           normals.push(norm.x, norm.y, norm.z);
         }
@@ -815,8 +814,6 @@ export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zM
     }
   }
 
-  // console.log(vertices.length)
-  
   geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
   geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
 
