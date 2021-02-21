@@ -3,7 +3,7 @@
 import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 
 
-export function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30}) {
+export function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30} ) {
   
   const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
   const z = zLevel === null ? level : zLevel;
@@ -767,11 +767,10 @@ function marchingCube(vals, level) {
   return triangles;
 }
 
-export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zMin=-1, zMax=1 } = {}) {
+export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zMin=-1, zMax=1, N=30 } = {}) {
   const geometry = new THREE.BufferGeometry();
 
-
-  const N = 30 , eps = Math.sqrt(1e-10);
+  const eps = Math.sqrt(1e-10);
   let h = eps;
   const vertices = [], normals = [];
 
@@ -806,7 +805,6 @@ export function marchingCubes({ f, level=0, xMin=-1, xMax=1, yMin=-1, yMax=1, zM
 
           const norm = new THREE.Vector3(fx, fy, fz);
           norm.normalize();
-          console.log(norm.length());
 
           // console.log([u,v,w], norm);
 
