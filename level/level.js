@@ -400,24 +400,20 @@ if (debug) {
   }
 }
 
-{
-  const element = document.querySelector("input#flattenContours");
-  element.oninput = () => {
-    data.levelDelta = element.checked ? 1 : -1;
+// {
+//   const element = document.querySelector("input#flattenContours");
+//   element.oninput = () => {
+//     data.levelDelta = element.checked ? 1 : -1;
 
-    if ( frameRequested ) {
-      cancelAnimationFrame( myReq );
-    }
-    frameRequested = true;
-    requestAnimationFrame( animateLevel );
-  }
-}
-
-
+//     if ( frameRequested ) {
+//       cancelAnimationFrame( myReq );
+//     }
+//     frameRequested = true;
+//     requestAnimationFrame( animateLevel );
+//   }
+// }
 
 
-
-let colorFunc;
 
 let surfaceMesh;
 const tracesHolder = new THREE.Object3D();
@@ -510,7 +506,7 @@ function makeTraces( {xN = 10, yN = 10, zN = 10} = {}) {
     const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
 
     trace.rotation.y = Math.PI / 2;
-    trace.rotation.z = -Math.PI / 2;
+    trace.rotation.z = Math.PI / 2;
 
 
     tracesHolder.add(trace);
