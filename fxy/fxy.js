@@ -140,7 +140,7 @@ const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth
 whiteLineMaterial.polygonOffset = true;
 whiteLineMaterial.polygonOffsetFactor = 0.1;
 
-const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 14});
+const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb3333,linewidth: 4});
 
 
 const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe: true } );
@@ -777,10 +777,13 @@ for (let key of Object.keys(arrows)) {
 const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
 const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
 
-frameBall.add(point);
+scene.add(point);
 
 const planeBall = new THREE.Mesh();
 frameBall.add(planeBall);
+
+const curveBall = new THREE.LineSegments(new THREE.BufferGeometry(), redLineMaterial );
+scene.add(curveBall);
 
 frameBall.visible = false;
 
@@ -805,9 +808,21 @@ function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
     rvForward.sub(rvBackward).multiplyScalar((D - C) * dv / dt);
     // console.log("inside ruF",dMax,cMin,{p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward)}dv);
   // console.log(p,ru,rv);
+  
+  // level curve
+  const pts = marchingSquares( {
+    f: (x,y) => z.evaluate( {x: x, y: y} ),
+    level: z.evaluate( {x: U, y: V}),
+    xmin: A,
+    xmax: B,
+    ymin: c.evaluate(),
+    ymax: d.evaluate(),
+    zLevel: 0,
+    nX: data.nX,
+    nY: data.nX,
+  })
 
-
-  return {p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward)}
+  return {p: p, u: ruForward, v: rvForward, n: ruForward.clone().cross(rvForward), levelSegments: pts}
 }
 
 // Construct tangent vectors at a point u,v (both 0 to 1)
@@ -828,6 +843,7 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
       const grad = new THREE.Vector3(dr.u.z, dr.v.z, 0);
       arrow.geometry = new ArrowBufferGeometry( { ...arrowParams, height: grad.length() } )
       arrow.lookAt(pos.add(grad));
+      scene.add(arrow);
       arrow.visible = document.querySelector("input#flattenContours").checked;
       // console.log(document.querySelector("input#flattenContours").checked, "flat click")
     } else {
@@ -838,6 +854,7 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
     }
   }
 
+  // tangent plane
   planeBall.geometry.dispose();
 
   const tangentPlaneGeometry = new THREE.ParametricBufferGeometry((u,v,vec) => {
@@ -849,6 +866,11 @@ function tangentVectors( {u = 0.5, v = 0.5, dt = .001, plane = true } = {} ) {
 
   planeBall.geometry = tangentPlaneGeometry;
   planeBall.material = shardMaterial;
+
+  // level curve
+  curveBall.geometry.setFromPoints(dr.levelSegments);
+  curveBall.level = point.position.z;
+  curveBall.position.set(0,0,shiftInterpolation(data.shiftLevel, curveBall.level))
 
 }
 
@@ -1086,6 +1108,8 @@ function changeLevels( t ) {
     const element = levelHolder.children[index];
     element.position.set(0, 0, shiftInterpolation( t, element.level ))
   }
+  curveBall.position.set(0, 0, shiftInterpolation( t, curveBall.level ))
+
 }
 
 function updateLevels() {
@@ -1136,28 +1160,15 @@ function updateLevels() {
       levelHolder.add(levelMesh);
     }
   }
+
+  // change selected level curve height
+  curveBall.position.set(0,0,shiftInterpolation(data.shiftLevel, curveBall.level))
+
+
 }
 
 processURLSearch()
 
-
-// updateLevels();
 updateSurface();
-// changeLevels( 2.5 );
 
-
-// setTimeout(() => {
-//   console.log(axesText, "first");
-//   rescale(4);
-//   setTimeout(() => {
-//     console.log(axesText, "second");
-//     rescale(7);
-//     setTimeout(() => {
-//       console.log(axesText, "third");
-//       rescale(3)
-//     }, 5000);
-//   }, 5000);
-// }, 5000);
-// go
-// requestAnimationFrame(animate);
 requestFrameIfNotRequested();
