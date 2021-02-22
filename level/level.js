@@ -134,7 +134,9 @@ function rescale(newGridMax=1) {
 
 const material = new THREE.MeshPhongMaterial({color: 0x121212,shininess: 60,side: THREE.FrontSide,vertexColors: false});
 const materialColors = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 70,side: THREE.DoubleSide, vertexColors: true});
-const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
+const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 2});
+
+// whiteLineMaterial.depthTest = false;
 
 // whiteLineMaterial.polygonOffset = true;
 // whiteLineMaterial.polygonOffsetFactor = 0.1;
@@ -166,7 +168,16 @@ const surfaces = {
     d: "1",
     e: "-1.25",
     f: "1.25",
-   },
+  },
+  quartic: {
+    z: "x^4 + y^4 + x*y*z*5 + z^2 - 1/10",
+    a: "-1",
+    b: "1",
+    c: "-1",
+    d: "1",
+    e: "-1.25",
+    f: "1.25",
+  },
   knill1: {
     z: "(6*x^2 - 5)^2*(x^2 + z^2 - 1)^2 + (6*y^2 - 5)^2*(x^2 + y^2 - 1)^2 + (y^2 + z^2 - 1)^2*(6*z^2 - 5)^2 - 3",
     a: "-2",
@@ -178,12 +189,12 @@ const surfaces = {
   },
   candy: {
     z: "x^2y^2 + y^2z^2 + z^2x^2 +x^2 + y^2 + z^2 -12 ",
-    a: "-2",
-    b: "2",
-    c: "-2",
-    d: "2",
-    e: "-2",
-    f: "2",
+    a: "-4",
+    b: "4",
+    c: "-4",
+    d: "4",
+    e: "-4",
+    f: "4",
   },
   ellipsoid: {
     z: "3/4*x^2 + y^2 + 1.2z^2 - 1",
@@ -193,6 +204,24 @@ const surfaces = {
     d: "1.2",
     e: "-1.2",
     f: "1.2",
+  },
+  suss: {
+    z: "-(-x^2*z^3 - y^2*z^3/2 + (x^2 + 9*y^2/4 + z^2 - 1)^3)",
+    a: "-1.2",
+    b: "1.2",
+    c: "-1.2",
+    d: "1.2",
+    e: "-1.33",
+    f: "1.33",  
+  },
+  test: {
+    z: "z - x*sqrt(y)",
+    a: "0",
+    b: "1",
+    c: "0",
+    d: "1",
+    e: "0",
+    f: "1",  
   },
 }
 
@@ -391,6 +420,9 @@ if (debug) {
 let colorFunc;
 
 let surfaceMesh;
+const tracesHolder = new THREE.Object3D();
+scene.add(tracesHolder);
+
 function updateSurface() {
   const {k,z,a,b,c,d,e,f} = rData;
   const geometry = marchingCubes({
@@ -404,7 +436,9 @@ function updateSurface() {
     yMax: d.evaluate(),
     zMin: e.evaluate(),
     zMax: f.evaluate(),
+    N: data.nX,
   });
+
   const wireGeometry = new THREE.WireframeGeometry( geometry );
   let material = plusMaterial;
   if (surfaceMesh) {
@@ -423,16 +457,127 @@ function updateSurface() {
 
     surfaceMesh.add( frontMesh );
     surfaceMesh.add( backMesh );
-    surfaceMesh.add(new THREE.LineSegments( wireGeometry, wireMaterial ))
+    // surfaceMesh.add(new THREE.LineSegments( wireGeometry, wireMaterial ))
 
     scene.add(surfaceMesh);
   }
   // tangentVectors();
+  makeTraces();
 
   // updateLevels();
   if (!frameRequested) render();
    
 }
+
+
+function makeTraces( {xN = 10, yN = 10, zN = 10} = {}) {
+  const {a,b,c,d,e,f,z,k} = rData;
+  const [xMin,xMax, yMin, yMax, zMin, zMax] = [a,b,c,d,e,f].map(x => x.evaluate())
+
+  const dx = (xMax - xMin) / xN, dy = (yMax - yMin) / yN, dz = (zMax - zMin) / zN;
+
+  for (let index = tracesHolder.children.length - 1; index >= 0; index--) {
+    const child = tracesHolder.children[index];
+    child.geometry.dispose();
+    tracesHolder.remove(child);    
+  }
+
+  // x-traces
+  {
+    const pts = [];
+
+    for (let i = 0; i < xN; i++) {
+      const zLevel = xMin + i * dx;
+      pts.push(
+        ...marchingSquares({
+          f: (x, y) => z.evaluate({ x: zLevel, y: x, z: y }),
+          level: k.evaluate(),
+          xmin: yMin,
+          xmax: yMax,
+          ymin: zMin,
+          ymax: zMax,
+          zLevel: zLevel,
+          nX: data.nX,
+          nY: data.nX,
+        })
+      );
+    }
+
+    // console.log(pts.length, " Points starting with ", pts[0]);
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
+
+    const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
+
+    trace.rotation.y = Math.PI / 2;
+    trace.rotation.z = -Math.PI / 2;
+
+
+    tracesHolder.add(trace);
+  }
+
+  // y-traces
+  {
+    const pts = [];
+
+    for (let i = 0; i < yN; i++) {
+      const zLevel = yMin + i * dy;
+      pts.push(
+        ...marchingSquares({
+          f: (x, y) => z.evaluate({ x: y, y: zLevel, z: x }),
+          level: k.evaluate(),
+          xmin: zMin,
+          xmax: zMax,
+          ymin: xMin,
+          ymax: xMax,
+          zLevel: zLevel,
+          nX: data.nX,
+          nY: data.nX,
+        })
+      );
+    }
+
+    // console.log(pts.length, " Points starting with ", pts[0]);
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
+
+    const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
+
+    trace.rotation.x = -Math.PI / 2;
+    trace.rotation.z = -Math.PI / 2;
+
+
+    tracesHolder.add(trace);
+  }
+
+  // z-traces  
+  {
+    const pts = [];
+
+    for (let i = 0; i < zN; i++) {
+      const zLevel = zMin + i * dz;
+      pts.push(
+        ...marchingSquares({
+          f: (x, y) => z.evaluate({ x: x, y: y, z: zLevel }),
+          level: k.evaluate(),
+          xmin: xMin,
+          xmax: xMax,
+          ymin: yMin,
+          ymax: yMax,
+          zLevel: zLevel,
+        })
+      );
+    }
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
+
+    tracesHolder.add(new THREE.LineSegments(geometry, whiteLineMaterial));
+  }
+  
+
+}
+
+makeTraces();
 
 // Exercises
 // 
@@ -472,142 +617,6 @@ function gcd(x, y) {
  return x;
 }
 
-let cMin, dMax; // make these globals as useful for tangents.
-
-function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
-  const { a, b, c, d, x, y, z } = rData;
-  const N = lcm(lcm(rNum, cNum), nX);
-  const A = a.evaluate(),
-    B = b.evaluate();
-  const du = (B - A) / rNum;
-  const dx = (B - A) / lcm(nX, cNum);
-  const points = [];
-  for (let u = A; u <= B; u += du) {
-    const C = c.evaluate({ x: u }),
-      D = d.evaluate({ x: u });
-    const dy = (D - C) / lcm(nX, rNum);
-    const params = { x: u, y: C };
-    points.push(
-      new THREE.Vector3(
-        x.evaluate(params),
-        y.evaluate(params),
-        z.evaluate(params)
-      )
-    );
-    for (let v = C + dy; v < D; v += dy) {
-      params.y = v;
-      points.push(
-        new THREE.Vector3(
-          x.evaluate(params),
-          y.evaluate(params),
-          z.evaluate(params)
-        )
-      );
-      points.push(
-        new THREE.Vector3(
-          x.evaluate(params),
-          y.evaluate(params),
-          z.evaluate(params)
-        )
-      );
-    }
-    params.v = D;
-    points.push(
-      new THREE.Vector3(
-        x.evaluate(params),
-        y.evaluate(params),
-        z.evaluate(params)
-      )
-    );
-  }
-
-  // v-Meshes
-  const params = { x: A };
-  (cMin = c.evaluate(params)), (dMax = d.evaluate(params));
-  for (let u = A + dx; u <= B; u += dx) {
-    params.x = u;
-    cMin = Math.min(cMin, c.evaluate(params));
-    dMax = Math.max(dMax, d.evaluate(params));
-  }
-
-  for (let v = cMin; v <= dMax; v += (dMax - cMin) / cNum) {
-    const zs = marchingSegments(
-      (x) => (c.evaluate({ x: x }) - v) * (v - d.evaluate({ x: x })),
-      A,
-      B,
-      nX
-    );
-    params.y = v;
-    let nextZero = zs.shift();
-    for (let u = A; u <= B - dx + tol; u += dx) {
-      params.x = u;
-      if (c.evaluate(params) <= v && v <= d.evaluate(params)) {
-        points.push(
-          new THREE.Vector3(
-            x.evaluate(params),
-            y.evaluate(params),
-            z.evaluate(params)
-          )
-        );
-        if (nextZero < u + dx) {
-          params.x = nextZero;
-          points.push(
-            new THREE.Vector3(
-              x.evaluate(params),
-              y.evaluate(params),
-              z.evaluate(params)
-            )
-          );
-          nextZero = zs.shift();
-        } else {
-          params.x = u + dx;
-          points.push(
-            new THREE.Vector3(
-              x.evaluate(params),
-              y.evaluate(params),
-              z.evaluate(params)
-            )
-          );
-        }
-      } else {
-        if (nextZero < u + dx) {
-          params.x = nextZero;
-          points.push(
-            new THREE.Vector3(
-              x.evaluate(params),
-              y.evaluate(params),
-              z.evaluate(params)
-            )
-          );
-          nextZero = zs.shift();
-          params.x = u + dx;
-          points.push(
-            new THREE.Vector3(
-              x.evaluate(params),
-              y.evaluate(params),
-              z.evaluate(params)
-            )
-          );
-        }
-      }
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  return geometry;
-}
-
-//
-//
-// UI for parametric surface
-//
-//
-// {
-//   const surfaceMenu = document.querySelector("#surfaceMenu");
-// Object.keys(surfaces).forEach(surf => {
-  
-// });
-// }
 
 
 const surfs = Object.keys(surfaces);
