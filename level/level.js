@@ -808,7 +808,7 @@ function tangentVectors( { point, eps = 1e-4, plane = true } = {} ) {
         const xVec = new THREE.Vector3(x,y,z);
         return xVec.dot(n);
       },
-      level: n.dot(p),
+      level: n.dot(p) + 1e-8,
       xMin: a.evaluate(),
       xMax: b.evaluate(),
       yMin: c.evaluate(),
