@@ -292,7 +292,6 @@ document
           changeLevels( data.shiftLevel );
           requestFrameIfNotRequested();
           
-          // if (faucet) initBalls(balls, gridMax);
         } else {
           data[element.name] = parseInt(element.value);
           updateSurface();
@@ -739,7 +738,38 @@ for (let i = 1; i <= heightResolution; i++) {
 }
 
 
+function updateTrails(F, dt=0.016 ) {
+  const vec = new THREE.Vector3();
 
+  const {x,y,z} = point.position;
+
+  // if (!point.lastPosition) {point.lastPosition = [x,y,z];}
+
+  const pos1 = new THREE.Vector3(); 
+  pos1.set(...rk4(x,y,z,F,dt));
+
+  trailPoints.push(point.position.x, point.position.y, point.position.z);
+  trailPoints.push(pos1.x, pos1.y, pos1.z);       
+    
+  if (norm1(pos1) > point.lim || (dt > 1e-6 && pos1.clone().sub(point.position).length() < 1e-3 )) {
+    point.position.copy(point.start.clone().add(new THREE.Vector3(Math.random()*0.01, Math.random()*0.01, Math.random()*0.01)));
+    // point.trail = [];
+  } else {
+    point.position.copy(pos1);
+  }
+
+
+  let height = F(point.position.x,point.position.y,point.position.z,vec).length();
+  height = Math.round(height / maxLength * heightResolution) - 1;
+  
+  point.geometry = arrowGeometries[Math.max(0,Math.min(arrowGeometries.length -1, height))];
+  
+  point.lookAt(vec.add(point.position));
+  // if Math.ball.position.x
+
+  trails.geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( trailPoints, 3 ) );
+
+}
 
 function freeBalls(objectHolder) {
   for (let i = objectHolder.children.length - 1; i >= 0 ; i--) {
@@ -754,7 +784,58 @@ function freeTrails() {
 }
 
  
+{  // play controls
+  const play = document.querySelector("#field-play");
+  play.onclick = () => {
+    if (balls.children.length < 1) {
+      console.log("play from the top");
+      maxLength = initBalls(balls, gridMax, data.nVec);
+    }
+    faucet = true;
+    cancelAnimationFrame(myReq);
+    last = undefined;
+    myReq = requestAnimationFrame(animateTrails);
+  }
 
+  const pause = document.querySelector("#field-pause");
+  pause.onclick = () => {
+    cancelAnimationFrame(myReq);
+    last = undefined
+    frameRequested = false;
+    faucet = false;
+    console.log("pause");
+  }
+
+  const stop = document.querySelector("#field-stop");
+  stop.onclick = () => {
+    cancelAnimationFrame(myReq);
+    last = undefined;
+    frameRequested = false;
+    faucet = false;
+    freeBalls(balls);
+    freeBalls(trails);
+    trails.geometry.setAttribute('position', new THREE.Float32BufferAttribute( [], 3));
+    
+    freeTrails();
+    
+    console.log("stop");
+    requestFrameIfNotRequested();
+  }
+
+  const rew = document.querySelector("#field-rewind");
+  rew.onclick = () => {
+    // faucet = false;
+    freeBalls(balls);
+    freeBalls(trails);
+    maxLength = initBalls(balls, gridMax, data.nVec);
+    updateBalls(balls, fieldF)
+    requestFrameIfNotRequested();
+
+    // faucet = true;
+    console.log("rewind");
+    // animate();
+  }
+}
 
 
 //
@@ -1001,6 +1082,11 @@ function animateLevel(time) {
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
 
+  }
+
+  // animate
+  if (faucet) {
+    updateTrails();
   }
 
 
