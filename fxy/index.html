@@ -63,8 +63,8 @@
       <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
         <span class="menu-page-item" onclick="openPage('main')">function</span> | 
         <span class="menu-page-item" onclick="openPage('levels')">level set</span> | 
-         <span class="menu-page-item" onclick="openPage('tangents')">tangent</span> <!--| 
-        <span class="menu-page-item" onclick="openPage('linear')">linearization</span> | 
+         <span class="menu-page-item" onclick="openPage('tangents')">tangent</span> | 
+        <span class="menu-page-item" onclick="openPage('maxmin')">max/min</span> <!--| 
         <span class="menu-page-item" onclick="openPage('gradient')">div &amp; curl</span> | 
         <span class="menu-page-item" onclick="openPage('practice')">practice</span> -->
       </div>
@@ -122,52 +122,65 @@
         <p>We can find its normal vector $\vec n$ by finding tangent vectors at the point in the $x$- and $y$-directions. $$\vec n = \begin{vmatrix} \vec i & \vec j & \vec k \\ 1 & 0 & f_x \\ 0 & 1 & f_y \end{vmatrix} = \langle -f_x(a,b), -f_y(a,b), 1 \rangle. $$</p>
 
         <div class="interact">
-        <p><b>Interact:</b> Turn on the vector frame.     <div class="setting-choice">
+        <p><b>Interact:</b> Turn on the vector frame.     
+          <div class="setting-choice">
           <div class="setting-label"><label for="frameBallVisible">tangents : </label></div>
           <div class="setting-thing"><label class="switch">
               <input type="checkbox" name="frameBallVisible" id="frameBallVisible">
               <span class="slider round"></span>
             </label>
           </div>
-        </div> Then, use the <kbd>Shift</kbd> key to select a new point on the graph. </p>
+        </div> 
+        
+        <Then, use the <kbd>Shift</kbd> key to select a new point on the graph. </p>
         </div>
 
         <p>This yields the tangent plane equation. $$z = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b)$$ The right-hand side is the <b>lineariztion</b> of $f$ at the point $(a,b)$.</p>
      </div>
 
-    <!-- lineariztion -->
-    <!--
-    <div class="page w3-container w3-animate-left w3-padding w3-hide" id="linear">
+    <!-- max/min -->
+    
+    <div class="page w3-container w3-animate-left w3-padding w3-hide" id="maxmin">
       <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
       <p>
-        The tangent plane is the graph of the best linear approximation to the function at a specified point. We say the <b>linearization</b> of a function $f(x,y)$ at a point $(a,b)$ is a linear function $$L(x,y) = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b).$$
+        The gradient vector $\nabla f(x,y)$ has 3 key properties:
+      <ul>
+        <li>it is orthogonal to level sets,</li>
+        <li>it points in the direction of greatest increase, and</li>
+        <li>its magnitude is the maximum directional derivative.</li>
+      </ul>
       </p>
-
-      <div class="w3-container" id="custom-linear">
-
-        <div class="menu-choice-centered" style="padding-top: 20px;">
-          <div>
-            <span>$a = $ <input class="custom-input" type="text" name="linearA" style="width: 4em; "
-                id="linearA" value="-1"><span style="color: red;" class="form-warning"></span>
-            </span> <span>$b = $ <input class="custom-input" type="text" name="linearB" style="width: 4em;" id="linearB"
-                value="1"><span style="color: red;" class="form-warning"></span>
-            </span>
-          </div>
-          <div>&nbsp;</div>
-          <div>
-            <span>$\Delta x = $ 
-              <input class="custom-input" type="text" name="linearDx" style="width: 4em; "
-                id="linearDx" value="0.1"><span style="color: red;" class="form-warning"></span>,
-            </span>
-            <span>$\Delta y = $
-              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDy" value="0.1"><span
-                style="color: red;" class="form-warning"></span>
-            </span>
+    
+      <p>
+        This says a few things about finding local extrema (maxima and minima) of a scalar field.
+      <ul>
+        <li>At a local minimum/maximum, the gradient is $\vec 0$ (or the function is not differentiable there). </li>
+        <li>If you want bigger values of $f$, follow $\nabla f$. </li>
+        <li>If you want smaller values of $f$, follow $-\nabla f$. </li>
+      </ul>
+      </p>
+      <div id="interact">
+        <p><b>Interact:</b> Select a point by holding the <kbd>Shift</kbd> key.</p>
+    
+        <p>Choose whether to seek a maximum or minimum.</p>  
+        <div class="setting-choice">
+          <div class="setting-label"><label for="maxMinSwitch">min/max: </label></div>
+          <div class="setting-thing">
+            <label class="switch">
+              <input type="checkbox" name="maxMinSwitch" id="maxMinSwitch">
+              <span class="slider round"></span>
+            </label>
           </div>
         </div>
+        <p>Use the gradient as a guide to seek the extreme value. 
+          <button class="w3-button button" id="field-play"><i class="fa fa-play"></i></button>
+          <button class="w3-button button" id="field-pause"><i class="fa fa-pause"></i></button>
+          <button class="w3-button button" id="field-stop"><i class="fa fa-stop"></i></button>
+          <button class="w3-button button" id="field-rewind"><i class="fa fa-fast-backward"></i></button>
+        </p>
       </div>
     </div>
-    -->
+   
 
 
 <!-- Scalar field page -->
