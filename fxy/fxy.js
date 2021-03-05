@@ -41,6 +41,10 @@ scene.background = new THREE.Color( 0xddddef );
 
 const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
+const orthoCamera = new THREE.OrthographicCamera;
+orthoCamera.position.set([0,0,gridMax*3/2]);
+orthoCamera.lookAt((0,0,0));
+
 camera.position.x = gridMax*2/2;
 camera.position.y = -gridMax*3/2 ;
 camera.position.z = gridMax*4.5/2;
@@ -316,6 +320,14 @@ document.querySelectorAll("#shards").forEach( (element) => {
     updateSurface();
 
     element.nextElementSibling.value = element.value;
+  }
+});
+
+document.querySelectorAll("input#2Dview").forEach( (element) => {
+  element.oninput = () => {
+    data["view2D"] = element.checked;
+    requestFrameIfNotRequested();
+
   }
 });
 
@@ -1149,7 +1161,7 @@ document.querySelector("#cameraReset").onclick = () => {
 // gui.domElement.style.zIndex = 2000;
 
 
-function render() {
+function render(camera=camera) {
     frameRequested = false;
 
     for (let index = 0; index < axesText.length; index++) {
