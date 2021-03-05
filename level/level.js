@@ -7,7 +7,7 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
-import { GUI} from '../base/dat.gui.module.js';
+// import { GUI} from '../base/dat.gui.module.js';
 import {
   colorBufferVertices,
   blueUpRedDown,
@@ -419,22 +419,28 @@ let surfaceMesh;
 const tracesHolder = new THREE.Object3D();
 scene.add(tracesHolder);
 
-function updateSurface() {
-  const {k,z,a,b,c,d,e,f} = rData;
-  const geometry = marchingCubes({
-    f: (u, v, w) => {
-      return z.evaluate({ x: u, y: v, z: w });
-    },
-    level: k.evaluate(),
-    xMin: a.evaluate(),
-    xMax: b.evaluate(),
-    yMin: c.evaluate(),
-    yMax: d.evaluate(),
-    zMin: e.evaluate(),
-    zMax: f.evaluate(),
-    N: data.nX,
-  });
+const surfaceWorker = new Worker('surfaceworker.js', { type: "module" });
 
+function updateSurface() {
+  surfaceWorker.postMessage(rData);
+  // const {k,z,a,b,c,d,e,f} = rData;
+  // const geometry = marchingCubes({
+  //   f: (u, v, w) => {
+  //     return z.evaluate({ x: u, y: v, z: w });
+  //   },
+  //   level: k.evaluate(),
+  //   xMin: a.evaluate(),
+  //   xMax: b.evaluate(),
+  //   yMin: c.evaluate(),
+  //   yMax: d.evaluate(),
+  //   zMin: e.evaluate(),
+  //   zMax: f.evaluate(),
+  //   N: data.nX,
+  // });
+}
+
+surfaceWorker.onmessage = e => {
+  const geometry = e.data;
   const wireGeometry = new THREE.WireframeGeometry( geometry );
   let material = plusMaterial;
   if (surfaceMesh) {
@@ -644,6 +650,10 @@ for (let i = 0; i < surfs.length; i++) {
       rData[c] = math.parse(sf[c]).compile();
       // el.dispatchEvent(new Event('change'));
     }
+
+    const form = document.querySelector(`#customZ + .form-warning`);
+    form.innerText = "Loading...";
+    document.querySelector("#settingsIcon").classList.add("fa-spin");
     updateSurface();
     for (let j = 0; j < surfs.length; j++) {
       const el = document.getElementById(surfs[j]);
