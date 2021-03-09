@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Riemann Sums</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    function clickInfo() {
+      var el = document.querySelector('#infop'); 
+      var elParent = document.querySelector('#infobutton'); 
+      if (el.style.display == 'block') { 
+        console.log('Block found'); 
+        elParent.innerHTML = "<b>&oplus; Info</b>" ;
+        // el.style.display = 'none';
+        el.style.display = 'none';
+        elParent.style.height = '1em';
+      } else {
+        el.style.display = 'block';
+        // el.style.visibility = 'visible';
+        elParent.innerHTML = "<b>&otimes; Info</b>" ;
+        elParent.style.height = 'fit-content';
+      } 
+    }
+  </script>
+</head>
+<body>
+
+
+      <canvas id="c"></canvas>
+      
+<div id="infocontainer" style="width: 800px;">
+
+  <div id="info"> <span class="noselect" id="infobutton" onclick="javascript:clickInfo();"><b>&oplus; Info</b></span>
+    <div id="infop" style="display: none; width: 800px;">
+    <p>Visualize a Riemann Sum of a double integral over a rectangle \(\mathcal{R} = [a,b]\times [c,d]\). 
+    $$ I = \iint_\mathcal{R} f\,dA $$
+    <span id="approxI"></span></p>
+    <p id="sliceInt"><span id="sliceIntFormula">\( \int_c^d f(x,y) \,dy  = \) </span> <span id="sliceIntValue"></span></p>
+    </div>
+  </div>
+</div>
+
+</body>
+<script type="module">
+
+/* jshint esversion: 6 */
+
+import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
+import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
+import {GUI} from '../base/dat.gui.module.js';
+
+/* Some constants */
+const nX = 30; // resolution for surfaces
+const xmin = -2; // domain of function
+const xmax = 4;
+const ymin = -1;
+const ymax = 3;
+const gridMax = Math.max(...[xmin,xmax,ymin,ymax].map(Math.abs));
+const gridStep = 1;
+// console.log("gridMax = ",gridMax,[xmin,xmax,ymin,ymax].map(Math.abs));
+
+const scene = new THREE.Scene();
+const canvas = document.querySelector("#c");
+// var canvas = document.getElementById("canvas-plot-1");
+
+scene.background = new THREE.Color( 0xdddde8 );
+
+const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
+
+camera.position.z = 1.2*(xmax - xmin) + xmax;
+camera.position.y = 1 ;
+camera.position.x = ymin - .2*(ymax - ymin);
+camera.lookAt( 0,0,0 );
+
+
+const renderer = new THREE.WebGLRenderer({antialias: true, alpha : true,canvas: canvas});
+// renderer.setClearColor("#e5e5f5");
+
+const gui = new GUI();
+
+canvas.width  = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
+renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+renderer.setSize(window.innerWidth, window.innerHeight);
+camera.aspect = window.innerWidth / window.innerHeight;
+
+window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    console.log(canvas.width,canvas.clientWidth)
+    camera.updateProjectionMatrix();
+    render();
+});
+
+const ii = new THREE.Vector3( 0, 0, 1 );
+const jj = new THREE.Vector3( 1, 0, 0 );
+const kk = new THREE.Vector3( 0, 1, 0 );
+
+//normalize the direction vector (convert to vector of length 1)
+
+const origin = new THREE.Vector3( 0, 0, 0 );
+var length = gridMax + .05 * gridMax;
+var hex = 0x330033;
+var axesArray = [ii,jj,kk];
+var arrayLength = axesArray.length;
+for (var i = 0; i < arrayLength; i++) {
+    var dir = axesArray[i];
+    // dir.normalize(); // not needed for standard basis
+    var arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex , .02*gridMax);
+    scene.add( arrowHelper );
+    // gui.add(arrowHelper,'visible').name("Axis ${i}");
+}
+const lineMaterial = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } );
+
+for (let j = -(10*gridMax); j <= (10*gridMax); j += gridStep) {
+  var points = [];
+  points.push( new THREE.Vector3( j, 0, -(10*gridMax) ) );
+  points.push( new THREE.Vector3( j, 0, (10*gridMax) ) );
+
+  var geometry = new THREE.BufferGeometry().setFromPoints( points );
+  scene.add(new THREE.Line(geometry,lineMaterial));
+   
+  points = [];
+  points.push( new THREE.Vector3( -(10*gridMax), 0, j ) );
+  points.push( new THREE.Vector3( (10*gridMax), 0, j ) );
+
+  geometry = new THREE.BufferGeometry().setFromPoints( points );
+  scene.add(new THREE.Line(geometry,lineMaterial));
+
+ }
+
+// Axes
+var axesHolder = new THREE.Object3D();
+scene.add(axesHolder);
+var axesMaterial = new THREE.MeshBasicMaterial( {color: 0x320032} );
+for (let index = 0; index < axesArray.length; index++) {
+  const ax = axesArray[index];
+  var geometry = new THREE.CylinderGeometry( gridStep/16, gridStep/16, gridMax*3, 12 );
+  var coneGeometry = new THREE.ConeGeometry( gridStep/10, gridStep/3, 12 );
+  var cylinder = new THREE.Mesh( geometry, axesMaterial );
+  // cylinder.position.y = gridMax*1.1/2;
+  var cone = new THREE.Mesh(coneGeometry,axesMaterial);
+  if (ax == ii) {
+    cylinder.rotation.x = Math.PI/2;
+  } else { if (ax == jj) {
+    cylinder.rotation.z = -Math.PI/2;
+  }}
+  cone.position.y = gridMax*3/2 + gridStep/6;
+  cylinder.add(cone);
+  axesHolder.add( cylinder );
+}
+
+// Fonts
+var axesText = [];
+var loader = new THREE.FontLoader();
+var font = loader.load(
+	// resource URL
+	'../fonts/P052_Italic.json',
+  function (font) {
+    var xyz = ['x','y','z'];
+    var tPos = 1.7*gridMax;
+    for (var i = 0; i < 3; i++) {
+      var textGeo = new THREE.TextGeometry( xyz[i], {
+      font: font,
+      size: 0.5,
+      height: 0,
+      curveSegments: 12,
+      bevelEnabled: false
+    } );
+      // var textMaterial = new THREE.MeshBasicMaterial({color: axesMaterial})
+      var textHolder = new THREE.Object3D();
+      var text = new THREE.Mesh(textGeo,axesMaterial);
+      // text.computeBoundingBox();
+      
+      textGeo.computeBoundingBox();
+      textGeo.boundingBox.getCenter(text.position).multiplyScalar(-1);
+
+      if (i == 0) { textHolder.position.z = tPos; } else {
+        if (i ==1) {
+          textHolder.position.x = tPos;
+        } else { textHolder.position.y = tPos; }
+      }
+      scene.add(textHolder);
+      textHolder.add(text);
+
+      axesText.push(textHolder);
+      // console.log("pushed: ",'xyz'[i])
+    }
+  },
+  // onProgress callback
+	function ( xhr ) {
+		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+	},
+
+	// onError callback
+	function ( err ) {
+		console.log( 'An error happened' );
+	}
+);
+
+
+
+// var axesHelper = new THREE.AxesHelper( b );
+// scene.add( axesHelper );
+
+const a = -2;
+const b = 4;
+const c = -1;
+const d = 3;
+
+
+// Functions
+
+var functionData = {
+  poly: {
+          func: function(u,v) {
+            return 1 - Math.pow(u,2)/4 + Math.pow(v,3)/10;
+          },
+          latex: "\\left(1 - \\frac{x^2}{4} + \\frac{y^3}{10}\\right)"
+  },
+  wave: {
+          func: function(u,v) {
+            return 2*(1 - Math.cos(Math.PI*u/2)/2) / (1 + v*v/2);
+          },
+          latex: "\\frac{2\\cos(\\pi x/2)}{1 + y^2/2}"
+        },
+  plane: {func: function(u,v) {
+       return u/3 - v/2 + 1;
+     },
+     latex: "\\left(\\frac{x}{3} - \\frac{y}{3} + 1\\right)"}
+};
+
+console.log(Object.keys(functionData));
+
+var data = {f: "wave",
+            tSlice: 0,
+            axis: 'None',
+            N: 10};
+
+var graphHolder = new THREE.Object3D();
+scene.add(graphHolder);
+var graphMaterial = new THREE.MeshPhongMaterial({color: 0x555562, shininess: 80, side: THREE.DoubleSide, transparent: true, opacity: 1});
+var materialBack = new THREE.MeshLambertMaterial({color: 0xFFF717, side: THREE.DoubleSide, transparent: true, opacity: 1});
+var graph = new THREE.Mesh(new THREE.Geometry(),graphMaterial);
+graphHolder.add(graph);
+var wireframe = new THREE.WireframeGeometry( graph.geometry );
+var line = new THREE.LineSegments( wireframe, lineMaterial);
+// line.material.depthTest = false;
+// line.material.opacity = 0.25;
+// line.material.transparent = false;
+// line.material.color = '000000';
+graphHolder.add(line);
+
+function updateGraph(val) {
+  graph.geometry.dispose();
+  var volGeometry = new THREE.ParametricGeometry(function(u,v,vec) {  
+      u = (1-u)*a + u*b;
+      v = (1-v)*c + v*d;
+      vec.set(v,functionData[data.f].func(u,v) ,u);
+  }, nX, nX);
+  graph.geometry = volGeometry;
+  line.geometry.dispose();
+  line.geometry = new THREE.WireframeGeometry( graph.geometry );
+  // var volSkel = new THREE.LineSegments(volGeometry, lineMaterial);
+  // volMesh.add(volSkel);
+  render();
+}
+
+// updateGraph("f");
+
+var graphFolder = gui.addFolder("Graph");
+graphFolder.add(data,'f',Object.keys(functionData)).onChange((val) => {
+  updateBoxes(); updateGraph(val); updateSlice(data.tSlice);
+  });
+graphFolder.add(graph,'visible').name("Show Graph").onChange(updateGraph);
+
+
+// Lights
+
+var light = new THREE.PointLight(0xFFFFFF, 1, 1000);
+light.position.set(60,50,40);
+scene.add(light);
+
+var light2 = new THREE.AmbientLight( 0x404040 ); // soft white light
+scene.add( light2 );
+
+var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+scene.add( light );
+
+var controls = new OrbitControls (camera, renderer.domElement);
+controls.autoRotate = false;
+controls.target.set( ymin/2 + ymax/2,0,xmin/2 + xmax/2 );
+
+
+// Riemann sum blocks as 1 geometry
+function disposeArray() {
+  this.array = null;
+}
+
+function blockGeometry(f,a,b,c,d,M=5,N=5,s=0.5,t=0.5) {
+  /* return a geometry of an approximation of f on the rectangle [a,b] \times [c,d] 
+  using M\times N subrectangles and sampling at (s,t) (relative coords) in each.*/
+
+  let points = [];
+  let colors = [];
+  let normals = [];
+  let dx = (b - a)/N;
+  let dy = (d - c)/M;
+  let n = Math.max(b - a,d - c);
+  let color = new THREE.Color();
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < M; j++) {
+      let x,y,z;
+      x = a + i*dx;
+      y = c + j*dy;
+      z = f(x + s*dx,y + t*dy);
+      const sz = (z >= 0) ? 1 : -1;
+      let zup,zdown;
+      if (sz == 1) {
+        zup = z;
+        zdown = 0;
+      } else {
+        zup = 0;
+        zdown = z;
+      }
+
+      let vx = ( x / n );
+      let vy = ( y / n );
+      let vz = ( z / 11 - 0.2 );
+      color.setHSL( vz, 0.56, 0.36 );
+
+      // top
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,0,1);
+        colors.push( color.r, color.g, color.b );
+      }
+      points.push(x,y,zup);
+      points.push(x + dx,y,zup);
+      points.push(x + dx,y+dy,zup);
+      points.push(x,y,zup);
+      points.push(x + dx,y+dy,zup);
+      points.push(x,y + dy,zup);
+
+      // bottom
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,0,-1);
+        colors.push( color.r, color.g, color.b );
+      }
+      points.push(x,y,zdown);
+      points.push(x + dx,y+dy,zdown);
+      points.push(x + dx,y,zdown);
+      points.push(x,y,zdown);
+      points.push(x,y + dy,zdown);
+      points.push(x + dx,y+dy,zdown);
+
+      //south
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,-1,0);
+        colors.push( color.r, color.g, color.b );
+      }
+      points.push(x,y,zdown);
+      points.push(x + dx,y,zdown);
+      points.push(x + dx,y,zup);
+      points.push(x,y,zdown);
+      points.push(x + dx,y,zup);
+      points.push(x,y,zup);
+
+      //north
+      for (let i = 0;i < 6; i++) {
+        normals.push(0,1,0);
+        colors.push( color.r, color.g, color.b );
+      }      
+      points.push(x,y + dy,zdown);
+      points.push(x + dx,y + dy,zup);
+      points.push(x + dx,y + dy,zdown);
+      points.push(x,y + dy,zdown);
+      points.push(x,y + dy,zup);
+      points.push(x + dx,y + dy,zup);
+
+      //west
+      for (let i = 0;i < 6; i++) {
+        normals.push(-sz,0,0);
+        colors.push( color.r, color.g, color.b );
+      }   
+      points.push(x,y,zdown);
+      points.push(x,y,zup);
+      points.push(x,y + dy,zup);
+      points.push(x,y,zdown);
+      points.push(x,y + dy,zup);
+      points.push(x,y + dy,zdown);
+
+      //east
+      for (let i = 0;i < 6; i++) {
+        normals.push(1,0,0);
+        colors.push( color.r, color.g, color.b );
+      }   
+      points.push(x + dx,y,zdown);
+      points.push(x + dx,y + dy,zup);
+      points.push(x + dx,y,zup);
+      points.push(x + dx,y,zdown);
+      points.push(x + dx,y + dy,zdown);
+      points.push(x + dx,y + dy,zup);
+
+
+    }
+  }
+  let geometry = new THREE.BufferGeometry();
+  geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( points, 3 ).onUpload( disposeArray ) );
+  geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
+  geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ).onUpload( disposeArray ) );   
+
+  return geometry;
+}
+
+let graphWorld = new THREE.Object3D();
+graphWorld.rotation.x += Math.PI/2;
+graphWorld.rotation.y += Math.PI;
+graphWorld.rotation.z += Math.PI/2;
+scene.add(graphWorld);
+
+let material = new THREE.MeshPhongMaterial({color: 0xffffff,shininess: 80,side: THREE.FrontSide,vertexColors: true});
+const whiteLineMaterial = new THREE.LineBasicMaterial({color: 0xffffff,linewidth: 2});
+
+let graphGeometry = blockGeometry(functionData[data.f].func,-22,22,-22,22,data.N,data.N);
+let graphMesh = new THREE.Mesh(graphGeometry,material);
+graphWorld.add(graphMesh);
+graphMesh.visible = false;
+
+function updateBoxes(val) {
+  graphMesh.geometry.dispose();
+  graphMesh.geometry = blockGeometry(functionData[data.f].func,xmin,xmax,ymin,ymax,data.N,data.N);
+  render();
+}
+
+let boxFolder = gui.addFolder("Boxes on boxes")
+boxFolder.add(graphMesh,'visible').onChange(updateBoxes);
+boxFolder.add(data,"N",1,100,1).name("Resolution").onChange(updateBoxes);
+
+// Make the box. 
+
+var boxMaterials = [];
+var boxColors = [0x8383FF,0xFF8383];
+for (let c = 0; c < boxColors.length; c++) {
+  const color = boxColors[c];
+  boxMaterials.push(new THREE.MeshPhongMaterial({color: color,shininess: 80, transparent: true, opacity: 1, side: THREE.DoubleSide}));
+}
+var boxEdgeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff , linewidth: 2} );
+
+
+// var element = document.querySelector("#approxI");
+// element.innerHTML = "$$ \\approx \\sum_{i = 0}^ {" + (boxData.M-1).toString() + "}\\sum_{j = 0}^{" + (boxData.N-1).toString() + "}f(a + i\\Delta x,c + j\\Delta y) = $$ " + (Math.round(approxDoubleIntegral*dx*dy*100)/100).toString();
+// MathJax.typeset();
+// render();
+
+
+//surface area
+
+// var data = {
+//   level: (boxData.x * boxData.y) + 64000/boxData.y + 64000/boxData.x
+// };
+
+// var data = {
+//   levelInternal: (boxData.x * boxData.y) + 64000/boxData.y + 64000/boxData.x,
+//   levelListener: function(val) {
+//     var element = document.querySelector("#salevel");
+//     element.innerHTML = "$$ SA = xy + 2xz + 2yz = " + val.toFixed() + "\\text{cm}^2 $$";
+//     MathJax.typeset();
+//   },
+//   get level() {
+//     return this.levelInternal;
+//   },
+//   set level(val) {
+//     this.levelInternal = val;
+//     this.levelListener(val);
+//   }
+// };
+
+// Slice 
+var sliceHolder = new THREE.Object3D();
+scene.add(sliceHolder);
+
+function updateSlice() {
+  if (data.axis == 'None') {
+    var element = document.querySelector("#sliceInt");
+    sliceHolder.visible = false;
+    element.innerHTML = '<p id="sliceInt"><span id="sliceIntFormula"></span> <span id="sliceIntValue"></span>';
+  } else {
+    var element = document.querySelector("#sliceIntValue");
+    sliceHolder.visible = true;
+  
+    for (let index = sliceHolder.children.length - 1; index >=0; index--) {
+      const element = sliceHolder.children[index];
+      element.geometry.dispose();
+      sliceHolder.remove(element);
+    }
+    var level,dx,start,end,f;
+    if (data.axis == 'x') {
+      level = xmin + data.tSlice*(xmax - xmin);
+      f = (t) => {return functionData[data.f].func(level,t);};
+      dx = (ymax - ymin)/(nX);
+      start = ymin;
+      end = ymax;
+    } else {
+      level = ymin + data.tSlice*(ymax - ymin);
+      f = (t) => {return functionData[data.f].func(t,level);};
+      dx = (xmax - xmin)/(nX);
+      start = xmin;
+      end = xmax;
+    }
+    var sliceVertices = [];
+    var yOld,yNew;
+
+    var nonempty = [false,false];
+
+    var sliceShape = new THREE.Shape();
+    sliceShape.moveTo(start,0);
+    // less than 0
+    var sliceMinus = new THREE.Shape();
+    sliceMinus.moveTo(start,0);
+    yOld = 0;
+    var sliceInt = 0;
+    for (let i = 0; i <= (nX); i++) {
+      yNew = f(start + i*dx);
+      sliceInt += yNew;
+      // interpolate 0-location when changing signs
+      if (yNew * yOld < 0) {
+        sliceShape.lineTo(start + (i-1)*dx + yOld/(yOld - yNew)*dx,0);
+        sliceMinus.lineTo(start + (i-1)*dx + yOld/(yOld - yNew)*dx,0);
+      } 
+      
+      if (yNew >= 0) { 
+        sliceShape.lineTo(start + i*dx,yNew); 
+        nonempty[0] = true;
+      } else { 
+        sliceMinus.lineTo(start + i*dx,yNew);
+        nonempty[1] = true;
+      }
+      yOld = yNew;
+    }
+
+    sliceShape.lineTo(end,0);
+    sliceShape.lineTo(start,0);
+    sliceMinus.lineTo(end,0);
+    sliceMinus.lineTo(start,0);
+
+    // finish trapezoid rule
+    sliceInt -= f(start) + f(end);
+    sliceInt *= dx;
+
+    for (var i = 0; i<=1; i++) {
+      if (nonempty[i]){
+        var shape = [sliceShape,sliceMinus][i]
+        var sliceGeometry = new THREE.ShapeGeometry(shape);
+        var slice = new THREE.Mesh(sliceGeometry,boxMaterials[i]);
+        if (data.axis == 'x'){
+          slice.position.z = level;
+          // slice.rotation.y = Math.PI;
+          // element.innerHTML = "$$ \\int_c^d f(" + level.toString() + ",y)\\,dy = " + sliceInt.toString() + "$$";
+        } else {
+          slice.position.x = level;
+          slice.rotation.y = -Math.PI/2;
+          // element.innerHTML = "$$ \\int_a^b f(x," + level.toString(2) + ")\\,dx = " + sliceInt.toString(2) + "$$";
+        }
+        element.innerHTML = (Math.round(100*sliceInt)/100).toString();
+        sliceHolder.add(slice);
+        // MathJax.typeset();
+      }
+    }
+    
+  }
+  render();
+}
+
+var sliceFolder = gui.addFolder("Slice");
+sliceFolder.add(data,'axis',['x','y','None']).name("Axis").onChange((val) => {
+  var element = document.querySelector("#sliceIntFormula");
+  element.innerHTML = val == 'y' ? "\\( \\int_a^b f(x,y) \\,dx  = \\) " : "\\( \\int_c^d f(x,y) \\,dy  = \\) ";
+  updateSlice();
+  MathJax.typeset();
+});
+sliceFolder.add(data,'tSlice',0,1).name("Level").onChange(updateSlice);
+
+
+
+var render = function() {
+    // controls.update();
+    for (let index = 0; index < axesText.length; index++) {
+      const element = axesText[index];
+      element.lookAt(camera.position);
+    }
+
+    renderer.render(scene, camera);
+    // requestAnimationFrame(render);
+};
+
+render();
+controls.addEventListener('change',render);
+updateGraph("f");
+updateBoxes();
+updateSlice(data.tSlice);
+
+// requestAnimationFrame(render);
+
+</script>
+</html>
