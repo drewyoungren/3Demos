@@ -452,13 +452,19 @@ function updateSurface() {
     const N = 10;
     const params = {};
     for (let i = 0; i <= N; i++) {
-      params[X] = A + (B - A)/N * i;
+      params[X] = A + (B - A)/N * (i);
+      if (i == 0) params[X] += .0001; // stay away from edge cases
+      if (i == N) params[X] -= .0001; // stay away from edge cases
       const C = c.evaluate( params ), D = d.evaluate(params);
       for (let j = 0; j <= N; j++) {
-        params[Y] = C + (D - C) / N * j;
+        params[Y] = C + (D - C) / N * (j);
+        if (j == 0) params[Y] += .0001; // stay away from edge cases
+        if (j == N) params[Y] -= .0001; // stay away from edge cases
         const E = e.evaluate( params ), F = f.evaluate(params);
         for (let k = 0; k <= N; k++) {
-          params[Z] = E + (F - E)*k/N;
+          params[Z] = E + (F - E)*(k)/N;
+          if (k == 0) params[Z] += .0001; // stay away from edge cases
+          if (k == N) params[Z] -= .0001; // stay away from edge cases
           const val = z.evaluate( params )
           vMax = Math.max(vMax, val );
           vMin = Math.min(vMin, val );
@@ -587,46 +593,57 @@ function updateSurface() {
 
   // "Left" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
-      const params = {};
+    const params = {};
 
-      params[X] = A;
-      params[Y] = (1 - u)*c.evaluate( params ) + u*d.evaluate( params );
-      params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
+    params[X] = A;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
 
-      vec[X] = params[X];
-      vec[Y] = params[Y];
-      vec[Z] = params[Z];
+        vec[X] = params[X];
+        vec[Y] = params[Y];
+        vec[Z] = params[Z];
 
-    }, data.nX, data.nX);
+      }, data.nX, data.nX);
 
-    const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
-    surfaceMesh.add(mesh);
+      surfaceMesh.add(mesh);
+    } else {
+      console.log("Empty side A")
+    }
   }
 
   // "Right" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
-      const params = {};
+    const params = {};
 
-      params[X] = B;
-      params[Y] = (1 - u)*c.evaluate( params ) + u*d.evaluate( params );
-      params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
+    params[X] = B;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
 
-      vec[X] = params[X];
-      vec[Y] = params[Y];
-      vec[Z] = params[Z];
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
 
-    }, data.nX, data.nX);
+        vec[X] = params[X];
+        vec[Y] = params[Y];
+        vec[Z] = params[Z];
 
-    const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
-    surfaceMesh.add(mesh);
+      surfaceMesh.add(mesh);
+    } else {
+      console.log("Empty side B")
+    }
   }
 
   updateTexElement();
@@ -859,28 +876,28 @@ for (let i = 0; i < surfs.length; i++) {
 
 
 
-const balls = new THREE.Object3D();
-const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
-const curlMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
-const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
-const trails = new THREE.LineSegments(new THREE.BufferGeometry(), trailMaterial );
-const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
-const arrowArgs = {radiusTop: vfScale/30, radiusBottom: vfScale/100, heightTop: vfScale/8};
-let trailColors = [], trailPoints = [], colors = [];
-const trailLength = 250; 
-// scene.add(trails);
+// const balls = new THREE.Object3D();
+// const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
+// const curlMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
+// const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
+// const trails = new THREE.LineSegments(new THREE.BufferGeometry(), trailMaterial );
+// const arrowGeometries = [], heightResolution = 150, vfScale = gridStep*5;
+// const arrowArgs = {radiusTop: vfScale/30, radiusBottom: vfScale/100, heightTop: vfScale/8};
+// let trailColors = [], trailPoints = [], colors = [];
+// const trailLength = 250; 
+// // scene.add(trails);
 
 
 
-for (let i = 1; i <= heightResolution; i++) {
-  const geometry = new ArrowBufferGeometry( {
-    radiusBottom: vfScale/100, 
-    height: i/heightResolution*vfScale, 
-    heightTop: Math.min(i/heightResolution*vfScale/3,vfScale/8) ,
-    radiusTop: Math.min(vfScale/30, i/heightResolution*vfScale/6)
-  });
-  arrowGeometries.push(geometry)
-}
+// for (let i = 1; i <= heightResolution; i++) {
+//   const geometry = new ArrowBufferGeometry( {
+//     radiusBottom: vfScale/100, 
+//     height: i/heightResolution*vfScale, 
+//     heightTop: Math.min(i/heightResolution*vfScale/3,vfScale/8) ,
+//     radiusTop: Math.min(vfScale/30, i/heightResolution*vfScale/6)
+//   });
+//   arrowGeometries.push(geometry)
+// }
 
 
 
