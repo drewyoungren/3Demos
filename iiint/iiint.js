@@ -124,7 +124,6 @@ function rescale(newGridMax=1) {
   //   scene.remove(textObject);
   //   axesText.remove(textObject);
   // }
-  console.log(axesText.length);
    
   [axesText, font] = labelAxes( { scene , gridMax, gridStep, render: requestFrameIfNotRequested, axesText } );
 
@@ -447,6 +446,39 @@ function updateSurface() {
 
   const A = a.evaluate(), B = b.evaluate();
 
+  // let [vMax, vMin] = [1,-1];
+  let [vMax, vMin] = [0,0];
+  {
+    const N = 10;
+    const params = {};
+    for (let i = 0; i <= N; i++) {
+      params[X] = A + (B - A)/N * i;
+      const C = c.evaluate( params ), D = d.evaluate(params);
+      for (let j = 0; j <= N; j++) {
+        params[Y] = C + (D - C) / N * j;
+        const E = e.evaluate( params ), F = f.evaluate(params);
+        for (let k = 0; k <= N; k++) {
+          params[Z] = E + (F - E)*k/N;
+          const val = z.evaluate( params )
+          vMax = Math.max(vMax, val );
+          vMin = Math.min(vMin, val );
+        }
+      }
+    }
+    console.log("vmaxmin", vMax, vMin)
+    if (vMax == vMin) { 
+      if (vMax == 0) {
+        vMax = 1;
+        vMin = -1;
+      } else {
+        vMax = 4/3*Math.abs(vMax);
+        vMin = -4/3*Math.abs(vMin);
+      }
+    }
+  }
+  const colorBar = document.querySelector(".colorBar");
+  if (colorBar) document.body.removeChild(colorBar);
+  addColorBar(vMin, vMax);
 
   if (surfaceMesh) {
     for (let i = surfaceMesh.children.length - 1; i >= 0; i--) {
@@ -475,7 +507,7 @@ function updateSurface() {
     }, data.nX, data.nX);
 
     const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( z.evaluate({x: u, y: v, z: w})) );
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
     surfaceMesh.add(mesh);
@@ -499,7 +531,7 @@ function updateSurface() {
     }, data.nX, data.nX);
 
     const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( z.evaluate({x: u, y: v, z: w})) );
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
     surfaceMesh.add(mesh);
@@ -523,7 +555,7 @@ function updateSurface() {
     }, data.nX, data.nX);
 
     const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( z.evaluate({x: u, y: v, z: w})) );
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
     surfaceMesh.add(mesh);
@@ -546,7 +578,7 @@ function updateSurface() {
     }, data.nX, data.nX);
 
     const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( z.evaluate({x: u, y: v, z: w})) );
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
     surfaceMesh.add(mesh);
@@ -569,7 +601,7 @@ function updateSurface() {
     }, data.nX, data.nX);
 
     const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( z.evaluate({x: u, y: v, z: w})) );
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
     surfaceMesh.add(mesh);
@@ -591,7 +623,7 @@ function updateSurface() {
     }, data.nX, data.nX);
 
     const mesh = new THREE.Mesh(geometry, materialColors);
-    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( z.evaluate({x: u, y: v, z: w})) );
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
     surfaceMesh.add(mesh);
