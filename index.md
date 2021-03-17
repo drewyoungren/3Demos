@@ -3,6 +3,8 @@ title: 3Demos
 subtitle: Visualizations for Multivariable Calculus
 ---
 
+  - [Space Curves](./curve/index.html)
+  - [Scalar Fields &amp; Level Curves](./fxy/index.html)
   - [Lagrange Multipliers](./lagrange/index.html)
   - [Double Integrals](iint/index.html)
   - [Integration in Polar Coordinates](polar/index.html)

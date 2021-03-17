@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Level Surfaces</title>
+  <link rel="stylesheet" href="../base/main.css">
+  <link rel="stylesheet" href="./w3.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://unpkg.com/mathjs@8.0.1/lib/browser/math.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        macros: {
+          RR: "{\\mathbb R}",
+          bold: ["{\\bf #1}", 1],
+          vec: "\\mathbf "
+    }
+      }
+    };
+
+    function openPage(pageName) {
+      var i;
+      var x = document.getElementsByClassName("page");
+      for (i = 0; i < x.length; i++) {
+        x[i].classList.add("w3-hide");
+      }
+      document.getElementById(pageName).classList.remove("w3-hide");
+    }
+
+    function openSettings() {
+      const el = document.querySelector('#settings-box');
+      if ( el.classList.contains('w3-hide') ){
+        el.classList.remove('w3-hide');
+      } else { el.classList.add('w3-hide');} 
+    }
+
+  </script>
+
+
+</head>
+
+<body>
+
+
+  <canvas id="c"></canvas>
+  <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
+
+  <div class="infobox" id="infobox">
+
+    <header class=" sans info-header">
+      <div class="info-header-item title"> Level Surfaces </div>
+      
+      <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
+        <span class="menu-page-item" onclick="openPage('main')">function</span> | 
+        <span class="menu-page-item" onclick="openPage('levels')">trace</span> | 
+         <span class="menu-page-item" onclick="openPage('tangents')">tangent</span> <!--| 
+        <span class="menu-page-item" onclick="openPage('linear')">linearization</span> | 
+        <span class="menu-page-item" onclick="openPage('gradient')">div &amp; curl</span> | 
+        <span class="menu-page-item" onclick="openPage('practice')">practice</span> -->
+      </div>
+    </header>
+
+    <div class="page-box">
+
+
+
+      <div class="page w3-padding w3-hide w3-animate-left" id="levels"> 
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+          &otimes;
+        </span>
+          
+        <p>Fixing one coordinate in the equation for a level set gives an equation with two unknowns. Its solution set is a <b>trace</b>. (A level curve can be thought of as a $z$-trace for the graph of a function of two variables.) </p>
+        <p>
+          Alternatively, a trace is the intersection of a surface with a plane parallel to one of the coordinate planes. 
+        </p>
+
+        <p><b>Interact:</b> Select which traces to include in the graph.</p>     
+
+        <div class="setting-choice">
+          <div class="setting-label"><label for="xTraces">$x$-traces : </label></div>
+          <div class="setting-thing">
+            <label class="switch">
+              <input type="checkbox" name="xTraces" id="xTraces" checked="true">
+              <span class="slider round"></span>
+            </label></div>
+            <div class="setting-label"><label for="yTraces">$y$-traces : </label></div>
+            <div class="setting-thing">           
+            <label class="switch">
+              <input type="checkbox" name="yTraces" id="yTraces" checked="true">
+              <span class="slider round"></span>
+            </label>
+            </div>
+            <div class="setting-label"><label for="zTraces">$z$-traces : </label></div>
+            <div class="setting-thing">
+            <label class="switch">
+              <input type="checkbox" name="zTraces" id="zTraces" checked="true">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- <div class="setting-choice">
+          <div class="setting-label"><label for="flattenContours">flatten : </label></div>
+          <div class="setting-thing"><label class="switch">
+              <input type="checkbox" name="flattenContours" id="flattenContours">
+              <span class="slider round"></span>
+            </label></div>
+        </div>
+        
+        <div class="setting-choice">
+          <div class="setting-label"><label for="nL">number : </label></div>
+          <div class="setting-thing"><input type="range" name="nL" id="nL" min="1" max="40" step="1"
+              value="15"><output>15</output></div>
+        </div> -->
+    </div>
+
+
+      <!-- tangents page -->
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="tangents">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+        <p>Let $(a,b,c)$ be a point in the level surface $F(x,y,z) = k$. If $F$ is differentiable at this point <b>and</b> $\nabla F \neq \vec 0$, then the surface has a well-defined tangent plane at that point, and $\nabla F$ is the normal vector to said plane.</p>
+
+        <p>Indeed, let $\vec r(t)$ be any differentiable curve in the surface with $\vec r(0) = \langle a,b,c \rangle$. Then $F\circ \vec r(t) = k$ is a constand, so by the chain rule, $$\nabla F(\vec r(t))\cdot \vec r'(t) = 0$$ and at $t = 0$, we have $\nabla F(a,b,c)$ is orthogonal to any tangent vector to the surface.</p>
+
+        <div class="interact">
+        <p><b>Interact:</b> Plot the gradient vector $\nabla F$.      <div class="setting-choice">
+          <div class="setting-label"><label for="frameBallVisible">tangent plane : </label></div>
+          <div class="setting-thing"><label class="switch">
+              <input type="checkbox" name="frameBallVisible" id="frameBallVisible">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div> Then, use the <kbd>Shift</kbd> key to select a new point on the graph. </p>
+        </div>
+
+        <p>This yields the tangent plane equation $$F_x(a,b,c) (x - a) + F_y(a,b,c)(y - b) + F_z(a,b,c)(z - c) = 0.$$ In the language of differentials, this gives the ulta-compact $dF=0$. </p>
+     </div>
+
+    <!-- lineariztion -->
+    <!-- <div class="page w3-container w3-animate-left w3-padding w3-hide" id="linear">
+      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+      <p>
+        The tangent plane is the graph of the best linear approximation to the function at a specified point. We say the <b>linearization</b> of a function $f(x,y)$ at a point $(a,b)$ is a linear function $$L(x,y) = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b).$$
+      </p>
+
+      <div class="w3-container" id="custom-linear">
+
+        <div class="menu-choice-centered" style="padding-top: 20px;">
+          <div>
+            <span>$a = $ <input class="custom-input" type="text" name="linearA" style="width: 4em; "
+                id="linearA" value="-1"><span style="color: red;" class="form-warning"></span>
+            </span> <span>$b = $ <input class="custom-input" type="text" name="linearB" style="width: 4em;" id="linearB"
+                value="1"><span style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+          <div>&nbsp;</div>
+          <div>
+            <span>$\Delta x = $ 
+              <input class="custom-input" type="text" name="linearDx" style="width: 4em; "
+                id="linearDx" value="0.1"><span style="color: red;" class="form-warning"></span>,
+            </span>
+            <span>$\Delta y = $
+              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDy" value="0.1"><span
+                style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+
+<!-- Scalar field page -->
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+        <p>A <b>scalar field</b>, or function of several variable, is a scalar-valued function on space. The inputs can be thought of a position in multidimensional space or as multiple independent quantities. </p>
+
+          <p>We can plot the <b>graph</b> of a function of 2 variable on in 3 dimensions as the set of points $(x,y,z)$ where $$z = f(x,y).$$
+          </p>
+
+          <div class="interact">
+            <p><b>Interact:</b>  Type an expression for $f$ is terms of variables $x$ and $y$ and specify the domain ($y$ can depend on $x$ here).</p>
+          </div>
+        <!-- 
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+        <!-- <h2>Classes of surfaces:</h2> -->
+        <div class="noselect choice-row sans" id="surfaceMenu">
+        </div>
+
+
+        <div class="w3-container" id="custom-uvs">
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$f(x,y,z) = $ </span>
+              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="x^2 + y^2 - z^2 + 1/4"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+          </div>
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span>$k = $ </span>
+              <span><input class="custom-input" type="text" name="customK" id="customK" value="0"><span
+                  style="color: red;" class="form-warning"></span></span>
+            </div>
+          </div>
+
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customA" style="width: 4em; text-align: right;"
+                  id="customA" value="0"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq x \leq $
+              <span><input class="custom-input" type="text" name="customB" style="width: 4em;" id="customB"
+                  value="1"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customC" style="width: 4em; text-align: right;"
+                  id="customC" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq y \leq $
+              <span>
+                <input class="custom-input" type="text" name="customD" style="width: 4em;" id="customD" value="1"><span
+                  style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customE" style="width: 4em; text-align: right;"
+                  id="customE" value="-1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq z \leq $
+              <span>
+                <input class="custom-input" type="text" name="customF" style="width: 4em;" id="customF" value="1"><span
+                  style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <p> </p>
+        <div class="setting-choice">
+          <div class="setting-label"><label for="surfaceVisible">show graph : </label></div>
+          <div class="setting-thing">
+            <label class="switch">
+              <input type="checkbox" name="surfaceVisible" id="surfaceVisible" checked="true">
+              <span class="slider round"></span>
+            </label>
+          </div> 
+        </div>
+
+      </div>
+    </div> 
+  </div>
+          <div class="function-tray">
+            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog"  title="Settings"></i></button>
+            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+            <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
+            <button class="w3-button  button" id="screenshot"><i class="fa fa-camera" title="Take screenshot"></i></button>
+          </div>
+
+
+<div class="settings-box w3-hide" id="settings-box" >
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Settings </div>
+  </header>
+
+  <div class="setting-choice">
+    <div class="setting-label"><label for="segments">resolution :</label></div>
+    <div class="setting-thing"><input type="range" name="nX" id="segments" min="5" max="80" step="5" value="30">
+      <output>30</output></div>
+  </div>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="rNum">x-meshes :</label></div>
+    <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+      <output>10</output></div>
+  </div>
+  <div class="setting-choice">
+    <div class="setting-label"><label for="cNum">y-meshes :</label></div>
+    <div class="setting-thing">
+      <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+      <output>10</output>
+    </div>
+  </div>
+
+    <div class="setting-choice">
+      <div class="setting-label"><label for="scale">scale : </label></div>
+      <div class="setting-thing"><input type="range" name="scale" id="scale" min="-2" max="3" step=".02" value="0"><span>1</span></div>
+    </div>
+
+</div>
+
+
+</body>
+<script src="https://unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
+<script type="module" src="./level.js"></script>
+
+</html>
