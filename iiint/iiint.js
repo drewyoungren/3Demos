@@ -398,8 +398,44 @@ document.body.appendChild(integralTexElement);
 // integralTexElement.style.width = "400px";
 
 function updateTexElement() {
-  integralTexElement.innerHTML = "$$\\int_{" + rData[varTranslate[variableOrder[0]][0]].toTex() + "}^{" + rData[varTranslate[variableOrder[0]][1]].toTex() + "}\\int_{" 
-  + rData[varTranslate[variableOrder[1]][0]].toTex() + "}^{" + rData[varTranslate[variableOrder[1]][1]].toTex() + "}\\int_{" + rData[varTranslate[variableOrder[2]][0]].toTex() + "}^{" + rData[varTranslate[variableOrder[2]][1]].toTex() + "} " + rData.z.toTex() + ` \\,d${variableOrder[2]}\\,d${variableOrder[1]}\\,d${variableOrder[0]} $$`;
+  const [X,Y,Z] = variableOrder;
+  const a = rData[varTranslate[X][0]], b = rData[varTranslate[X][1]];
+  const c = rData[varTranslate[Y][0]], d = rData[varTranslate[Y][1]];
+  const e = rData[varTranslate[Z][0]], f = rData[varTranslate[Z][1]];
+
+  let intString = "$$\\int_{" + a.toTex() + "}^{" + b.toTex() + "}\\int_{" 
+  + c.toTex() + "}^{" + d.toTex() + "}\\int_{" + e.toTex() + "}^{" + f.toTex() + "} " + rData.z.toTex() + ` \\,d${Z}\\,d${Y}\\,d${X} `;
+  
+  const params = {};
+  const intValue = gaussLegendre(
+    u => {
+      params[X] = u;
+      return gaussLegendre(
+        v =>  {
+          params[Y] = v;
+          return gaussLegendre(
+            w => {
+              params[Z] = w;
+              return rData.z.evaluate( params );
+            },
+            e.evaluate( params ),
+            f.evaluate( params ),
+            10
+          );
+        },
+        c.evaluate( params ),
+        d.evaluate( params ),
+        10
+      );
+    },
+    a.evaluate( params ),
+    b.evaluate( params ),
+    10
+  );
+  
+
+  integralTexElement.innerHTML = intString + "\\approx " + (Math.round(intValue*1000)/1000).toString() + " $$"
+  
   MathJax.typeset();
 }
 
@@ -661,114 +697,7 @@ function updateSurface() {
 }
 
 
-function makeTraces( {xN = 10, yN = 10, zN = 10} = {}) {
-  const {a,b,c,d,e,f,z,k} = rData;
-  const [xMin,xMax, yMin, yMax, zMin, zMax] = [a,b,c,d,e,f].map(x => x.evaluate())
 
-  const dx = (xMax - xMin) / xN, dy = (yMax - yMin) / yN, dz = (zMax - zMin) / zN;
-
-  for (let index = tracesHolder.children.length - 1; index >= 0; index--) {
-    const child = tracesHolder.children[index];
-    child.geometry.dispose();
-    tracesHolder.remove(child);    
-  }
-
-  // x-traces
-  {
-    const pts = [];
-
-    for (let i = 0; i < xN; i++) {
-      const zLevel = xMin + i * dx;
-      pts.push(
-        ...marchingSquares({
-          f: (x, y) => z.evaluate({ x: zLevel, y: x, z: y }),
-          level: k.evaluate(),
-          xmin: yMin,
-          xmax: yMax,
-          ymin: zMin,
-          ymax: zMax,
-          zLevel: zLevel,
-          nX: data.nX,
-          nY: data.nX,
-        })
-      );
-    }
-
-    // console.log(pts.length, " Points starting with ", pts[0]);
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
-
-    const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
-
-    trace.rotation.y = Math.PI / 2;
-    trace.rotation.z = Math.PI / 2;
-
-
-    tracesHolder.add(trace);
-  }
-
-  // y-traces
-  {
-    const pts = [];
-
-    for (let i = 0; i < yN; i++) {
-      const zLevel = yMin + i * dy;
-      pts.push(
-        ...marchingSquares({
-          f: (x, y) => z.evaluate({ x: y, y: zLevel, z: x }),
-          level: k.evaluate(),
-          xmin: zMin,
-          xmax: zMax,
-          ymin: xMin,
-          ymax: xMax,
-          zLevel: zLevel,
-          nX: data.nX,
-          nY: data.nX,
-        })
-      );
-    }
-
-    // console.log(pts.length, " Points starting with ", pts[0]);
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
-
-    const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
-
-    trace.rotation.x = -Math.PI / 2;
-    trace.rotation.z = -Math.PI / 2;
-
-
-    tracesHolder.add(trace);
-  }
-
-  // z-traces  
-  {
-    const pts = [];
-
-    for (let i = 0; i < zN; i++) {
-      const zLevel = zMin + i * dz;
-      pts.push(
-        ...marchingSquares({
-          f: (x, y) => z.evaluate({ x: x, y: y, z: zLevel }),
-          level: k.evaluate(),
-          xmin: xMin,
-          xmax: xMax,
-          ymin: yMin,
-          ymax: yMax,
-          zLevel: zLevel,
-        })
-      );
-    }
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
-
-    tracesHolder.add(new THREE.LineSegments(geometry, whiteLineMaterial));
-  }
-  
-
-}
-
-// makeTraces();
 
 // Exercises
 // 
