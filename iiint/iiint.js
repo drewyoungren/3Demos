@@ -190,9 +190,6 @@ const surfaces = {
 
 
 
-
-
-
 const rData = {
   a: math.parse("0"),
   b: math.parse("1"),
@@ -203,6 +200,8 @@ const rData = {
   z: math.parse("z^2"),
 }
 
+
+// spherical
 
 const surfacesSpherical = {
   ball: {
@@ -246,6 +245,60 @@ const sData = {
   d: math.parse("pi /2"),
   e: math.parse("1"),
   f: math.parse("2"),
+}
+
+// cylindrical
+
+const surfacesCylindrical = {
+  top: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "1",
+    e: "sqrt(r) / 2",
+    f: "3/2 - 2 r + r^2",
+  },
+  dunce: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "1",
+    e: "0",
+    f: "3/2 (1 - r)",
+  },
+  stadium: {
+    a: "0",
+    b: "3 pi / 2",
+    c: "1/2",
+    d: "3/2",
+    e: "0",
+    f: "r",
+  },
+  napkinring: {
+    a: "0",
+    b: "2 pi",
+    c: "1",
+    d: "3 / 2",
+    e: "-sqrt(9/4 - r^2)",
+    f: "sqrt(9/4 - r^2)",
+  },
+  bundt: {
+    a: "0",
+    b: "2 pi",
+    c: "1/2",
+    d: "3/2",
+    e: "0",
+    f: "(1 - 4(r - 1)^2)(1 + sin(16 theta)/7)/2 ",
+  },  
+}
+
+const cData = {
+  a: math.parse("0"),
+  b: math.parse(" 3 pi / 2"),
+  c: math.parse("0"),
+  d: math.parse("1"),
+  e: math.parse("sqrt(r) / 2"),
+  f: math.parse("3/2 - r"),
 }
 
 const data = {
@@ -495,6 +548,11 @@ integralSphericalTexElement.classList.add("integralthing");
 integralTexBox.appendChild(integralSphericalTexElement);
 integralSphericalTexElement.style.display = "none";
 
+const integralCylindricalTexElement = document.createElement("div");
+integralCylindricalTexElement.classList.add("w3-padding");
+integralCylindricalTexElement.classList.add("integralthing");
+integralTexBox.appendChild(integralCylindricalTexElement);
+integralCylindricalTexElement.style.display = "none";
 
 // integralTexElement.style.width = "400px";
 
@@ -553,7 +611,65 @@ function updateSphericalTexElement() {
   MathJax.typeset();
 }
 
+function updateCylindricalTexElement() {
+  const [X,Y,Z] = ["theta", "r","z"];
+  const {a,b,c,d,e,f} = cData;
+
+  const fxyz = rData.z.toString();
+  const xsub = "(r cos(theta))", ysub = "(r sin(theta))";
+  const xre = new RegExp("\\bx\\b", "g"), yre = new RegExp("\\by\\b", "g");
+  const integrand = "(" + fxyz.replace(xre, xsub).replace(yre, ysub) + ") r";
+
+  console.log(integrand);
+
+  let intString = "$$\\int_{" + a.toTex() + "}^{" + b.toTex() 
+  + "}\\int_{" + c.toTex() + "}^{" + d.toTex() 
+  + "}\\int_{" + e.toTex() + "}^{" + f.toTex() + "} " 
+  + math.simplify(math.parse(integrand)).toTex() + " \\,dz\\,dr\\,d\\theta ";
+  
+  const params = {};
+  const intValue = gaussLegendre(
+    u => {
+      params[X] = u;
+      return gaussLegendre(
+        v =>  {
+          params[Y] = v;
+          return gaussLegendre(
+            w => {
+              params[Z] = w;
+              return rData.z.evaluate( {
+                x: v*Math.cos(u),
+                y: v*Math.sin(u),
+                z: w, 
+              } )*v;
+            },
+            e.evaluate( params ),
+            f.evaluate( params ),
+            10
+          );
+        },
+        c.evaluate( params ),
+        d.evaluate( params ),
+        10
+      );
+    },
+    a.evaluate( params ),
+    b.evaluate( params ),
+    10
+  );
+  
+
+  integralCylindricalTexElement.innerHTML = intString + "\\approx " + (Math.round(intValue*1000)/1000).toString() + " $$"
+
+  // integralSphericalTexElement.innerHTML = intString + " $$"
+  
+  MathJax.typeset();
+}
+
+
 let [vMax, vMin] = [0,0];
+
+
 
 let surfaceMesh;
 const tracesHolder = new THREE.Object3D();
@@ -774,6 +890,8 @@ function updateSurface() {
   requestFrameIfNotRequested();
    
 }
+
+// spherical region mesh
 
 let surfaceSphericalMesh;
 
@@ -1043,27 +1161,18 @@ function updateSphericalSurface() {
   }
 }
 
-
-
-// let [vMax, vMin] = vMaxMin(surfaceMesh.children[0])
-
-function lcm(x, y) {
-  if ((typeof x !== 'number') || (typeof y !== 'number')) 
-   return false;
- return (!x || !y) ? 0 : Math.abs((x * y) / gcd(x, y));
+{
+  const element = document.querySelector("input#surfaceCylindricalVisible");
+  element.oninput = () => {
+    surfaceCylindricalMesh.visible = element.checked;
+    if (element.checked) {
+      integralCylindricalTexElement.style.display = "block";
+    } else {
+      integralCylindricalTexElement.style.display = "none";
+    }
+    requestFrameIfNotRequested();
+  }
 }
-
-function gcd(x, y) {
- x = Math.abs(x);
- y = Math.abs(y);
- while(y) {
-   var t = y;
-   y = x % y;
-   x = t;
- }
- return x;
-}
-
 
 
 const surfs = Object.keys(surfaces);
@@ -1109,6 +1218,361 @@ for (let i = 0; i < surfs.length; i++) {
     }
   }
 }
+
+
+// cylindrical region mesh
+
+let surfaceCylindricalMesh;
+
+function updateCylindricalSurface() {
+  orderVariables();
+  const {z} = rData;
+  const {a,b,c,d,e,f} = cData;
+  const [X,Y,Z] = ["theta", "r", "z"];
+
+  const A = a.evaluate(), B = b.evaluate();
+
+  // let [vMax, vMin] = [1,-1];
+  // {
+  //   const N = 10;
+  //   const params = {};
+  //   for (let i = 0; i <= N; i++) {
+  //     params[X] = A + (B - A)/N * (i);
+  //     if (i == 0) params[X] += .0001; // stay away from edge cases
+  //     if (i == N) params[X] -= .0001; // stay away from edge cases
+  //     const C = c.evaluate( params ), D = d.evaluate(params);
+  //     for (let j = 0; j <= N; j++) {
+  //       params[Y] = C + (D - C) / N * (j);
+  //       if (j == 0) params[Y] += .0001; // stay away from edge cases
+  //       if (j == N) params[Y] -= .0001; // stay away from edge cases
+  //       const E = e.evaluate( params ), F = f.evaluate(params);
+  //       for (let k = 0; k <= N; k++) {
+  //         params[Z] = E + (F - E)*(k)/N;
+  //         if (k == 0) params[Z] += .0001; // stay away from edge cases
+  //         if (k == N) params[Z] -= .0001; // stay away from edge cases
+  //         const val = z.evaluate( params )
+  //         vMax = Math.max(vMax, val );
+  //         vMin = Math.min(vMin, val );
+  //       }
+  //     }
+  //   }
+  //   console.log("vmaxmin", vMax, vMin)
+  //   if (vMax == vMin) { 
+  //     if (vMax == 0) {
+  //       vMax = 1;
+  //       vMin = -1;
+  //     } else {
+  //       vMax = 4/3*Math.abs(vMax);
+  //       vMin = -4/3*Math.abs(vMin);
+  //     }
+  //   }
+  // }
+  // const colorBar = document.querySelector(".colorBar");
+  // if (colorBar) document.body.removeChild(colorBar);
+  // addColorBar(vMin, vMax);
+
+  if (surfaceCylindricalMesh) {
+    for (let i = surfaceCylindricalMesh.children.length - 1; i >= 0; i--) {
+      const mesh = surfaceCylindricalMesh.children[i];
+      mesh.geometry.dispose()
+      surfaceCylindricalMesh.remove(mesh);
+    }
+  } else {
+    surfaceCylindricalMesh = new THREE.Object3D();
+    scene.add(surfaceCylindricalMesh);
+    surfaceCylindricalMesh.visible = false;
+  }
+
+  // Top
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+      params[X] = U;
+      params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+      params[Z] = f.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z)
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceCylindricalMesh.add(mesh);
+
+  }
+
+  // Bottom
+  {
+    if (true) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        const U = A + (B - A)*u;
+        const params = {};
+
+        params[X] = U;
+        params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+        params[Z] = e.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z)
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceCylindricalMesh.add(mesh);
+    }
+  }
+
+  // "Front" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = d.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z);
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceCylindricalMesh.add(mesh);
+  }
+
+  // "Back" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = c.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z);
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceCylindricalMesh.add(mesh);
+  }
+
+
+  // "Left" 
+  {
+    const params = {};
+
+    params[X] = A;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z);
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceCylindricalMesh.add(mesh);
+    } else {
+      console.log("Empty side A")
+    }
+  }
+
+  // "Right" 
+  {
+    const params = {};
+
+    params[X] = B;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+        const [t,r,z] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.cos(t), 
+          r*math.sin(t),
+          z);
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceCylindricalMesh.add(mesh);
+    } else {
+      console.log("Empty side B")
+    }
+  }
+
+  // updateTexElement();
+  updateCylindricalTexElement();
+
+  requestFrameIfNotRequested();
+   
+}
+
+
+
+function lcm(x, y) {
+  if ((typeof x !== 'number') || (typeof y !== 'number')) 
+   return false;
+ return (!x || !y) ? 0 : Math.abs((x * y) / gcd(x, y));
+}
+
+function gcd(x, y) {
+ x = Math.abs(x);
+ y = Math.abs(y);
+ while(y) {
+   var t = y;
+   y = x % y;
+   x = t;
+ }
+ return x;
+}
+
+
+{ // spherical region menu items
+  const surfs = Object.keys(surfacesSpherical);
+  for (let i = 0; i < surfs.length; i++) {
+    const surf = surfs[i];
+    let element = document.getElementById(surf);
+
+    if (!element) {
+      element = document.createElement("span");
+      parent = document.querySelector("#surfaceSphericalMenu");
+      element.innerHTML = `<span id="${surf}">${surf}</span>`;
+      if (parent.children.length > 0) {
+        const pipeSpan = document.createElement("span");
+        pipeSpan.innerText = " | ";
+        parent.appendChild(pipeSpan);
+      }
+      parent.appendChild(element);
+    }
+
+    element.onclick = () => {
+      data.S = surf;
+      const sf = surfacesSpherical[surf];
+      let el;
+      for (let i = 0; i < Object.keys(sf).length; i++) {
+        const c = Object.keys(sf)[i];
+        // console.log(surf, c);
+        el = document.querySelector(`#customSpherical${c.toUpperCase()}`);
+        el.value = sf[c];
+        sData[c] = math.parse(sf[c]);
+        // el.dispatchEvent(new Event('change'));
+      }
+      updateSphericalSurface();
+      for (let j = 0; j < surfs.length; j++) {
+        const el = document.getElementById(surfs[j]);
+        const elForm = document.querySelector(
+          `.surface-choices-item#${surfs[j]}-formula`
+        );
+        if (i === j) {
+          el.classList.add("choices-selected");
+          if (elForm) elForm.style.visibility = "visible";
+        } else {
+          el.classList.remove("choices-selected");
+          if (elForm) elForm.style.visibility = "hidden";
+        }
+      }
+    };
+  }
+}
+
+
+
+{ // spherical region menu items
+  const surfs = Object.keys(surfacesCylindrical);
+  for (let i = 0; i < surfs.length; i++) {
+    const surf = surfs[i];
+    let element = document.getElementById(surf);
+
+    if (!element) {
+      element = document.createElement("span");
+      parent = document.querySelector("#surfaceCylindricalMenu");
+      element.innerHTML = `<span id="${surf}">${surf}</span>`;
+      if (parent.children.length > 0) {
+        const pipeSpan = document.createElement("span");
+        pipeSpan.innerText = " | ";
+        parent.appendChild(pipeSpan);
+      }
+      parent.appendChild(element);
+    }
+
+    element.onclick = () => {
+      data.S = surf;
+      const sf = surfacesCylindrical[surf];
+      let el;
+      for (let i = 0; i < Object.keys(sf).length; i++) {
+        const c = Object.keys(sf)[i];
+        // console.log(surf, c);
+        el = document.querySelector(`#customCylindrical${c.toUpperCase()}`);
+        el.value = sf[c];
+        cData[c] = math.parse(sf[c]);
+        // el.dispatchEvent(new Event('change'));
+      }
+      updateCylindricalSurface();
+      for (let j = 0; j < surfs.length; j++) {
+        const el = document.getElementById(surfs[j]);
+        const elForm = document.querySelector(
+          `.surface-choices-item#${surfs[j]}-formula`
+        );
+        if (i === j) {
+          el.classList.add("choices-selected");
+          if (elForm) elForm.style.visibility = "visible";
+        } else {
+          el.classList.remove("choices-selected");
+          if (elForm) elForm.style.visibility = "hidden";
+        }
+      }
+    };
+  }
+}
+
+
+// Change custom fields
 
 {
   const XYZ = "ZABCDEF";
@@ -1135,58 +1599,13 @@ for (let i = 0; i < surfs.length; i++) {
       updateSurface();
       if (ch === "Z") {
         updateSphericalSurface();
+        updateCylindricalSurface();
       }
     };
   }
 }
 
 {
-
-const surfs = Object.keys(surfaces);
-for (let i = 0; i < surfs.length; i++) {
-  const surf = surfs[i];
-  let element = document.getElementById(surf);
-
-  if (! element) {
-    element = document.createElement("span");
-    parent = document.querySelector("#surfaceMenu");
-    element.innerHTML = `<span id="${surf}">${surf}</span>`;
-    if (parent.children.length > 0) {
-      const pipeSpan = document.createElement("span");
-      pipeSpan.innerText = " | ";
-      parent.appendChild(pipeSpan);
-    }
-    parent.appendChild(element);
-  }
-
-  element.onclick = () => {
-    data.S = surf;
-    const sf = surfaces[surf];
-    let el;
-    for (let i = 0; i < Object.keys(sf).length; i++) {;
-      const c = Object.keys(sf)[i];
-      // console.log(surf, c);
-      el = document.querySelector(`#custom${c.toUpperCase()}`);
-      el.value = sf[c];
-      rData[c] = math.parse(sf[c]);
-      // el.dispatchEvent(new Event('change'));
-    }
-    updateSurface();
-    for (let j = 0; j < surfs.length; j++) {
-      const el = document.getElementById(surfs[j]);
-      const elForm = document.querySelector(`.surface-choices-item#${surfs[j]}-formula`)
-      if (i === j) {
-        el.classList.add("choices-selected");
-        if (elForm) elForm.style.visibility = 'visible';
-      } else {
-        el.classList.remove("choices-selected");
-        if (elForm) elForm.style.visibility = 'hidden';
-      }
-    }
-  }
-}
-
-
   const XYZ = "ABCDEF";
   for (let i = 0; i < XYZ.length; i++) {
     const ch = XYZ[i];
@@ -1214,7 +1633,33 @@ for (let i = 0; i < surfs.length; i++) {
 
 }
 
+{
+  const XYZ = "ABCDEF";
+  for (let i = 0; i < XYZ.length; i++) {
+    const ch = XYZ[i];
+    const id = `customCylindrical${ch}`;
+    const element = document.querySelector(`#${id}`);
 
+    element.onchange = () => {
+      const c = ch.toLowerCase();
+      // console.log(element.value, "is the value of" + ch);
+      const form = document.querySelector(`#${id} + .form-warning`);
+      try {
+        const expr = math.parse(element.value);
+        expr.evaluate({ theta: 0, r: 0, z: 0});
+        cData[c] = expr;
+        form.innerText = '';
+      } catch (e) {
+        console.error( e );
+        form.innerText = ' ' + e.name;
+        return;
+      }
+      // console.log(expr.evaluate( {u: 2, v: 1} ));
+      updateCylindricalSurface();
+    };
+  }
+
+}
 
 // const balls = new THREE.Object3D();
 // const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
@@ -1584,63 +2029,19 @@ function changeLevels( t ) {
   }
 }
 
-function updateLevels() {
-  for (let index = levelHolder.children.length - 1; index >= 0; index--) {
-    const element = levelHolder.children[index];
-    element.geometry.dispose();
-    levelHolder.remove(element);
-  }
-  const {a,b,c,d,z} = rData;
-  let C=0, D=0, zMin = 0, zMax = 0;
-  const [A,B] = [a.evaluate(),b.evaluate()];
-  for (let i=0; i <= data.nL; i++) {
-    C = Math.min(C,c.evaluate({x: A + (B - A)*i/data.nL}));
-    D = Math.max(D,d.evaluate({x: A + (B - A)*i/data.nL}));
-    for (let j=0; j <= data.nL; j++) {
-      const Z = z.evaluate( {x: A + (B - A)*i/data.nL, y:C + (D - C)*j/data.nL});
-      zMin = Math.min(zMin, Z);
-      zMax = Math.max(zMax, Z)
-    }
-  }
 
-  for (let lev = zMin; lev <= zMax; lev += Math.max((zMax - zMin) / data.nL ), 0.01) {
-
-    const points = marchingSquares( {
-      f: (x,y) =>  { return z.evaluate( {x, y} ); },
-      xmin: A,
-      xmax: B,
-      ymin: C,
-      ymax: D,
-      level: lev,
-      zLevel: 0,
-      nX: data.nX,
-      nY: data.nX,
-    } );
-
-    // console.log(points[2]);
-
-    if (points.length > 1) {
-      const levelGeometry = new THREE.BufferGeometry();
-
-      levelGeometry.setFromPoints( points );
-      
-      const levelMesh = new THREE.LineSegments( levelGeometry, new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3, transparent: false } ));
-      
-      levelMesh.level = lev;
-      levelMesh.position.set(0,0,shiftInterpolation(data.shiftLevel, lev))
-
-      levelHolder.add(levelMesh);
-    }
-  }
-}
 
 processURLSearch()
 
 
 // updateLevels();
+{
 updateSurface();
 updateSphericalSurface();
-
+const topElement = document.querySelector("span#top");
+console.log("top",topElement);
+topElement.click();
+}
 // changeLevels( 2.5 );
 
 
