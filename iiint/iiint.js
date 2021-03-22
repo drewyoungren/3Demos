@@ -203,6 +203,51 @@ const rData = {
   z: math.parse("z^2"),
 }
 
+
+const surfacesSpherical = {
+  ball: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "pi",
+    e: "0",
+    f: "1",
+  },
+  cone: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "pi / 3",
+    e: "0",
+    f: "1 / (2 cos(phi))",
+  },
+  bandshell: {
+    a: "0",
+    b: "pi",
+    c: "0",
+    d: "pi / 2",
+    e: "1",
+    f: "3/2",
+  },
+  slice: {
+    a: "-pi / 4",
+    b: "pi / 4",
+    c: "0",
+    d: "pi",
+    e: "1/2",
+    f: "3/2",
+  },  
+}
+
+const sData = {
+  a: math.parse("0"),
+  b: math.parse("pi / 2"),
+  c: math.parse("0"),
+  d: math.parse("pi /2"),
+  e: math.parse("1"),
+  f: math.parse("2"),
+}
+
 const data = {
   S: 'mtns',
   nX: 30,
@@ -388,10 +433,14 @@ function orderVariables() {
   });
 }
 
+const integralTexBox = document.createElement("div");
+integralTexBox.classList.add("integralbox");
+document.body.appendChild(integralTexBox);
+
 const integralTexElement = document.createElement("div");
 integralTexElement.classList.add("w3-padding");
-integralTexElement.classList.add("integralbox");
-document.body.appendChild(integralTexElement);
+integralTexElement.classList.add("integralthing");
+integralTexBox.appendChild(integralTexElement);
 
 
 
@@ -440,41 +489,71 @@ function updateTexElement() {
 }
 
 
-
-// {
-//   const element = document.querySelector("input#frameBallVisible");
-//   element.oninput = () => {
-//     frameBall.visible = element.checked;
-//     requestFrameIfNotRequested();
-//   }
-// }
-
-// {
-//   for (let i = 0; i < 3; i++) {
-//     const c = "xyz"[i];
-    
-//     const element = document.querySelector(`input#${c}Traces`);
-//     element.oninput = () => {
-//       tracesHolder.children[i].visible = element.checked;
-//       requestFrameIfNotRequested();
-//     }
-//   }
-// }
-
-// {
-//   const element = document.querySelector("input#flattenContours");
-//   element.oninput = () => {
-//     data.levelDelta = element.checked ? 1 : -1;
-
-//     if ( frameRequested ) {
-//       cancelAnimationFrame( myReq );
-//     }
-//     frameRequested = true;
-//     requestAnimationFrame( animateLevel );
-//   }
-// }
+const integralSphericalTexElement = document.createElement("div");
+integralSphericalTexElement.classList.add("w3-padding");
+integralSphericalTexElement.classList.add("integralthing");
+integralTexBox.appendChild(integralSphericalTexElement);
+integralSphericalTexElement.style.display = "none";
 
 
+// integralTexElement.style.width = "400px";
+
+function updateSphericalTexElement() {
+  const [X,Y,Z] = ["theta", "phi","rho"];
+  const {a,b,c,d,e,f} = sData;
+
+  const fxyz = rData.z.toString();
+  const xsub = "(rho sin(phi) cos(theta))", ysub = "(rho sin(phi) sin(theta))", zsub = "(rho cos(phi))";
+  const xre = new RegExp("\\bx\\b", "g"), yre = new RegExp("\\by\\b", "g"), zre = new RegExp("\\bz\\b", "g");
+  const integrand = "(" + fxyz.replace(xre, xsub).replace(yre, ysub).replace(zre, zsub) + ") rho^2 sin(phi)";
+
+  console.log(integrand);
+
+  let intString = "$$\\int_{" + a.toTex() + "}^{" + b.toTex() 
+  + "}\\int_{" + c.toTex() + "}^{" + d.toTex() 
+  + "}\\int_{" + e.toTex() + "}^{" + f.toTex() + "} " 
+  + math.simplify(math.parse(integrand)).toTex() + " \\,d\\rho\\,d\\phi\\,d\\theta ";
+  
+  const params = {};
+  const intValue = gaussLegendre(
+    u => {
+      params[X] = u;
+      return gaussLegendre(
+        v =>  {
+          params[Y] = v;
+          return gaussLegendre(
+            w => {
+              params[Z] = w;
+              return rData.z.evaluate( {
+                x: w*Math.sin(v)*Math.cos(u),
+                y: w*Math.sin(v)*Math.sin(u),
+                z: w*Math.cos(v) 
+              } )*w**2*Math.sin(v);
+            },
+            e.evaluate( params ),
+            f.evaluate( params ),
+            10
+          );
+        },
+        c.evaluate( params ),
+        d.evaluate( params ),
+        10
+      );
+    },
+    a.evaluate( params ),
+    b.evaluate( params ),
+    10
+  );
+  
+
+  integralSphericalTexElement.innerHTML = intString + "\\approx " + (Math.round(intValue*1000)/1000).toString() + " $$"
+
+  // integralSphericalTexElement.innerHTML = intString + " $$"
+  
+  MathJax.typeset();
+}
+
+let [vMax, vMin] = [0,0];
 
 let surfaceMesh;
 const tracesHolder = new THREE.Object3D();
@@ -491,7 +570,7 @@ function updateSurface() {
   const A = a.evaluate(), B = b.evaluate();
 
   // let [vMax, vMin] = [1,-1];
-  let [vMax, vMin] = [0,0];
+  [vMax, vMin] = [0, 0];
   {
     const N = 10;
     const params = {};
@@ -619,7 +698,7 @@ function updateSurface() {
 
       params[X] = U;
       params[Y] = c.evaluate( params );
-      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params )
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
       vec[X] = params[X];
       vec[Y] = params[Y];
@@ -644,7 +723,7 @@ function updateSurface() {
     if (D > C + 1e-10) {
       const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
         params[Y] = (1 - u)*C + u*D;
-        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
         vec[X] = params[X];
         vec[Y] = params[Y];
@@ -672,7 +751,7 @@ function updateSurface() {
       const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
 
         params[Y] = (1 - u)*C + u*D;
-        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
         vec[X] = params[X];
         vec[Y] = params[Y];
@@ -696,6 +775,236 @@ function updateSurface() {
    
 }
 
+let surfaceSphericalMesh;
+
+function updateSphericalSurface() {
+  orderVariables();
+  const {z} = rData;
+  const {a,b,c,d,e,f} = sData;
+  const [X,Y,Z] = ["theta", "phi", "rho"];
+
+  const A = a.evaluate(), B = b.evaluate();
+
+  // let [vMax, vMin] = [1,-1];
+  // {
+  //   const N = 10;
+  //   const params = {};
+  //   for (let i = 0; i <= N; i++) {
+  //     params[X] = A + (B - A)/N * (i);
+  //     if (i == 0) params[X] += .0001; // stay away from edge cases
+  //     if (i == N) params[X] -= .0001; // stay away from edge cases
+  //     const C = c.evaluate( params ), D = d.evaluate(params);
+  //     for (let j = 0; j <= N; j++) {
+  //       params[Y] = C + (D - C) / N * (j);
+  //       if (j == 0) params[Y] += .0001; // stay away from edge cases
+  //       if (j == N) params[Y] -= .0001; // stay away from edge cases
+  //       const E = e.evaluate( params ), F = f.evaluate(params);
+  //       for (let k = 0; k <= N; k++) {
+  //         params[Z] = E + (F - E)*(k)/N;
+  //         if (k == 0) params[Z] += .0001; // stay away from edge cases
+  //         if (k == N) params[Z] -= .0001; // stay away from edge cases
+  //         const val = z.evaluate( params )
+  //         vMax = Math.max(vMax, val );
+  //         vMin = Math.min(vMin, val );
+  //       }
+  //     }
+  //   }
+  //   console.log("vmaxmin", vMax, vMin)
+  //   if (vMax == vMin) { 
+  //     if (vMax == 0) {
+  //       vMax = 1;
+  //       vMin = -1;
+  //     } else {
+  //       vMax = 4/3*Math.abs(vMax);
+  //       vMin = -4/3*Math.abs(vMin);
+  //     }
+  //   }
+  // }
+  // const colorBar = document.querySelector(".colorBar");
+  // if (colorBar) document.body.removeChild(colorBar);
+  // addColorBar(vMin, vMax);
+
+  if (surfaceSphericalMesh) {
+    for (let i = surfaceSphericalMesh.children.length - 1; i >= 0; i--) {
+      const mesh = surfaceSphericalMesh.children[i];
+      mesh.geometry.dispose()
+      surfaceSphericalMesh.remove(mesh);
+    }
+  } else {
+    surfaceSphericalMesh = new THREE.Object3D();
+    scene.add(surfaceSphericalMesh);
+    surfaceSphericalMesh.visible = false;
+  }
+
+  // Top
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+      params[X] = U;
+      params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+      params[Z] = f.evaluate( params );
+
+      const [t,p,r] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.sin(p)*math.cos(t), 
+        r*math.sin(p)*math.sin(t),
+        r*math.cos(p))
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceSphericalMesh.add(mesh);
+
+  }
+
+  // Bottom
+  {
+    if (e.toString() !== "0") {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        const U = A + (B - A)*u;
+        const params = {};
+
+        params[X] = U;
+        params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+        params[Z] = e.evaluate( params );
+
+        const [t,p,r] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.sin(p)*math.cos(t), 
+          r*math.sin(p)*math.sin(t),
+          r*math.cos(p))
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceSphericalMesh.add(mesh);
+    }
+  }
+
+  // "Front" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = d.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,p,r] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.sin(p)*math.cos(t), 
+        r*math.sin(p)*math.sin(t),
+        r*math.cos(p))
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceSphericalMesh.add(mesh);
+  }
+
+  // "Back" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = c.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,p,r] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.sin(p)*math.cos(t), 
+        r*math.sin(p)*math.sin(t),
+        r*math.cos(p))
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceSphericalMesh.add(mesh);
+  }
+
+
+  // "Left" 
+  {
+    const params = {};
+
+    params[X] = A;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+
+        const [t,p,r] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.sin(p)*math.cos(t), 
+          r*math.sin(p)*math.sin(t),
+          r*math.cos(p));
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceSphericalMesh.add(mesh);
+    } else {
+      console.log("Empty side A")
+    }
+  }
+
+  // "Right" 
+  {
+    const params = {};
+
+    params[X] = B;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+        const [t,p,r] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.sin(p)*math.cos(t), 
+          r*math.sin(p)*math.sin(t),
+          r*math.cos(p))
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceSphericalMesh.add(mesh);
+    } else {
+      console.log("Empty side B")
+    }
+  }
+
+  // updateTexElement();
+  updateSphericalTexElement();
+
+  requestFrameIfNotRequested();
+   
+}
 
 
 
@@ -712,6 +1021,24 @@ function updateSurface() {
   const element = document.querySelector("input#surfaceVisible");
   element.oninput = () => {
     surfaceMesh.visible = element.checked;
+    if (element.checked) {
+      integralTexElement.style.display = "block";
+    } else {
+      integralTexElement.style.display = "none";
+    }
+    requestFrameIfNotRequested();
+  }
+}
+
+{
+  const element = document.querySelector("input#surfaceSphericalVisible");
+  element.oninput = () => {
+    surfaceSphericalMesh.visible = element.checked;
+    if (element.checked) {
+      integralSphericalTexElement.style.display = "block";
+    } else {
+      integralSphericalTexElement.style.display = "none";
+    }
     requestFrameIfNotRequested();
   }
 }
@@ -806,10 +1133,86 @@ for (let i = 0; i < surfs.length; i++) {
       }
       // console.log(expr.evaluate( {u: 2, v: 1} ));
       updateSurface();
+      if (ch === "Z") {
+        updateSphericalSurface();
+      }
     };
   }
 }
 
+{
+
+const surfs = Object.keys(surfaces);
+for (let i = 0; i < surfs.length; i++) {
+  const surf = surfs[i];
+  let element = document.getElementById(surf);
+
+  if (! element) {
+    element = document.createElement("span");
+    parent = document.querySelector("#surfaceMenu");
+    element.innerHTML = `<span id="${surf}">${surf}</span>`;
+    if (parent.children.length > 0) {
+      const pipeSpan = document.createElement("span");
+      pipeSpan.innerText = " | ";
+      parent.appendChild(pipeSpan);
+    }
+    parent.appendChild(element);
+  }
+
+  element.onclick = () => {
+    data.S = surf;
+    const sf = surfaces[surf];
+    let el;
+    for (let i = 0; i < Object.keys(sf).length; i++) {;
+      const c = Object.keys(sf)[i];
+      // console.log(surf, c);
+      el = document.querySelector(`#custom${c.toUpperCase()}`);
+      el.value = sf[c];
+      rData[c] = math.parse(sf[c]);
+      // el.dispatchEvent(new Event('change'));
+    }
+    updateSurface();
+    for (let j = 0; j < surfs.length; j++) {
+      const el = document.getElementById(surfs[j]);
+      const elForm = document.querySelector(`.surface-choices-item#${surfs[j]}-formula`)
+      if (i === j) {
+        el.classList.add("choices-selected");
+        if (elForm) elForm.style.visibility = 'visible';
+      } else {
+        el.classList.remove("choices-selected");
+        if (elForm) elForm.style.visibility = 'hidden';
+      }
+    }
+  }
+}
+
+
+  const XYZ = "ABCDEF";
+  for (let i = 0; i < XYZ.length; i++) {
+    const ch = XYZ[i];
+    const id = `customSpherical${ch}`;
+    const element = document.querySelector(`#${id}`);
+
+    element.onchange = () => {
+      const c = ch.toLowerCase();
+      // console.log(element.value, "is the value of" + ch);
+      const form = document.querySelector(`#${id} + .form-warning`);
+      try {
+        const expr = math.parse(element.value);
+        expr.evaluate({ theta: 0, phi: 0, rho: 0});
+        sData[c] = expr;
+        form.innerText = '';
+      } catch (e) {
+        console.error( e );
+        form.innerText = ' ' + e.name;
+        return;
+      }
+      // console.log(expr.evaluate( {u: 2, v: 1} ));
+      updateSphericalSurface();
+    };
+  }
+
+}
 
 
 
@@ -1236,6 +1639,8 @@ processURLSearch()
 
 // updateLevels();
 updateSurface();
+updateSphericalSurface();
+
 // changeLevels( 2.5 );
 
 
