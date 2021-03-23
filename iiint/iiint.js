@@ -197,7 +197,7 @@ const rData = {
   d: math.parse("1 - x"),
   e: math.parse("0"),
   f: math.parse("1 - x - y"),
-  z: math.parse("z"),
+  z: math.parse("1"),
 }
 
 
@@ -671,9 +671,9 @@ function setVMinMax( {func=(x,y,z) => rData.z.evaluate( {x,y,z} ), size=gridMax,
   for(let i = 0; i <=N; i++) {
     const x = -size + 2*size*i/N;
     for(let j = 0; j <=N; j++) {
-      const y = -size*3/2 + 3*size*j/N;
+      const y = -size + 2*size*j/N;
       for(let k = 0; k <=N; k++) {
-        const z = -size*3/2 + 3*size*k/N;
+        const z = -size + 2*size*k/N;
         const out = func(x,y,z);
         m = Math.min(m,out);
         M = Math.max(M,out);
