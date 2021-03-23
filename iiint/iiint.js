@@ -190,9 +190,6 @@ const surfaces = {
 
 
 
-
-
-
 const rData = {
   a: math.parse("0"),
   b: math.parse("1"),
@@ -200,7 +197,108 @@ const rData = {
   d: math.parse("1 - x"),
   e: math.parse("0"),
   f: math.parse("1 - x - y"),
-  z: math.parse("z^2"),
+  z: math.parse("z"),
+}
+
+
+// spherical
+
+const surfacesSpherical = {
+  ball: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "pi",
+    e: "0",
+    f: "1",
+  },
+  cone: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "pi / 3",
+    e: "0",
+    f: "1 / (2 cos(phi))",
+  },
+  bandshell: {
+    a: "0",
+    b: "pi",
+    c: "0",
+    d: "pi / 2",
+    e: "1",
+    f: "3/2",
+  },
+  slice: {
+    a: "-pi / 4",
+    b: "pi / 4",
+    c: "0",
+    d: "pi",
+    e: "1/2",
+    f: "3/2",
+  },  
+}
+
+const sData = {
+  a: math.parse("0"),
+  b: math.parse("pi / 2"),
+  c: math.parse("0"),
+  d: math.parse("pi /2"),
+  e: math.parse("1"),
+  f: math.parse("2"),
+}
+
+// cylindrical
+
+const surfacesCylindrical = {
+  top: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "1",
+    e: "sqrt(r) / 2",
+    f: "3/2 - 2 r + r^2",
+  },
+  dunce: {
+    a: "0",
+    b: "2 pi",
+    c: "0",
+    d: "1",
+    e: "0",
+    f: "3/2 (1 - r)",
+  },
+  stadium: {
+    a: "0",
+    b: "3 pi / 2",
+    c: "1/2",
+    d: "3/2",
+    e: "0",
+    f: "r",
+  },
+  napkinring: {
+    a: "0",
+    b: "2 pi",
+    c: "1",
+    d: "3 / 2",
+    e: "-sqrt(9/4 - r^2)",
+    f: "sqrt(9/4 - r^2)",
+  },
+  bundt: {
+    a: "0",
+    b: "2 pi",
+    c: "1/2",
+    d: "3/2",
+    e: "0",
+    f: "(1 - 4(r - 1)^2)(1 + sin(16 theta)/7)/2 ",
+  },  
+}
+
+const cData = {
+  a: math.parse("0"),
+  b: math.parse(" 3 pi / 2"),
+  c: math.parse("0"),
+  d: math.parse("1"),
+  e: math.parse("sqrt(r) / 2"),
+  f: math.parse("3/2 - r"),
 }
 
 const data = {
@@ -388,55 +486,205 @@ function orderVariables() {
   });
 }
 
+const integralTexBox = document.createElement("div");
+integralTexBox.classList.add("integralbox");
+document.body.appendChild(integralTexBox);
+
 const integralTexElement = document.createElement("div");
 integralTexElement.classList.add("w3-padding");
-integralTexElement.classList.add("integralbox");
-document.body.appendChild(integralTexElement);
+integralTexElement.classList.add("integralthing");
+integralTexBox.appendChild(integralTexElement);
 
 
 
 // integralTexElement.style.width = "400px";
 
 function updateTexElement() {
-  integralTexElement.innerHTML = "$$\\int_{" + rData[varTranslate[variableOrder[0]][0]].toTex() + "}^{" + rData[varTranslate[variableOrder[0]][1]].toTex() + "}\\int_{" 
-  + rData[varTranslate[variableOrder[1]][0]].toTex() + "}^{" + rData[varTranslate[variableOrder[1]][1]].toTex() + "}\\int_{" + rData[varTranslate[variableOrder[2]][0]].toTex() + "}^{" + rData[varTranslate[variableOrder[2]][1]].toTex() + "} " + rData.z.toTex() + ` \\,d${variableOrder[2]}\\,d${variableOrder[1]}\\,d${variableOrder[0]} $$`;
+  const [X,Y,Z] = variableOrder;
+  const a = rData[varTranslate[X][0]], b = rData[varTranslate[X][1]];
+  const c = rData[varTranslate[Y][0]], d = rData[varTranslate[Y][1]];
+  const e = rData[varTranslate[Z][0]], f = rData[varTranslate[Z][1]];
+
+  let intString = "$$\\int_{" + a.toTex() + "}^{" + b.toTex() + "}\\int_{" 
+  + c.toTex() + "}^{" + d.toTex() + "}\\int_{" + e.toTex() + "}^{" + f.toTex() + "} " + rData.z.toTex() + ` \\,d${Z}\\,d${Y}\\,d${X} `;
+  
+  const params = {};
+  const intValue = gaussLegendre(
+    u => {
+      params[X] = u;
+      return gaussLegendre(
+        v =>  {
+          params[Y] = v;
+          return gaussLegendre(
+            w => {
+              params[Z] = w;
+              return rData.z.evaluate( params );
+            },
+            e.evaluate( params ),
+            f.evaluate( params ),
+            10
+          );
+        },
+        c.evaluate( params ),
+        d.evaluate( params ),
+        10
+      );
+    },
+    a.evaluate( params ),
+    b.evaluate( params ),
+    10
+  );
+  
+
+  integralTexElement.innerHTML = intString + "\\approx " + (Math.round(intValue*1000)/1000).toString() + " $$"
+  
   MathJax.typeset();
 }
 
 
+const integralSphericalTexElement = document.createElement("div");
+integralSphericalTexElement.classList.add("w3-padding");
+integralSphericalTexElement.classList.add("integralthing");
+integralTexBox.appendChild(integralSphericalTexElement);
+integralSphericalTexElement.style.display = "none";
 
-// {
-//   const element = document.querySelector("input#frameBallVisible");
-//   element.oninput = () => {
-//     frameBall.visible = element.checked;
-//     requestFrameIfNotRequested();
-//   }
-// }
+const integralCylindricalTexElement = document.createElement("div");
+integralCylindricalTexElement.classList.add("w3-padding");
+integralCylindricalTexElement.classList.add("integralthing");
+integralTexBox.appendChild(integralCylindricalTexElement);
+integralCylindricalTexElement.style.display = "none";
 
-// {
-//   for (let i = 0; i < 3; i++) {
-//     const c = "xyz"[i];
-    
-//     const element = document.querySelector(`input#${c}Traces`);
-//     element.oninput = () => {
-//       tracesHolder.children[i].visible = element.checked;
-//       requestFrameIfNotRequested();
-//     }
-//   }
-// }
+// integralTexElement.style.width = "400px";
 
-// {
-//   const element = document.querySelector("input#flattenContours");
-//   element.oninput = () => {
-//     data.levelDelta = element.checked ? 1 : -1;
+function updateSphericalTexElement() {
+  const [X,Y,Z] = ["theta", "phi","rho"];
+  const {a,b,c,d,e,f} = sData;
 
-//     if ( frameRequested ) {
-//       cancelAnimationFrame( myReq );
-//     }
-//     frameRequested = true;
-//     requestAnimationFrame( animateLevel );
-//   }
-// }
+  const fxyz = rData.z.toString();
+  const xsub = "(rho sin(phi) cos(theta))", ysub = "(rho sin(phi) sin(theta))", zsub = "(rho cos(phi))";
+  const xre = new RegExp("\\bx\\b", "g"), yre = new RegExp("\\by\\b", "g"), zre = new RegExp("\\bz\\b", "g");
+  const integrand = "(" + fxyz.replace(xre, xsub).replace(yre, ysub).replace(zre, zsub) + ") rho^2 sin(phi)";
+
+  console.log(integrand);
+
+  let intString = "$$\\int_{" + a.toTex() + "}^{" + b.toTex() 
+  + "}\\int_{" + c.toTex() + "}^{" + d.toTex() 
+  + "}\\int_{" + e.toTex() + "}^{" + f.toTex() + "} " 
+  + math.simplify(math.parse(integrand)).toTex() + " \\,d\\rho\\,d\\phi\\,d\\theta ";
+  
+  const params = {};
+  const intValue = gaussLegendre(
+    u => {
+      params[X] = u;
+      return gaussLegendre(
+        v =>  {
+          params[Y] = v;
+          return gaussLegendre(
+            w => {
+              params[Z] = w;
+              return rData.z.evaluate( {
+                x: w*Math.sin(v)*Math.cos(u),
+                y: w*Math.sin(v)*Math.sin(u),
+                z: w*Math.cos(v) 
+              } )*w**2*Math.sin(v);
+            },
+            e.evaluate( params ),
+            f.evaluate( params ),
+            10
+          );
+        },
+        c.evaluate( params ),
+        d.evaluate( params ),
+        10
+      );
+    },
+    a.evaluate( params ),
+    b.evaluate( params ),
+    10
+  );
+  
+
+  integralSphericalTexElement.innerHTML = intString + "\\approx " + (Math.round(intValue*1000)/1000).toString() + " $$"
+
+  // integralSphericalTexElement.innerHTML = intString + " $$"
+  
+  MathJax.typeset();
+}
+
+function updateCylindricalTexElement() {
+  const [X,Y,Z] = ["theta", "r","z"];
+  const {a,b,c,d,e,f} = cData;
+
+  const fxyz = rData.z.toString();
+  const xsub = "(r cos(theta))", ysub = "(r sin(theta))";
+  const xre = new RegExp("\\bx\\b", "g"), yre = new RegExp("\\by\\b", "g");
+  const integrand = "(" + fxyz.replace(xre, xsub).replace(yre, ysub) + ") r";
+
+  console.log(integrand);
+
+  let intString = "$$\\int_{" + a.toTex() + "}^{" + b.toTex() 
+  + "}\\int_{" + c.toTex() + "}^{" + d.toTex() 
+  + "}\\int_{" + e.toTex() + "}^{" + f.toTex() + "} " 
+  + math.simplify(math.parse(integrand)).toTex() + " \\,dz\\,dr\\,d\\theta ";
+  
+  const params = {};
+  const intValue = gaussLegendre(
+    u => {
+      params[X] = u;
+      return gaussLegendre(
+        v =>  {
+          params[Y] = v;
+          return gaussLegendre(
+            w => {
+              params[Z] = w;
+              return rData.z.evaluate( {
+                x: v*Math.cos(u),
+                y: v*Math.sin(u),
+                z: w, 
+              } )*v;
+            },
+            e.evaluate( params ),
+            f.evaluate( params ),
+            10
+          );
+        },
+        c.evaluate( params ),
+        d.evaluate( params ),
+        10
+      );
+    },
+    a.evaluate( params ),
+    b.evaluate( params ),
+    10
+  );
+  
+
+  integralCylindricalTexElement.innerHTML = intString + "\\approx " + (Math.round(intValue*1000)/1000).toString() + " $$"
+
+  // integralSphericalTexElement.innerHTML = intString + " $$"
+  
+  MathJax.typeset();
+}
+
+function setVMinMax( {func=(x,y,z) => rData.z.evaluate( {x,y,z} ), size=gridMax, N=10} = {} ) {
+  let m = 0, M = 0;
+  for(let i = 0; i <=N; i++) {
+    const x = -size + 2*size*i/N;
+    for(let j = 0; j <=N; j++) {
+      const y = -size*3/2 + 3*size*j/N;
+      for(let k = 0; k <=N; k++) {
+        const z = -size*3/2 + 3*size*k/N;
+        const out = func(x,y,z);
+        m = Math.min(m,out);
+        M = Math.max(M,out);
+      }
+    }
+  }
+  return [m,M]
+}
+
+
+let [vMin, vMax] = setVMinMax();
 
 
 
@@ -455,41 +703,41 @@ function updateSurface() {
   const A = a.evaluate(), B = b.evaluate();
 
   // let [vMax, vMin] = [1,-1];
-  let [vMax, vMin] = [0,0];
-  {
-    const N = 10;
-    const params = {};
-    for (let i = 0; i <= N; i++) {
-      params[X] = A + (B - A)/N * (i);
-      if (i == 0) params[X] += .0001; // stay away from edge cases
-      if (i == N) params[X] -= .0001; // stay away from edge cases
-      const C = c.evaluate( params ), D = d.evaluate(params);
-      for (let j = 0; j <= N; j++) {
-        params[Y] = C + (D - C) / N * (j);
-        if (j == 0) params[Y] += .0001; // stay away from edge cases
-        if (j == N) params[Y] -= .0001; // stay away from edge cases
-        const E = e.evaluate( params ), F = f.evaluate(params);
-        for (let k = 0; k <= N; k++) {
-          params[Z] = E + (F - E)*(k)/N;
-          if (k == 0) params[Z] += .0001; // stay away from edge cases
-          if (k == N) params[Z] -= .0001; // stay away from edge cases
-          const val = z.evaluate( params )
-          vMax = Math.max(vMax, val );
-          vMin = Math.min(vMin, val );
-        }
-      }
-    }
-    console.log("vmaxmin", vMax, vMin)
-    if (vMax == vMin) { 
-      if (vMax == 0) {
-        vMax = 1;
-        vMin = -1;
-      } else {
-        vMax = 4/3*Math.abs(vMax);
-        vMin = -4/3*Math.abs(vMin);
-      }
-    }
-  }
+  // [vMax, vMin] = [0, 0];
+  // {
+  //   const N = 10;
+  //   const params = {};
+  //   for (let i = 0; i <= N; i++) {
+  //     params[X] = A + (B - A)/N * (i);
+  //     if (i == 0) params[X] += .0001; // stay away from edge cases
+  //     if (i == N) params[X] -= .0001; // stay away from edge cases
+  //     const C = c.evaluate( params ), D = d.evaluate(params);
+  //     for (let j = 0; j <= N; j++) {
+  //       params[Y] = C + (D - C) / N * (j);
+  //       if (j == 0) params[Y] += .0001; // stay away from edge cases
+  //       if (j == N) params[Y] -= .0001; // stay away from edge cases
+  //       const E = e.evaluate( params ), F = f.evaluate(params);
+  //       for (let k = 0; k <= N; k++) {
+  //         params[Z] = E + (F - E)*(k)/N;
+  //         if (k == 0) params[Z] += .0001; // stay away from edge cases
+  //         if (k == N) params[Z] -= .0001; // stay away from edge cases
+  //         const val = z.evaluate( params )
+  //         vMax = Math.max(vMax, val );
+  //         vMin = Math.min(vMin, val );
+  //       }
+  //     }
+  //   }
+  //   console.log("vmaxmin", vMax, vMin)
+  //   if (vMax == vMin) { 
+  //     if (vMax == 0) {
+  //       vMax = 1;
+  //       vMin = -1;
+  //     } else {
+  //       vMax = 4/3*Math.abs(vMax);
+  //       vMin = -4/3*Math.abs(vMin);
+  //     }
+  //   }
+  // }
   const colorBar = document.querySelector(".colorBar");
   if (colorBar) document.body.removeChild(colorBar);
   addColorBar(vMin, vMax);
@@ -583,7 +831,7 @@ function updateSurface() {
 
       params[X] = U;
       params[Y] = c.evaluate( params );
-      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params )
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
       vec[X] = params[X];
       vec[Y] = params[Y];
@@ -608,7 +856,7 @@ function updateSurface() {
     if (D > C + 1e-10) {
       const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
         params[Y] = (1 - u)*C + u*D;
-        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
         vec[X] = params[X];
         vec[Y] = params[Y];
@@ -636,7 +884,7 @@ function updateSurface() {
       const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
 
         params[Y] = (1 - u)*C + u*D;
-        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params ),
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
         vec[X] = params[X];
         vec[Y] = params[Y];
@@ -660,115 +908,240 @@ function updateSurface() {
    
 }
 
+// spherical region mesh
 
-function makeTraces( {xN = 10, yN = 10, zN = 10} = {}) {
-  const {a,b,c,d,e,f,z,k} = rData;
-  const [xMin,xMax, yMin, yMax, zMin, zMax] = [a,b,c,d,e,f].map(x => x.evaluate())
+let surfaceSphericalMesh;
 
-  const dx = (xMax - xMin) / xN, dy = (yMax - yMin) / yN, dz = (zMax - zMin) / zN;
+function updateSphericalSurface() {
+  orderVariables();
+  const {z} = rData;
+  const {a,b,c,d,e,f} = sData;
+  const [X,Y,Z] = ["theta", "phi", "rho"];
 
-  for (let index = tracesHolder.children.length - 1; index >= 0; index--) {
-    const child = tracesHolder.children[index];
-    child.geometry.dispose();
-    tracesHolder.remove(child);    
-  }
+  const A = a.evaluate(), B = b.evaluate();
 
-  // x-traces
-  {
-    const pts = [];
+  // let [vMax, vMin] = [1,-1];
+  // {
+  //   const N = 10;
+  //   const params = {};
+  //   for (let i = 0; i <= N; i++) {
+  //     params[X] = A + (B - A)/N * (i);
+  //     if (i == 0) params[X] += .0001; // stay away from edge cases
+  //     if (i == N) params[X] -= .0001; // stay away from edge cases
+  //     const C = c.evaluate( params ), D = d.evaluate(params);
+  //     for (let j = 0; j <= N; j++) {
+  //       params[Y] = C + (D - C) / N * (j);
+  //       if (j == 0) params[Y] += .0001; // stay away from edge cases
+  //       if (j == N) params[Y] -= .0001; // stay away from edge cases
+  //       const E = e.evaluate( params ), F = f.evaluate(params);
+  //       for (let k = 0; k <= N; k++) {
+  //         params[Z] = E + (F - E)*(k)/N;
+  //         if (k == 0) params[Z] += .0001; // stay away from edge cases
+  //         if (k == N) params[Z] -= .0001; // stay away from edge cases
+  //         const val = z.evaluate( params )
+  //         vMax = Math.max(vMax, val );
+  //         vMin = Math.min(vMin, val );
+  //       }
+  //     }
+  //   }
+  //   console.log("vmaxmin", vMax, vMin)
+  //   if (vMax == vMin) { 
+  //     if (vMax == 0) {
+  //       vMax = 1;
+  //       vMin = -1;
+  //     } else {
+  //       vMax = 4/3*Math.abs(vMax);
+  //       vMin = -4/3*Math.abs(vMin);
+  //     }
+  //   }
+  // }
+  // const colorBar = document.querySelector(".colorBar");
+  // if (colorBar) document.body.removeChild(colorBar);
+  // addColorBar(vMin, vMax);
 
-    for (let i = 0; i < xN; i++) {
-      const zLevel = xMin + i * dx;
-      pts.push(
-        ...marchingSquares({
-          f: (x, y) => z.evaluate({ x: zLevel, y: x, z: y }),
-          level: k.evaluate(),
-          xmin: yMin,
-          xmax: yMax,
-          ymin: zMin,
-          ymax: zMax,
-          zLevel: zLevel,
-          nX: data.nX,
-          nY: data.nX,
-        })
-      );
+  if (surfaceSphericalMesh) {
+    for (let i = surfaceSphericalMesh.children.length - 1; i >= 0; i--) {
+      const mesh = surfaceSphericalMesh.children[i];
+      mesh.geometry.dispose()
+      surfaceSphericalMesh.remove(mesh);
     }
-
-    // console.log(pts.length, " Points starting with ", pts[0]);
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
-
-    const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
-
-    trace.rotation.y = Math.PI / 2;
-    trace.rotation.z = Math.PI / 2;
-
-
-    tracesHolder.add(trace);
+  } else {
+    surfaceSphericalMesh = new THREE.Object3D();
+    scene.add(surfaceSphericalMesh);
+    surfaceSphericalMesh.visible = false;
   }
 
-  // y-traces
+  // Top
   {
-    const pts = [];
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+      params[X] = U;
+      params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+      params[Z] = f.evaluate( params );
 
-    for (let i = 0; i < yN; i++) {
-      const zLevel = yMin + i * dy;
-      pts.push(
-        ...marchingSquares({
-          f: (x, y) => z.evaluate({ x: y, y: zLevel, z: x }),
-          level: k.evaluate(),
-          xmin: zMin,
-          xmax: zMax,
-          ymin: xMin,
-          ymax: xMax,
-          zLevel: zLevel,
-          nX: data.nX,
-          nY: data.nX,
-        })
-      );
-    }
+      const [t,p,r] = [params[X],params[Y],params[Z]];
 
-    // console.log(pts.length, " Points starting with ", pts[0]);
+      vec.set(r*math.sin(p)*math.cos(t), 
+        r*math.sin(p)*math.sin(t),
+        r*math.cos(p))
 
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
+    }, data.nX, data.nX);
 
-    const trace = new THREE.LineSegments(geometry, whiteLineMaterial);
-
-    trace.rotation.x = -Math.PI / 2;
-    trace.rotation.z = -Math.PI / 2;
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
 
 
-    tracesHolder.add(trace);
+    surfaceSphericalMesh.add(mesh);
+
   }
 
-  // z-traces  
+  // Bottom
   {
-    const pts = [];
+    if (e.toString() !== "0") {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        const U = A + (B - A)*u;
+        const params = {};
 
-    for (let i = 0; i < zN; i++) {
-      const zLevel = zMin + i * dz;
-      pts.push(
-        ...marchingSquares({
-          f: (x, y) => z.evaluate({ x: x, y: y, z: zLevel }),
-          level: k.evaluate(),
-          xmin: xMin,
-          xmax: xMax,
-          ymin: yMin,
-          ymax: yMax,
-          zLevel: zLevel,
-        })
-      );
+        params[X] = U;
+        params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+        params[Z] = e.evaluate( params );
+
+        const [t,p,r] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.sin(p)*math.cos(t), 
+          r*math.sin(p)*math.sin(t),
+          r*math.cos(p))
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceSphericalMesh.add(mesh);
     }
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
-
-    tracesHolder.add(new THREE.LineSegments(geometry, whiteLineMaterial));
   }
-  
 
+  // "Front" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = d.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,p,r] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.sin(p)*math.cos(t), 
+        r*math.sin(p)*math.sin(t),
+        r*math.cos(p))
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceSphericalMesh.add(mesh);
+  }
+
+  // "Back" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = c.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,p,r] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.sin(p)*math.cos(t), 
+        r*math.sin(p)*math.sin(t),
+        r*math.cos(p))
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceSphericalMesh.add(mesh);
+  }
+
+
+  // "Left" 
+  {
+    const params = {};
+
+    params[X] = A;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+
+        const [t,p,r] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.sin(p)*math.cos(t), 
+          r*math.sin(p)*math.sin(t),
+          r*math.cos(p));
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceSphericalMesh.add(mesh);
+    } else {
+      console.log("Empty side A")
+    }
+  }
+
+  // "Right" 
+  {
+    const params = {};
+
+    params[X] = B;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+        const [t,p,r] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.sin(p)*math.cos(t), 
+          r*math.sin(p)*math.sin(t),
+          r*math.cos(p))
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceSphericalMesh.add(mesh);
+    } else {
+      console.log("Empty side B")
+    }
+  }
+
+  // updateTexElement();
+  updateSphericalTexElement();
+
+  requestFrameIfNotRequested();
+   
 }
 
-// makeTraces();
+
 
 // Exercises
 // 
@@ -783,31 +1156,40 @@ function makeTraces( {xN = 10, yN = 10, zN = 10} = {}) {
   const element = document.querySelector("input#surfaceVisible");
   element.oninput = () => {
     surfaceMesh.visible = element.checked;
+    if (element.checked) {
+      integralTexElement.style.display = "block";
+    } else {
+      integralTexElement.style.display = "none";
+    }
     requestFrameIfNotRequested();
   }
 }
 
-
-
-// let [vMax, vMin] = vMaxMin(surfaceMesh.children[0])
-
-function lcm(x, y) {
-  if ((typeof x !== 'number') || (typeof y !== 'number')) 
-   return false;
- return (!x || !y) ? 0 : Math.abs((x * y) / gcd(x, y));
+{
+  const element = document.querySelector("input#surfaceSphericalVisible");
+  element.oninput = () => {
+    surfaceSphericalMesh.visible = element.checked;
+    if (element.checked) {
+      integralSphericalTexElement.style.display = "block";
+    } else {
+      integralSphericalTexElement.style.display = "none";
+    }
+    requestFrameIfNotRequested();
+  }
 }
 
-function gcd(x, y) {
- x = Math.abs(x);
- y = Math.abs(y);
- while(y) {
-   var t = y;
-   y = x % y;
-   x = t;
- }
- return x;
+{
+  const element = document.querySelector("input#surfaceCylindricalVisible");
+  element.oninput = () => {
+    surfaceCylindricalMesh.visible = element.checked;
+    if (element.checked) {
+      integralCylindricalTexElement.style.display = "block";
+    } else {
+      integralCylindricalTexElement.style.display = "none";
+    }
+    requestFrameIfNotRequested();
+  }
 }
-
 
 
 const surfs = Object.keys(surfaces);
@@ -854,6 +1236,361 @@ for (let i = 0; i < surfs.length; i++) {
   }
 }
 
+
+// cylindrical region mesh
+
+let surfaceCylindricalMesh;
+
+function updateCylindricalSurface() {
+  orderVariables();
+  const {z} = rData;
+  const {a,b,c,d,e,f} = cData;
+  const [X,Y,Z] = ["theta", "r", "z"];
+
+  const A = a.evaluate(), B = b.evaluate();
+
+  // let [vMax, vMin] = [1,-1];
+  // {
+  //   const N = 10;
+  //   const params = {};
+  //   for (let i = 0; i <= N; i++) {
+  //     params[X] = A + (B - A)/N * (i);
+  //     if (i == 0) params[X] += .0001; // stay away from edge cases
+  //     if (i == N) params[X] -= .0001; // stay away from edge cases
+  //     const C = c.evaluate( params ), D = d.evaluate(params);
+  //     for (let j = 0; j <= N; j++) {
+  //       params[Y] = C + (D - C) / N * (j);
+  //       if (j == 0) params[Y] += .0001; // stay away from edge cases
+  //       if (j == N) params[Y] -= .0001; // stay away from edge cases
+  //       const E = e.evaluate( params ), F = f.evaluate(params);
+  //       for (let k = 0; k <= N; k++) {
+  //         params[Z] = E + (F - E)*(k)/N;
+  //         if (k == 0) params[Z] += .0001; // stay away from edge cases
+  //         if (k == N) params[Z] -= .0001; // stay away from edge cases
+  //         const val = z.evaluate( params )
+  //         vMax = Math.max(vMax, val );
+  //         vMin = Math.min(vMin, val );
+  //       }
+  //     }
+  //   }
+  //   console.log("vmaxmin", vMax, vMin)
+  //   if (vMax == vMin) { 
+  //     if (vMax == 0) {
+  //       vMax = 1;
+  //       vMin = -1;
+  //     } else {
+  //       vMax = 4/3*Math.abs(vMax);
+  //       vMin = -4/3*Math.abs(vMin);
+  //     }
+  //   }
+  // }
+  // const colorBar = document.querySelector(".colorBar");
+  // if (colorBar) document.body.removeChild(colorBar);
+  // addColorBar(vMin, vMax);
+
+  if (surfaceCylindricalMesh) {
+    for (let i = surfaceCylindricalMesh.children.length - 1; i >= 0; i--) {
+      const mesh = surfaceCylindricalMesh.children[i];
+      mesh.geometry.dispose()
+      surfaceCylindricalMesh.remove(mesh);
+    }
+  } else {
+    surfaceCylindricalMesh = new THREE.Object3D();
+    scene.add(surfaceCylindricalMesh);
+    surfaceCylindricalMesh.visible = false;
+  }
+
+  // Top
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+      params[X] = U;
+      params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+      params[Z] = f.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z)
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceCylindricalMesh.add(mesh);
+
+  }
+
+  // Bottom
+  {
+    if (true) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        const U = A + (B - A)*u;
+        const params = {};
+
+        params[X] = U;
+        params[Y] = (1 - v)*c.evaluate( params ) + v*d.evaluate( params ); 
+        params[Z] = e.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z)
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceCylindricalMesh.add(mesh);
+    }
+  }
+
+  // "Front" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = d.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z);
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceCylindricalMesh.add(mesh);
+  }
+
+  // "Back" 
+  {
+    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const U = A + (B - A)*u;
+      const params = {};
+
+      params[X] = U;
+      params[Y] = c.evaluate( params );
+      params[Z] = (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z);
+
+    }, data.nX, data.nX);
+
+    const mesh = new THREE.Mesh(geometry, materialColors);
+    colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+    surfaceCylindricalMesh.add(mesh);
+  }
+
+
+  // "Left" 
+  {
+    const params = {};
+
+    params[X] = A;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+
+      const [t,r,z] = [params[X],params[Y],params[Z]];
+
+      vec.set(r*math.cos(t), 
+        r*math.sin(t),
+        z);
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceCylindricalMesh.add(mesh);
+    } else {
+      console.log("Empty side A")
+    }
+  }
+
+  // "Right" 
+  {
+    const params = {};
+
+    params[X] = B;
+    const C = c.evaluate( params ), D = d.evaluate( params );
+    if (D > C + 1e-10) {
+      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+
+        params[Y] = (1 - u)*C + u*D;
+        params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
+
+        const [t,r,z] = [params[X],params[Y],params[Z]];
+
+        vec.set(r*math.cos(t), 
+          r*math.sin(t),
+          z);
+
+      }, data.nX, data.nX);
+
+      const mesh = new THREE.Mesh(geometry, materialColors);
+      colorBufferVertices(mesh, (u,v,w) => blueUpRedDown( 2*(z.evaluate({x: u, y: v, z: w}) - vMin) / (vMax - vMin) - 1) );
+
+
+      surfaceCylindricalMesh.add(mesh);
+    } else {
+      console.log("Empty side B")
+    }
+  }
+
+  // updateTexElement();
+  updateCylindricalTexElement();
+
+  requestFrameIfNotRequested();
+   
+}
+
+
+
+function lcm(x, y) {
+  if ((typeof x !== 'number') || (typeof y !== 'number')) 
+   return false;
+ return (!x || !y) ? 0 : Math.abs((x * y) / gcd(x, y));
+}
+
+function gcd(x, y) {
+ x = Math.abs(x);
+ y = Math.abs(y);
+ while(y) {
+   var t = y;
+   y = x % y;
+   x = t;
+ }
+ return x;
+}
+
+
+{ // spherical region menu items
+  const surfs = Object.keys(surfacesSpherical);
+  for (let i = 0; i < surfs.length; i++) {
+    const surf = surfs[i];
+    let element = document.getElementById(surf);
+
+    if (!element) {
+      element = document.createElement("span");
+      parent = document.querySelector("#surfaceSphericalMenu");
+      element.innerHTML = `<span id="${surf}">${surf}</span>`;
+      if (parent.children.length > 0) {
+        const pipeSpan = document.createElement("span");
+        pipeSpan.innerText = " | ";
+        parent.appendChild(pipeSpan);
+      }
+      parent.appendChild(element);
+    }
+
+    element.onclick = () => {
+      data.S = surf;
+      const sf = surfacesSpherical[surf];
+      let el;
+      for (let i = 0; i < Object.keys(sf).length; i++) {
+        const c = Object.keys(sf)[i];
+        // console.log(surf, c);
+        el = document.querySelector(`#customSpherical${c.toUpperCase()}`);
+        el.value = sf[c];
+        sData[c] = math.parse(sf[c]);
+        // el.dispatchEvent(new Event('change'));
+      }
+      updateSphericalSurface();
+      for (let j = 0; j < surfs.length; j++) {
+        const el = document.getElementById(surfs[j]);
+        const elForm = document.querySelector(
+          `.surface-choices-item#${surfs[j]}-formula`
+        );
+        if (i === j) {
+          el.classList.add("choices-selected");
+          if (elForm) elForm.style.visibility = "visible";
+        } else {
+          el.classList.remove("choices-selected");
+          if (elForm) elForm.style.visibility = "hidden";
+        }
+      }
+    };
+  }
+}
+
+
+
+{ // spherical region menu items
+  const surfs = Object.keys(surfacesCylindrical);
+  for (let i = 0; i < surfs.length; i++) {
+    const surf = surfs[i];
+    let element = document.getElementById(surf);
+
+    if (!element) {
+      element = document.createElement("span");
+      parent = document.querySelector("#surfaceCylindricalMenu");
+      element.innerHTML = `<span id="${surf}">${surf}</span>`;
+      if (parent.children.length > 0) {
+        const pipeSpan = document.createElement("span");
+        pipeSpan.innerText = " | ";
+        parent.appendChild(pipeSpan);
+      }
+      parent.appendChild(element);
+    }
+
+    element.onclick = () => {
+      data.S = surf;
+      const sf = surfacesCylindrical[surf];
+      let el;
+      for (let i = 0; i < Object.keys(sf).length; i++) {
+        const c = Object.keys(sf)[i];
+        // console.log(surf, c);
+        el = document.querySelector(`#customCylindrical${c.toUpperCase()}`);
+        el.value = sf[c];
+        cData[c] = math.parse(sf[c]);
+        // el.dispatchEvent(new Event('change'));
+      }
+      updateCylindricalSurface();
+      for (let j = 0; j < surfs.length; j++) {
+        const el = document.getElementById(surfs[j]);
+        const elForm = document.querySelector(
+          `.surface-choices-item#${surfs[j]}-formula`
+        );
+        if (i === j) {
+          el.classList.add("choices-selected");
+          if (elForm) elForm.style.visibility = "visible";
+        } else {
+          el.classList.remove("choices-selected");
+          if (elForm) elForm.style.visibility = "hidden";
+        }
+      }
+    };
+  }
+}
+
+
+// Change custom fields
+
 {
   const XYZ = "ZABCDEF";
   for (let i = 0; i < XYZ.length; i++) {
@@ -876,13 +1613,71 @@ for (let i = 0; i < surfs.length; i++) {
         return;
       }
       // console.log(expr.evaluate( {u: 2, v: 1} ));
+      if (ch === "Z") {
+        [vMin,vMax] = setVMinMax();
+        updateSphericalSurface();
+        updateCylindricalSurface();
+      }
       updateSurface();
     };
   }
 }
 
+{
+  const XYZ = "ABCDEF";
+  for (let i = 0; i < XYZ.length; i++) {
+    const ch = XYZ[i];
+    const id = `customSpherical${ch}`;
+    const element = document.querySelector(`#${id}`);
 
+    element.onchange = () => {
+      const c = ch.toLowerCase();
+      // console.log(element.value, "is the value of" + ch);
+      const form = document.querySelector(`#${id} + .form-warning`);
+      try {
+        const expr = math.parse(element.value);
+        expr.evaluate({ theta: 0, phi: 0, rho: 0});
+        sData[c] = expr;
+        form.innerText = '';
+      } catch (e) {
+        console.error( e );
+        form.innerText = ' ' + e.name;
+        return;
+      }
+      // console.log(expr.evaluate( {u: 2, v: 1} ));
+      updateSphericalSurface();
+    };
+  }
 
+}
+
+{
+  const XYZ = "ABCDEF";
+  for (let i = 0; i < XYZ.length; i++) {
+    const ch = XYZ[i];
+    const id = `customCylindrical${ch}`;
+    const element = document.querySelector(`#${id}`);
+
+    element.onchange = () => {
+      const c = ch.toLowerCase();
+      // console.log(element.value, "is the value of" + ch);
+      const form = document.querySelector(`#${id} + .form-warning`);
+      try {
+        const expr = math.parse(element.value);
+        expr.evaluate({ theta: 0, r: 0, z: 0});
+        cData[c] = expr;
+        form.innerText = '';
+      } catch (e) {
+        console.error( e );
+        form.innerText = ' ' + e.name;
+        return;
+      }
+      // console.log(expr.evaluate( {u: 2, v: 1} ));
+      updateCylindricalSurface();
+    };
+  }
+
+}
 
 // const balls = new THREE.Object3D();
 // const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
@@ -1252,61 +2047,19 @@ function changeLevels( t ) {
   }
 }
 
-function updateLevels() {
-  for (let index = levelHolder.children.length - 1; index >= 0; index--) {
-    const element = levelHolder.children[index];
-    element.geometry.dispose();
-    levelHolder.remove(element);
-  }
-  const {a,b,c,d,z} = rData;
-  let C=0, D=0, zMin = 0, zMax = 0;
-  const [A,B] = [a.evaluate(),b.evaluate()];
-  for (let i=0; i <= data.nL; i++) {
-    C = Math.min(C,c.evaluate({x: A + (B - A)*i/data.nL}));
-    D = Math.max(D,d.evaluate({x: A + (B - A)*i/data.nL}));
-    for (let j=0; j <= data.nL; j++) {
-      const Z = z.evaluate( {x: A + (B - A)*i/data.nL, y:C + (D - C)*j/data.nL});
-      zMin = Math.min(zMin, Z);
-      zMax = Math.max(zMax, Z)
-    }
-  }
 
-  for (let lev = zMin; lev <= zMax; lev += Math.max((zMax - zMin) / data.nL ), 0.01) {
-
-    const points = marchingSquares( {
-      f: (x,y) =>  { return z.evaluate( {x, y} ); },
-      xmin: A,
-      xmax: B,
-      ymin: C,
-      ymax: D,
-      level: lev,
-      zLevel: 0,
-      nX: data.nX,
-      nY: data.nX,
-    } );
-
-    // console.log(points[2]);
-
-    if (points.length > 1) {
-      const levelGeometry = new THREE.BufferGeometry();
-
-      levelGeometry.setFromPoints( points );
-      
-      const levelMesh = new THREE.LineSegments( levelGeometry, new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 3, transparent: false } ));
-      
-      levelMesh.level = lev;
-      levelMesh.position.set(0,0,shiftInterpolation(data.shiftLevel, lev))
-
-      levelHolder.add(levelMesh);
-    }
-  }
-}
 
 processURLSearch()
 
 
 // updateLevels();
+{
 updateSurface();
+updateSphericalSurface();
+const topElement = document.querySelector("span#top");
+console.log("top",topElement);
+topElement.click();
+}
 // changeLevels( 2.5 );
 
 
