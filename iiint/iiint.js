@@ -197,7 +197,7 @@ const rData = {
   d: math.parse("1 - x"),
   e: math.parse("0"),
   f: math.parse("1 - x - y"),
-  z: math.parse("z^2"),
+  z: math.parse("z"),
 }
 
 
@@ -666,8 +666,25 @@ function updateCylindricalTexElement() {
   MathJax.typeset();
 }
 
+function setVMinMax( {func=(x,y,z) => rData.z.evaluate( {x,y,z} ), size=gridMax, N=10} = {} ) {
+  let m = 0, M = 0;
+  for(let i = 0; i <=N; i++) {
+    const x = -size + 2*size*i/N;
+    for(let j = 0; j <=N; j++) {
+      const y = -size*3/2 + 3*size*j/N;
+      for(let k = 0; k <=N; k++) {
+        const z = -size*3/2 + 3*size*k/N;
+        const out = func(x,y,z);
+        m = Math.min(m,out);
+        M = Math.max(M,out);
+      }
+    }
+  }
+  return [m,M]
+}
 
-let [vMax, vMin] = [0,0];
+
+let [vMin, vMax] = setVMinMax();
 
 
 
@@ -686,41 +703,41 @@ function updateSurface() {
   const A = a.evaluate(), B = b.evaluate();
 
   // let [vMax, vMin] = [1,-1];
-  [vMax, vMin] = [0, 0];
-  {
-    const N = 10;
-    const params = {};
-    for (let i = 0; i <= N; i++) {
-      params[X] = A + (B - A)/N * (i);
-      if (i == 0) params[X] += .0001; // stay away from edge cases
-      if (i == N) params[X] -= .0001; // stay away from edge cases
-      const C = c.evaluate( params ), D = d.evaluate(params);
-      for (let j = 0; j <= N; j++) {
-        params[Y] = C + (D - C) / N * (j);
-        if (j == 0) params[Y] += .0001; // stay away from edge cases
-        if (j == N) params[Y] -= .0001; // stay away from edge cases
-        const E = e.evaluate( params ), F = f.evaluate(params);
-        for (let k = 0; k <= N; k++) {
-          params[Z] = E + (F - E)*(k)/N;
-          if (k == 0) params[Z] += .0001; // stay away from edge cases
-          if (k == N) params[Z] -= .0001; // stay away from edge cases
-          const val = z.evaluate( params )
-          vMax = Math.max(vMax, val );
-          vMin = Math.min(vMin, val );
-        }
-      }
-    }
-    console.log("vmaxmin", vMax, vMin)
-    if (vMax == vMin) { 
-      if (vMax == 0) {
-        vMax = 1;
-        vMin = -1;
-      } else {
-        vMax = 4/3*Math.abs(vMax);
-        vMin = -4/3*Math.abs(vMin);
-      }
-    }
-  }
+  // [vMax, vMin] = [0, 0];
+  // {
+  //   const N = 10;
+  //   const params = {};
+  //   for (let i = 0; i <= N; i++) {
+  //     params[X] = A + (B - A)/N * (i);
+  //     if (i == 0) params[X] += .0001; // stay away from edge cases
+  //     if (i == N) params[X] -= .0001; // stay away from edge cases
+  //     const C = c.evaluate( params ), D = d.evaluate(params);
+  //     for (let j = 0; j <= N; j++) {
+  //       params[Y] = C + (D - C) / N * (j);
+  //       if (j == 0) params[Y] += .0001; // stay away from edge cases
+  //       if (j == N) params[Y] -= .0001; // stay away from edge cases
+  //       const E = e.evaluate( params ), F = f.evaluate(params);
+  //       for (let k = 0; k <= N; k++) {
+  //         params[Z] = E + (F - E)*(k)/N;
+  //         if (k == 0) params[Z] += .0001; // stay away from edge cases
+  //         if (k == N) params[Z] -= .0001; // stay away from edge cases
+  //         const val = z.evaluate( params )
+  //         vMax = Math.max(vMax, val );
+  //         vMin = Math.min(vMin, val );
+  //       }
+  //     }
+  //   }
+  //   console.log("vmaxmin", vMax, vMin)
+  //   if (vMax == vMin) { 
+  //     if (vMax == 0) {
+  //       vMax = 1;
+  //       vMin = -1;
+  //     } else {
+  //       vMax = 4/3*Math.abs(vMax);
+  //       vMin = -4/3*Math.abs(vMin);
+  //     }
+  //   }
+  // }
   const colorBar = document.querySelector(".colorBar");
   if (colorBar) document.body.removeChild(colorBar);
   addColorBar(vMin, vMax);
@@ -1596,11 +1613,12 @@ function gcd(x, y) {
         return;
       }
       // console.log(expr.evaluate( {u: 2, v: 1} ));
-      updateSurface();
       if (ch === "Z") {
+        [vMin,vMax] = setVMinMax();
         updateSphericalSurface();
         updateCylindricalSurface();
       }
+      updateSurface();
     };
   }
 }
