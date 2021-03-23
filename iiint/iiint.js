@@ -91,7 +91,7 @@ const lineMaterial = new THREE.LineBasicMaterial( { color: 0x551122, transparent
 // Grid
 
 let gridMeshes = new THREE.Object3D();
-// gridMeshes = drawGrid( {lineMaterial});
+gridMeshes = drawGrid( {lineMaterial});
 gridMeshes.renderDepth = -1;
 scene.add(gridMeshes);
 
