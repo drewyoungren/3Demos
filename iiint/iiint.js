@@ -147,11 +147,23 @@ const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe: 
 const minusMaterial = new THREE.MeshPhongMaterial({color: 0xff3232, shininess: 80, side: THREE.BackSide,vertexColors: false, transparent: true, opacity: 0.7});
 const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false, transparent: true, opacity: 0.7});
 
-
+const densities = {
+  linear: {
+    z: "x - y + z",
+  },
+  radial: {
+    z: "x^2 + y^2",
+  },
+  stripes: {
+    z: "sin(x + 4 y)",
+  },
+  theta: {
+    z: "arg(x + i*y)",
+  },
+}
 
 const surfaces = {
   cube: {
-    z: "x + y + z",
     a: "0",
     b: "1",
     c: "0",
@@ -669,11 +681,11 @@ function updateCylindricalTexElement() {
 function setVMinMax( {func=(x,y,z) => rData.z.evaluate( {x,y,z} ), size=gridMax, N=10} = {} ) {
   let m = 0, M = 0;
   for(let i = 0; i <=N; i++) {
-    const x = -size + 2*size*i/N;
+    const x = -size + 2*size*i/N + ((i % N > 0) ? .001*gridMax*(Math.random()-0.5) : 0 );
     for(let j = 0; j <=N; j++) {
-      const y = -size + 2*size*j/N;
+      const y = -size + 2*size*j/N + ((j % N > 0) ? .001*gridMax*(Math.random()-0.5) : 0 );
       for(let k = 0; k <=N; k++) {
-        const z = -size + 2*size*k/N;
+        const z = -size + 2*size*k/N + ((j % N > 0) ? .001*gridMax*(Math.random()-0.5) : 0 );
         const out = func(x,y,z);
         m = Math.min(m,out);
         M = Math.max(M,out);
@@ -1540,7 +1552,7 @@ function gcd(x, y) {
 
 
 
-{ // spherical region menu items
+{ // cylindrical region menu items
   const surfs = Object.keys(surfacesCylindrical);
   for (let i = 0; i < surfs.length; i++) {
     const surf = surfs[i];
@@ -1587,6 +1599,51 @@ function gcd(x, y) {
     };
   }
 }
+
+// integrand examples
+
+{ // cylindrical region menu items
+  const surfs = Object.keys(densities);
+  for (let i = 0; i < surfs.length; i++) {
+    const surf = surfs[i];
+    let element = document.getElementById(surf);
+
+    if (!element) {
+      element = document.createElement("span");
+      parent = document.querySelector("#densityMenu");
+      element.innerHTML = `<span id="density-${surf}">${surf}</span>`;
+      if (parent.children.length > 0) {
+        const pipeSpan = document.createElement("span");
+        pipeSpan.innerText = " | ";
+        parent.appendChild(pipeSpan);
+      }
+      parent.appendChild(element);
+    }
+
+    element.onclick = () => {
+      const sf = densities[surf];
+      const el = document.querySelector(`#customZ`);
+      el.value = sf.z;
+      rData.z = math.parse(sf.z);
+
+      [vMin,vMax] = setVMinMax();
+      updateSurface();
+      updateSphericalSurface();
+      updateCylindricalSurface();
+
+      for (let j = 0; j < surfs.length; j++) {
+        const id = `density-${surfs[j]}`;
+        const el = document.getElementById(id);
+        if (i === j) {
+          el.classList.add("choices-selected");
+        } else {
+          el.classList.remove("choices-selected");
+        }
+      }
+    };
+  }
+}
+
 
 
 // Change custom fields
