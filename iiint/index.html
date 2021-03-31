@@ -24,7 +24,7 @@
           RR: "{\\mathbb R}",
           bold: ["{\\bf #1}", 1],
           vec: "\\mathbf "
-    }
+        }
       }
     };
 
@@ -39,9 +39,9 @@
 
     function openSettings() {
       const el = document.querySelector('#settings-box');
-      if ( el.classList.contains('w3-hide') ){
+      if (el.classList.contains('w3-hide')) {
         el.classList.remove('w3-hide');
-      } else { el.classList.add('w3-hide');} 
+      } else { el.classList.add('w3-hide'); }
     }
 
   </script>
@@ -59,11 +59,13 @@
 
     <header class=" sans info-header">
       <div class="info-header-item title"> Triple Integrals </div>
-      
+
       <div class="info-header-item no-select" style="padding-right: 5px; cursor: default;">
-        <span class="menu-page-item" onclick="openPage('main')">rectangular</span> | 
-        <span class="menu-page-item" onclick="openPage('cylindrical')">cylindrical</span> | 
-         <span class="menu-page-item" onclick="openPage('spherical')">spherical</span> <!--| 
+        <span class="menu-page-item" onclick="openPage('main')">integrand</span> |
+        <span class="menu-page-item" onclick="openPage('rectangular')">rectangular</span> |
+        <span class="menu-page-item" onclick="openPage('cylindrical')">cylindrical</span> |
+        <span class="menu-page-item" onclick="openPage('spherical')">spherical</span>
+        <!--| 
         <span class="menu-page-item" onclick="openPage('linear')">linearization</span> | 
         <span class="menu-page-item" onclick="openPage('gradient')">div &amp; curl</span> | 
         <span class="menu-page-item" onclick="openPage('practice')">practice</span> -->
@@ -74,175 +76,332 @@
 
 
 
-      <div class="page w3-padding w3-hide w3-animate-left" id="cylindrical"> 
-        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
+      <div class="page w3-padding w3-hide w3-animate-left" id="cylindrical">
+        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">
           &otimes;
         </span>
-          
-        <p>Cylindrical coordinates demo coming soon. </p>
-        
 
-    </div>
+        <p>
+          <b>Cylindrical coordinates</b> specify a point in $\RR^3$ by its
+        <ul>
+          <li>usual Cartesian coordinate $\z$, </li>
+          <li>distance to the $z$-axis, $r$, and </li>
+          <li>angle around the $z$-axis, $\theta$.</li>
+        </ul>
+        </p>
 
+        <p>
+          To convert these back to rectangular coordinates, we use the equations:
+          $$ x = r \cos \theta $$
+          $$ y = r \sin \theta $$
+          $$ z = z $$
+        </p>
 
-      <!-- tangents page -->
-      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="spherical">
-        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
-        <p>Coming soon.</p>
-     </div>
+        <p> The volume form is $$dV = r\,dz\,dr\,d\theta.$$</p>
 
-    <!-- lineariztion -->
-    <!-- <div class="page w3-container w3-animate-left w3-padding w3-hide" id="linear">
-      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
-      <p>
-        The tangent plane is the graph of the best linear approximation to the function at a specified point. We say the <b>linearization</b> of a function $f(x,y)$ at a point $(a,b)$ is a linear function $$L(x,y) = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b).$$
-      </p>
-
-      <div class="w3-container" id="custom-linear">
-
-        <div class="menu-choice-centered" style="padding-top: 20px;">
-          <div>
-            <span>$a = $ <input class="custom-input" type="text" name="linearA" style="width: 4em; "
-                id="linearA" value="-1"><span style="color: red;" class="form-warning"></span>
-            </span> <span>$b = $ <input class="custom-input" type="text" name="linearB" style="width: 4em;" id="linearB"
-                value="1"><span style="color: red;" class="form-warning"></span>
-            </span>
-          </div>
-          <div>&nbsp;</div>
-          <div>
-            <span>$\Delta x = $ 
-              <input class="custom-input" type="text" name="linearDx" style="width: 4em; "
-                id="linearDx" value="0.1"><span style="color: red;" class="form-warning"></span>,
-            </span>
-            <span>$\Delta y = $
-              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDy" value="0.1"><span
-                style="color: red;" class="form-warning"></span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div> -->
-
-
-<!-- Scalar field page -->
-      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
-        <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
-        <p>Let $E \subset \RR^3$ be a solid region in 3-space and $f$ a piecewise continuous, scalar-valued function on that set. The <b>triple integral</b> 
-        $$\iiint_E f\,dV$$ is the limit of Riemann sums $\displaystyle \sum_{i,j,k} f(x_i^*, y_j^*, z_k^*)\, \Delta V_{ijk}$ where the sums are taken over rectangular prism intersecting $E$ with volume $\Delta V_{ijk}$ and the integrand $f$ is evaluated at a sample point in each subregion.   </p>
-
+        <div class="interact">
           <p>
-            The usual Cartesian system representing a point with a triple $(x,y,z)$ are known as <b>rectangular coordinates</b> and have the familiar volume element $$dV = dz\,dy\,dx.$$ We can compute a triple integral as an iterated integral in the usual way, minding that the dependencies of variables makes sense. 
+            <b>Interact:</b> Give bounds on cylindrical coords. ($z$ can be a function of the others.)
           </p>
-
-          <div class="interact">
-            <p>
-              <b>Interact:</b>  Type an expression for $f$ is terms of variables $x$, $y$ and $z$ and specify the domain ($y$ can depend on $x$ here, and $z$ on both).
-            </p>
-          </div>
+        </div>
         <!-- 
-      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+        A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
 
         <!-- <h2>Classes of surfaces:</h2> -->
-        <div class="noselect choice-row sans" id="surfaceMenu">
+        <div class="noselect choice-row sans" id="surfaceCylindricalMenu">
         </div>
 
 
-        <div class="w3-container" id="custom-uvs">
-          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
-            <div>
-              <span>$f(x,y,z) = $ </span>
-              <span><input class="custom-input" type="text" name="customZ" id="customZ" value="z^2"><span
-                  style="color: red;" class="form-warning"></span></span>
-            </div>
-          </div>
-          
+        <div class="w3-container" id="customCylindricalCoords">
 
           <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
             <div>
-              <span><input class="custom-input" type="text" name="customA" style="width: 8em; text-align: right;"
-                  id="customA" value="0"><span style="color: red;" class="form-warning"></span>
+              <span><input class="custom-input" type="text" name="customCylindricalA"
+                  style="width: 8em; text-align: right;" id="customCylindricalA" value="0"><span style="color: red;"
+                  class="form-warning"></span>
               </span>
-              $ \leq x \leq $
-              <span><input class="custom-input" type="text" name="customB" style="width: 8em;" id="customB"
-                  value="1"><span style="color: red;" class="form-warning"></span>
-              </span>
-            </div>
-            <div>
-              <span>
-                <input class="custom-input" type="text" name="customC" style="width: 8em; text-align: right;"
-                  id="customC" value="0"><span style="color: red;" class="form-warning"></span>
-              </span>
-              $ \leq y \leq $
-              <span>
-                <input class="custom-input" type="text" name="customD" style="width: 8em;" id="customD" value="1 - x"><span
-                  style="color: red;" class="form-warning"></span>
+              $ \leq \theta \leq $
+              <span><input class="custom-input" type="text" name="customCylindricalB" style="width: 8em;"
+                  id="customCylindricalB" value="pi"><span style="color: red;" class="form-warning"></span>
               </span>
             </div>
             <div>
               <span>
-                <input class="custom-input" type="text" name="customE" style="width: 8em; text-align: right;"
-                  id="customE" value="0"><span style="color: red;" class="form-warning"></span>
+                <input class="custom-input" type="text" name="customCylindricalC" style="width: 8em; text-align: right;"
+                  id="customCylindricalC" value="0"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq r \leq $
+              <span>
+                <input class="custom-input" type="text" name="customCylindricalD" style="width: 8em;"
+                  id="customCylindricalD" value="pi/2"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customCylindricalE" style="width: 8em; text-align: right;"
+                  id="customCylindricalE" value="1"><span style="color: red;" class="form-warning"></span>
               </span>
               $ \leq z \leq $
               <span>
-                <input class="custom-input" type="text" name="customF" style="width: 8em;" id="customF" value="1 - x - y"><span
-                  style="color: red;" class="form-warning"></span>
+                <input class="custom-input" type="text" name="customCylindricalF" style="width: 8em;"
+                  id="customCylindricalF" value="3/2"><span style="color: red;" class="form-warning"></span>
               </span>
             </div>
           </div>
         </div>
         <p> </p>
         <div class="setting-choice">
-          <div class="setting-label"><label for="surfaceVisible">show graph : </label></div>
+          <div class="setting-label"><label for="surfaceCylindricalVisible">show region : </label></div>
           <div class="setting-thing">
             <label class="switch">
-              <input type="checkbox" name="surfaceVisible" id="surfaceVisible" checked="true">
+              <input type="checkbox" name="surfaceCylindricalVisible" id="surfaceCylindricalVisible" >
               <span class="slider round"></span>
             </label>
-          </div> 
+          </div>
         </div>
 
       </div>
-    </div> 
-  </div>
-          <div class="function-tray">
-            <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog"  title="Settings"></i></button>
-            <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
-            <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
-            <button class="w3-button  button" id="screenshot"><i class="fa fa-camera" title="Take screenshot"></i></button>
+
+
+
+      <!-- spherical page -->
+      <div class="page w3-container w3-animate-left w3-padding w3-hide" id="spherical">
+        <span onclick="this.parentElement.classList.add('w3-hide');"
+          class="w3-button w3-display-topright">&otimes;</span>
+        <p>
+          <b>Spherical coordinates</b> specify a point in $\RR^3$ by its
+        <ul>
+          <li>distance to the origin, $\rho$,</li>
+          <li>angle off the positive $z$-axis, $\phi$, and </li>
+          <li>angle around the $z$-axis, $\theta$.</li>
+        </ul>
+        </p>
+
+        <p>
+          To convert these back to rectangular coordinates, we use the equations:
+          $$ x = \rho \sin \phi \cos \theta $$
+          $$ y = \rho \sin \phi \sin \theta $$
+          $$ z = \rho \cos \phi $$
+        </p>
+
+        <p> The volume form is $$dV = \rho^2 \sin \phi\,d\rho\,d\phi\,d\theta.$$</p>
+
+        <div class="interact">
+          <p>
+            <b>Interact:</b> Give bounds on spherical coords. ($\rho$ can be a function of the others.)
+          </p>
+        </div>
+        <!-- 
+        A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+        <!-- <h2>Classes of surfaces:</h2> -->
+        <div class="noselect choice-row sans" id="surfaceSphericalMenu">
+        </div>
+
+
+        <div class="w3-container" id="customSphericalCoords">
+
+          <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+            <div>
+              <span><input class="custom-input" type="text" name="customSphericalA"
+                  style="width: 8em; text-align: right;" id="customSphericalA" value="0"><span style="color: red;"
+                  class="form-warning"></span>
+              </span>
+              $ \leq \theta \leq $
+              <span><input class="custom-input" type="text" name="customSphericalB" style="width: 8em;"
+                  id="customSphericalB" value="pi"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customSphericalC" style="width: 8em; text-align: right;"
+                  id="customSphericalC" value="0"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq \phi \leq $
+              <span>
+                <input class="custom-input" type="text" name="customSphericalD" style="width: 8em;"
+                  id="customSphericalD" value="pi/2"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
+            <div>
+              <span>
+                <input class="custom-input" type="text" name="customSphericalE" style="width: 8em; text-align: right;"
+                  id="customSphericalE" value="1"><span style="color: red;" class="form-warning"></span>
+              </span>
+              $ \leq \rho \leq $
+              <span>
+                <input class="custom-input" type="text" name="customSphericalF" style="width: 8em;"
+                  id="customSphericalF" value="3/2"><span style="color: red;" class="form-warning"></span>
+              </span>
+            </div>
           </div>
+        </div>
+        <p> </p>
+        <div class="setting-choice">
+          <div class="setting-label"><label for="surfaceSphericalVisible">show region : </label></div>
+          <div class="setting-thing">
+            <label class="switch">
+              <input type="checkbox" name="surfaceSphericalVisible" id="surfaceSphericalVisible" >
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+    <!-- rectangular page -->
+    <div class="page w3-container w3-animate-left w3-padding w3-hide" id="rectangular">
+      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+      <p>
+        <b>Rectangular coordinates</b>, also <em>Cartesian</em> coordinates, are the usual $(x,y,z)$ means of specifying a point in $\RR^3$.
+      </p>
+
+      <p>
+        The volume form comes simply from the volume of a rectangular prism, length times width times height, given by the change in each coordinate, and thus $$dV = dz\,dy\,dx.$$ We can compute a triple integral as an iterated integral in the usual way, minding that the dependencies of variables makes sense.
+      </p>
+
+      <div class="interact">
+        <p>
+          <b>Interact:</b> Give bounds on rectangular coords. Any valid order of dependencies should work. 
+        </p>
+      </div>
+      <!-- 
+        A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
+      <!-- <h2>Classes of surfaces:</h2> -->
+      <div class="noselect choice-row sans" id="surfaceMenu">
+      </div>
 
 
-<div class="settings-box w3-hide" id="settings-box" >
-  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
-  <header>
-    <div class="info-header-item title"> Settings </div>
-  </header>
+      <div class="w3-container" id="custom-xyz">
+        <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+          <div>
+            <span><input class="custom-input" type="text" name="customA" style="width: 8em; text-align: right;"
+                id="customA" value="0"><span style="color: red;" class="form-warning"></span>
+            </span>
+            $ \leq x \leq $
+            <span><input class="custom-input" type="text" name="customB" style="width: 8em;" id="customB" value="1"><span
+                style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+          <div>
+            <span>
+              <input class="custom-input" type="text" name="customC" style="width: 8em; text-align: right;" id="customC"
+                value="0"><span style="color: red;" class="form-warning"></span>
+            </span>
+            $ \leq y \leq $
+            <span>
+              <input class="custom-input" type="text" name="customD" style="width: 8em;" id="customD" value="1 - x"><span
+                style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+          <div>
+            <span>
+              <input class="custom-input" type="text" name="customE" style="width: 8em; text-align: right;" id="customE"
+                value="0"><span style="color: red;" class="form-warning"></span>
+            </span>
+            $ \leq z \leq $
+            <span>
+              <input class="custom-input" type="text" name="customF" style="width: 8em;" id="customF"
+                value="1 - x - y"><span style="color: red;" class="form-warning"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p> </p>
+      <div class="setting-choice">
+        <div class="setting-label"><label for="surfaceVisible">show region : </label></div>
+        <div class="setting-thing">
+          <label class="switch">
+            <input type="checkbox" name="surfaceVisible" id="surfaceVisible" checked="true">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
 
-  <div class="setting-choice">
-    <div class="setting-label"><label for="segments">resolution :</label></div>
-    <div class="setting-thing"><input type="range" name="nX" id="segments" min="5" max="80" step="5" value="30">
-      <output>30</output></div>
-  </div>
-  <div class="setting-choice">
-    <div class="setting-label"><label for="rNum">x-meshes :</label></div>
-    <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
-      <output>10</output></div>
-  </div>
-  <div class="setting-choice">
-    <div class="setting-label"><label for="cNum">y-meshes :</label></div>
-    <div class="setting-thing">
-      <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
-      <output>10</output>
     </div>
+
+
+  <!-- integrand page -->
+  <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
+    <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+    <p>Let $E \subset \RR^3$ be a solid region in 3-space and $f$ a piecewise continuous, scalar-valued function on that
+      set. The <b>triple integral</b>
+      $$\iiint_E f\,dV$$ is the limit of Riemann sums $\displaystyle \sum_{i,j,k} f(x_i^*, y_j^*, z_k^*)\, \Delta
+      V_{ijk}$ where the sums are taken over rectangular prism intersecting $E$ with volume $\Delta V_{ijk}$ and the
+      integrand $f$ is evaluated at a sample point in each subregion. </p>
+
+    <div class="interact">
+      <p>
+        <b>Interact:</b> Type an expression for $f$ is terms of variables $x$, $y$ and $z$ and specify the domain ($y$
+        can depend on $x$ here, and $z$ on both).
+      </p>
+    </div>
+    <!-- 
+      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+      <div class="noselect choice-row sans" id="densityMenu">
+      </div>
+
+
+    <div class="w3-container" id="custom-f">
+      <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
+        <div>
+          <span>$f(x,y,z) = $ </span>
+          <span><input class="custom-input" type="text" name="customZ" id="customZ" value="1"><span
+              style="color: red;" class="form-warning"></span></span>
+        </div>
+      </div>
+
+
+
   </div>
+  </div>
+  </div>
+</div>
+
+  <div class="function-tray">
+    <button class="w3-button  button" id="settings" onclick="openSettings()"><i class="fa fa-cog"
+        title="Settings"></i></button>
+    <button class="w3-button  button" id="encodeURL"><i class="fa fa-barcode" title="Encode URL"></i></button>
+    <button class="w3-button  button" id="cameraReset"><i class="fa fa-video-camera" title="Reset camera"></i></button>
+    <button class="w3-button  button" id="screenshot"><i class="fa fa-camera" title="Take screenshot"></i></button>
+  </div>
+
+
+  <div class="settings-box w3-hide" id="settings-box">
+    <span onclick="this.parentElement.classList.add('w3-hide');"
+      class="w3-button w3-display-topright button">&otimes;</span>
+    <header>
+      <div class="info-header-item title"> Settings </div>
+    </header>
+
+    <div class="setting-choice">
+      <div class="setting-label"><label for="segments">resolution :</label></div>
+      <div class="setting-thing"><input type="range" name="nX" id="segments" min="5" max="80" step="5" value="30">
+        <output>30</output>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="rNum">x-meshes :</label></div>
+      <div class="setting-thing"><input type="range" name="rNum" id="rNum" min="1" max="30" step="1" value="10">
+        <output>10</output>
+      </div>
+    </div>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="cNum">y-meshes :</label></div>
+      <div class="setting-thing">
+        <input type="range" name="cNum" id="cNum" min="1" max="30" step="1" value="10">
+        <output>10</output>
+      </div>
+    </div>
 
     <div class="setting-choice">
       <div class="setting-label"><label for="scale">scale : </label></div>
-      <div class="setting-thing"><input type="range" name="scale" id="scale" min="-2" max="3" step=".02" value="0"><span>1</span></div>
+      <div class="setting-thing"><input type="range" name="scale" id="scale" min="-2" max="3" step=".02"
+          value="0"><span>1</span></div>
     </div>
 
-</div>
+  </div>
 
 
 </body>

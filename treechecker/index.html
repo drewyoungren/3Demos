@@ -1,0 +1,82 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Checker</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@9.3.0/lib/browser/math.min.js"></script>
+    <link rel="stylesheet"
+      href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.6.0/build/styles/default.min.css">
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.6.0/build/highlight.min.js"></script>
+
+    <script>
+        window.MathJax = {
+          tex: {
+            inlineMath: [
+              ['$', '$'],
+              ['\\(', '\\)']
+            ],
+            macros: {
+              RR: "{\\mathbb R}",
+              bold: ["{\\bf #1}", 1],
+              vec: "\\mathbf "
+        }
+          }
+        };
+        hljs.highlightAll();
+    </script>
+
+</head>
+<body>
+    <h1>Tree Checker</h1>
+
+    <p>
+        A <b>directed graph</b> or <b>digraph</b> consists of two sets: 
+        <ul>
+            <li>
+                $V$, the set of <em>vertices</em> (or <em>nodes</em>), and 
+            </li>
+            <li>
+                $E$, the set of <em>edges</em>, ordered pairs $(v_1, v_2)$ of nodes.
+            </li>
+        </ul>
+    </p>
+    <p>
+        One way to store a digraph is as a Javascript object, where each node is a key and its value is the set of its <em>children</em>. For instance the digraph $$(V,E) = (\{a,b,c,d\}, \{(a,b), (a,c),(b,c), (d, b), (a,d)\})$$ would be 
+        <pre><code class="javascript dracula">
+{
+    a: ["b","c","d"],
+    b: ["c"],
+    c: [],
+    d: ["b"],
+}
+</code></pre>
+    whereas a human would just draw it.
+    </p>
+
+    <img src="digraph1.png" alt="Arrow diagram of digraph above.">
+
+    <p>Your mission, Jackie, should you choose to accept it, is to write a function <code>treeChecker</code> that takes a digraph object like the above and returns a boolean:
+        <ul>
+            <li>
+                <code>true</code> if the graph has no <em>cycles</em> (paths that start and end at the same node), and is thus a <em>tree</em>, and 
+            </li>
+            <li><code>false</code> if it does have a cycle.</li>
+        </ul>  </p>
+
+        <p>
+        Here is a stub:
+        <pre><code class="javascript">
+function treeChecker( digraph ) {
+    for (const node of Object.keys( digraph )) {
+        // keep going
+    }
+    // make sure you return a boolean
+}
+        </code>
+        </pre>
+        </p>
+</body>
+</html>
