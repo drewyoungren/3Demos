@@ -32,8 +32,6 @@ let gridMax = 1;
 let gridStep = gridMax / 10;
 const pi = Math.PI;
 
-
-
 const scene = new THREE.Scene();
 const canvas = document.querySelector("#c");
 const renderer = new THREE.WebGLRenderer({antialias: true, alpha : true,canvas: canvas});
