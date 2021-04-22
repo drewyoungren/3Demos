@@ -323,6 +323,16 @@ function processURLSearch() {
         data[key] = parseInt(val);
         return console.log(key, val);
       }
+      if (key === 'scale') {
+        const el = document.querySelector(`input#scale`);
+        const value = parseFloat(val);
+        data[key] = value;
+        el.value = value;
+        let scala = Math.pow(10, Math.floor(value)) * Math.floor(Math.pow(10,value) / Math.pow(10,Math.floor(value)) );
+        scala = Math.round(100 * scala) / 100;
+        console.log("Scale to ", scala);
+        rescale( scala );
+      }
       if (key === 'debug') {
         debug = val.toLowerCase() === 'true';
         return;
