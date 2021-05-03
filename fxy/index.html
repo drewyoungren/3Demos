@@ -51,9 +51,7 @@
 
 <body>
 
-
   <canvas id="c"></canvas>
-  <!-- <canvas class="colorBar" id="colorbar" width="100px" height="60%"></canvas> -->
 
   <div class="infobox" id="infobox">
 
@@ -72,8 +70,7 @@
 
     <div class="page-box">
 
-
-
+      <!-- levels page -->
       <div class="page w3-padding w3-hide w3-animate-left" id="levels"> 
         <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright"> 
           &otimes;
@@ -135,40 +132,6 @@
         <p>This yields the tangent plane equation. $$z = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b)$$ The right-hand side is the <b>lineariztion</b> of $f$ at the point $(a,b)$.</p>
      </div>
 
-    <!-- lineariztion -->
-    <!--
-    <div class="page w3-container w3-animate-left w3-padding w3-hide" id="linear">
-      <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
-      <p>
-        The tangent plane is the graph of the best linear approximation to the function at a specified point. We say the <b>linearization</b> of a function $f(x,y)$ at a point $(a,b)$ is a linear function $$L(x,y) = f(a,b) + f_x(a,b) (x - a) + f_y(a,b)(y - b).$$
-      </p>
-
-      <div class="w3-container" id="custom-linear">
-
-        <div class="menu-choice-centered" style="padding-top: 20px;">
-          <div>
-            <span>$a = $ <input class="custom-input" type="text" name="linearA" style="width: 4em; "
-                id="linearA" value="-1"><span style="color: red;" class="form-warning"></span>
-            </span> <span>$b = $ <input class="custom-input" type="text" name="linearB" style="width: 4em;" id="linearB"
-                value="1"><span style="color: red;" class="form-warning"></span>
-            </span>
-          </div>
-          <div>&nbsp;</div>
-          <div>
-            <span>$\Delta x = $ 
-              <input class="custom-input" type="text" name="linearDx" style="width: 4em; "
-                id="linearDx" value="0.1"><span style="color: red;" class="form-warning"></span>,
-            </span>
-            <span>$\Delta y = $
-              <input class="custom-input" type="text" name="linearDy" style="width: 4em;" id="linearDy" value="0.1"><span
-                style="color: red;" class="form-warning"></span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-    -->
-
 
 <!-- Scalar field page -->
       <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">
@@ -181,27 +144,15 @@
           <div class="interact">
             <p><b>Interact:</b>  Type an expression for $f$ is terms of variables $x$ and $y$ and specify the domain ($y$ can depend on $x$ here).</p>
           </div>
-        <!-- 
-      A surface is <em>smooth</em> if $\mathbf r$ is continuously differentiable and has at each point a nonzero <b>normal vector</b> $$\mathbf n = \mathbf r_u \times \mathbf r_v. $$ -->
+
 
         <!-- <h2>Classes of surfaces:</h2> -->
-        <div class="noselect choice-row sans" id="surfaceMenu">
-          <span><span id="saddle">saddle</span> </span> | <span> <span id="volcano">volcano</span> </span> | <span><span id="mtns">mountain range</span> </span> | <span> <span
-              id="plane">plane</span></span></div>
+        <div class="noselect choice-row sans" id="surfaceMenu"></div>
 
 
         <div class="w3-container" id="custom-uvs">
           <div class="menu-choice-pipe-separator" style="padding-top: 20px;">
-            <!--<div>
-               <span>$x(u,v) = $ </span>
-              <span><input class="custom-input" type="text" name="customX" id="customX" value="u"><span
-                  style="color: red;" class="form-warning"></span></span>
-            </div>
-            <div>
-              <span>$y(u,v) = $ </span>
-              <span><input class="custom-input" type="text" name="customY" id="customY" value="v"><span
-                  style="color: red;" class="form-warning"></span></span>
-            </div> -->
+
             <div>
               <span>$f(x,y) = $ </span>
               <span><input class="custom-input" type="text" name="customZ" id="customZ" value="x^2 + e^(-y^2) - 1"><span

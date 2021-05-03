@@ -5,9 +5,6 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 // import {Stats} from 'https://unpkg.com/stats.js@0.17.0/build/stats.min.js';
 
 
-
-// import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
-import { GUI} from '../base/dat.gui.module.js';
 import {
   colorBufferVertices,
   blueUpRedDown,
@@ -90,7 +87,7 @@ const lineMaterial = new THREE.LineBasicMaterial( { color: 0x551122, transparent
 // Grid
 
 let gridMeshes = new THREE.Object3D();
-// gridMeshes = drawGrid( {lineMaterial});
+gridMeshes = drawGrid( {lineMaterial});
 gridMeshes.renderDepth = -1;
 scene.add(gridMeshes);
 
@@ -167,6 +164,13 @@ const surfaces = {
   },
   plane: {
     z: "x / 5 + y / 2",
+    a: "-2",
+    b: "2",
+    c: "-2",
+    d: "2",
+  },
+  ripple: {
+    z: "sin(4*(y - x^2)) / 4",
     a: "-2",
     b: "2",
     c: "-2",
@@ -610,18 +614,25 @@ function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
 // UI for parametric surface
 //
 //
-// {
-//   const surfaceMenu = document.querySelector("#surfaceMenu");
-// Object.keys(surfaces).forEach(surf => {
-  
-// });
 // }
 
 
 const surfs = Object.keys(surfaces);
 for (let i = 0; i < surfs.length; i++) {
   const surf = surfs[i];
-  const element = document.getElementById(surf);
+  let element = document.getElementById(surf);
+
+  if (! element) {
+    element = document.createElement("span");
+    parent = document.querySelector("#surfaceMenu");
+    element.innerHTML = `<span id="${surf}">${surf}</span>`;
+    if (parent.children.length > 0) {
+      const pipeSpan = document.createElement("span");
+      pipeSpan.innerText = " | ";
+      parent.appendChild(pipeSpan);
+    }
+    parent.appendChild(element);
+  }
 
   element.onclick = () => {
     data.S = surf;
