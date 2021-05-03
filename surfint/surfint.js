@@ -96,22 +96,16 @@ function rescale(newGridMax=1) {
   gridMax = newGridMax;
   gridStep = gridMax / 10;
 
-  freeBalls(gridMeshes);
+  freeChildren(gridMeshes);
 
   gridMeshes.copy(drawGrid( {lineMaterial, gridMax, gridStep}));
 
-  freeBalls(axesHolder)
+  freeChildren(axesHolder)
   // Axes
   axesHolder.copy(drawAxes( {gridMax, gridStep, axesMaterial}));
   
   // Fonts
 
-  // for (let index = axesText.length - 1; index >= 0 ; index--) {
-  //   const textObject = axesText[index];
-  //   freeBalls(textObject);
-  //   scene.remove(textObject);
-  //   axesText.remove(textObject);
-  // }
   console.log(axesText.length);
    
   [axesText, font] = labelAxes( { scene , gridMax, gridStep, render: requestFrameIfNotRequested, axesText } );
@@ -397,10 +391,10 @@ document
       element.oninput = () => {
         data[element.name] = parseInt(element.value);
         if (element.name === "nVec") {
-          freeBalls(balls);
-          freeTrails(balls);
+          freeChildren(flowArrows);
+          freeTrails(flowArrows);
 
-          if (faucet) initBalls(balls, gridMax);
+          if (faucet) initFlowArrows(flowArrows, gridMax);
         } else {
           updateSurface();
         }
@@ -441,21 +435,21 @@ if (debug) {
 
 
 {
-  const element = document.querySelector("input#frameBallVisible");
+  const element = document.querySelector("input#tanFrameVisible");
   element.oninput = () => {
-    frameBall.visible = element.checked;
+    tangentFrame.visible = element.checked;
     requestFrameIfNotRequested();
   }
 }
 
-let acidTrails = false;
+let flowTrails = false;
 {
   const element = document.querySelector("input#trailsVisible");
   element.oninput = () => {
     trails.visible = element.checked;
-    acidTrails = element.checked;
+    flowTrails = element.checked;
     
-    freeTrails(balls);
+    freeTrails(flowArrows);
     requestFrameIfNotRequested();
 
   }
@@ -1045,7 +1039,7 @@ function norm1(v) {
   return Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z));
 }
 
-class BallMesh extends THREE.Mesh {
+class FlowArrowMesh extends THREE.Mesh {
   constructor(geometry, material, lim=1) {
     super( geometry, material );
 
@@ -1074,7 +1068,7 @@ class BallMesh extends THREE.Mesh {
 
 }
 
-const balls = new THREE.Object3D();
+const flowArrows = new THREE.Object3D();
 const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
 const curlMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
 const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
@@ -1115,84 +1109,86 @@ for (let i = 1; i <= heightResolution; i++) {
 }
 
 
-function initBalls( balls, lim=gridMax, N=data.nVec ) {
-  resetTrailColors( trailLength, N);
+function initFlowArrows(arrows, lim = gridMax, N = data.nVec) {
+  resetTrailColors(trailLength, N);
 
   const vec = new THREE.Vector3();
   let maxLength = 0;
-  const arrowDefaultGeometry = new ArrowBufferGeometry( {...arrowArgs, height: gridStep/gridMax } );
+  const arrowDefaultGeometry = new ArrowBufferGeometry({
+    ...arrowArgs,
+    height: gridStep / gridMax,
+  });
 
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       for (let k = 0; k < N; k++) {
-        const ball = new BallMesh( arrowDefaultGeometry , fieldMaterial , 1.2*lim);
-        ball.scale.set(gridMax, gridMax, gridMax);
-        ball.position.set(
-          ((i + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
-          ((j + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random(),
-          ((k + 1 / 2) * 2 / (N) - 1) * lim + .01 * Math.random());
-        ball.initiate(fieldF);
+        const arrow = new FlowArrowMesh(
+          arrowDefaultGeometry,
+          fieldMaterial,
+          1.2 * lim
+        );
+        arrow.scale.set(gridMax, gridMax, gridMax);
+        arrow.position.set(
+          (((i + 1 / 2) * 2) / N - 1) * lim + 0.01 * Math.random(),
+          (((j + 1 / 2) * 2) / N - 1) * lim + 0.01 * Math.random(),
+          (((k + 1 / 2) * 2) / N - 1) * lim + 0.01 * Math.random()
+        );
+        arrow.initiate(fieldF);
         const posr = new THREE.Vector3();
-        // posr.copy(ball.position);
-        // ball.trail.push(ball.position.clone());
 
-        fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
+        fieldF(arrow.position.x, arrow.position.y, arrow.position.z, vec);
         const len = vec.length();
         maxLength = Math.max(maxLength, len);
-        // ball.position.copy(ball.start)
-        // fieldF(ball.position.x,ball.position.y,ball.position.z, vec);
-        vec.add(ball.position);
-        ball.lookAt(vec);
-        // console.log(ball.start);
-        balls.add(ball);
+
+        vec.add(arrow.position);
+        arrow.lookAt(vec);
+        arrows.add(arrow);
       }
     }
   }
 
   trailPoints = [];
 
-  return maxLength; // 
+  return maxLength; //
 }
 
-function updateBalls(balls, F, dt=0.016 ) {
+function updateFlowArrows(arrows, F, dt=0.016 ) {
   const vec = new THREE.Vector3();
-  balls.children.forEach( (ball) => {
-    const {x,y,z} = ball.position;
+  arrows.children.forEach( (arrow) => {
 
-    // if (!ball.lastPosition) {ball.lastPosition = [x,y,z];}
+    const {x,y,z} = arrow.position;
 
     const pos1 = new THREE.Vector3(); 
     pos1.set(...rk4(x,y,z,F,dt));
 
-    if (acidTrails ) {
-      trailPoints.unshift(ball.position.x, ball.position.y, ball.position.z);
+    if (flowTrails ) {
+      trailPoints.unshift(arrow.position.x, arrow.position.y, arrow.position.z);
       trailPoints.unshift(pos1.x, pos1.y, pos1.z);       
       
       while (trailPoints.length > 2*3*Math.pow(data.nVec,3)*trailLength) {       // truncate trail
         trailPoints.pop();
       }
     }
-    if (norm1(pos1) > ball.lim || (dt > 1e-6 && pos1.clone().sub(ball.position).length() < 1e-3 )) {
-      ball.position.copy(ball.start.clone().add(new THREE.Vector3(Math.random()*0.01, Math.random()*0.01, Math.random()*0.01)));
-      // ball.trail = [];
+    if (norm1(pos1) > arrow.lim || (dt > 1e-6 && pos1.clone().sub(arrow.position).length() < 1e-3 )) {
+      arrow.position.copy(arrow.start.clone().add(new THREE.Vector3(Math.random()*0.01, Math.random()*0.01, Math.random()*0.01)));
     } else {
-      ball.position.copy(pos1);
+      arrow.position.copy(pos1);
     }
 
 
-    let height = F(ball.position.x,ball.position.y,ball.position.z,vec).length();
+    let height = F(arrow.position.x,arrow.position.y,arrow.position.z,vec).length();
     height = Math.round(height / maxLength * heightResolution) - 1;
     
-    ball.geometry = arrowGeometries[Math.max(0,Math.min(arrowGeometries.length -1, height))];
+    arrow.geometry = arrowGeometries[Math.max(0,Math.min(arrowGeometries.length -1, height))];
     
-    ball.lookAt(vec.add(ball.position));
-    // if Math.ball.position.x
+    arrow.lookAt(vec.add(arrow.position));
+
   });
   trails.geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( trailPoints, 3 ) );
 
 }
 
-function freeBalls(objectHolder) {
+function freeChildren(objectHolder) {
   for (let i = objectHolder.children.length - 1; i >= 0 ; i--) {
     const element = objectHolder.children[i];
     if (element.geometry.dispose) element.geometry.dispose();
@@ -1211,7 +1207,7 @@ let fieldF = (x,y,z,vec) => {
 }
 
 let maxLength = 2;
-scene.add(balls);
+scene.add(flowArrows);
 scene.add(trails);
 
 // compute curl field
@@ -1221,7 +1217,7 @@ scene.add(curlies);
 
 function drawCurl(N=6)  {
   if (curlies.children){ 
-    freeBalls(curlies);
+    freeChildren(curlies);
   }
 
   const [P,Q,R] = ['P','Q','R'].map(arg => document.querySelector(`input#custom${arg}`).value);
@@ -1362,9 +1358,9 @@ for (let [rho,func] of Object.entries(rhos)) {
 {  // play controls
   const play = document.querySelector("#field-play");
   play.onclick = () => {
-    if (balls.children.length < 1) {
+    if (flowArrows.children.length < 1) {
       console.log("play from the top");
-      maxLength = initBalls(balls, gridMax, data.nVec);
+      maxLength = initFlowArrows(flowArrows, gridMax, data.nVec);
     }
     faucet = true;
     cancelAnimationFrame(myReq);
@@ -1387,8 +1383,8 @@ for (let [rho,func] of Object.entries(rhos)) {
     last = undefined;
     frameRequested = false;
     faucet = false;
-    freeBalls(balls);
-    freeBalls(trails);
+    freeChildren(flowArrows);
+    freeChildren(trails);
     trails.geometry.setAttribute('position', new THREE.Float32BufferAttribute( [], 3));
     
     freeTrails();
@@ -1400,10 +1396,10 @@ for (let [rho,func] of Object.entries(rhos)) {
   const rew = document.querySelector("#field-rewind");
   rew.onclick = () => {
     // faucet = false;
-    freeBalls(balls);
-    freeBalls(trails);
-    maxLength = initBalls(balls, gridMax, data.nVec);
-    updateBalls(balls, fieldF)
+    freeChildren(flowArrows);
+    freeChildren(trails);
+    maxLength = initFlowArrows(flowArrows, gridMax, data.nVec);
+    updateFlowArrows(flowArrows, fieldF)
     requestFrameIfNotRequested();
 
     // faucet = true;
@@ -1414,21 +1410,21 @@ for (let [rho,func] of Object.entries(rhos)) {
 
 
 // Select a point
-const frameBall = new THREE.Object3D();
+const tangentFrame = new THREE.Object3D();
 const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh()};
 const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6};
 for (let key of Object.keys(arrows)) {
   arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
-  frameBall.add(arrows[key])
+  tangentFrame.add(arrows[key])
 }
 
 const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
 const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
 
-frameBall.add(point);
-frameBall.visible = false;
+tangentFrame.add(point);
+tangentFrame.visible = false;
 
-scene.add(frameBall);
+scene.add(tangentFrame);
 
 function ruFrame({u = 0.5, v = 0.5, dt = .001, du = 1, dv = 1 } = {} ) {
   const {a,b,c,d,x,y,z} = rData;
@@ -1519,7 +1515,6 @@ window.addEventListener('keydown',(e) => {
     cancelAnimationFrame(myReq);
     frameRequested = true;
     myReq = requestAnimationFrame(animate);
-    // frameBall.visible = true;
   }
 },false);
 window.addEventListener('keyup',(e) => {
@@ -1527,7 +1522,6 @@ window.addEventListener('keyup',(e) => {
     selectNewPoint = false;
     cancelAnimationFrame(myReq);
     frameRequested = false;
-    // frameBall.visible = false;
   }
 },false);
 
@@ -1605,7 +1599,7 @@ function animate(time) {
   }
 
   if (faucet) {
-    updateBalls(balls, fieldF, (time - last)*0.001 );
+    updateFlowArrows(flowArrows, fieldF, (time - last)*0.001 );
   }
 
   last = time;

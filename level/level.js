@@ -108,22 +108,16 @@ function rescale(newGridMax=1) {
   gridMax = newGridMax;
   gridStep = gridMax / 10;
 
-  freeBalls(gridMeshes);
+  freeChildren(gridMeshes);
 
   // gridMeshes.copy(drawGrid( {lineMaterial, gridMax, gridStep}));
 
-  freeBalls(axesHolder)
+  freeChildren(axesHolder)
   // Axes
   axesHolder.copy(drawAxes( {gridMax, gridStep, axesMaterial}));
   
   // Fonts
 
-  // for (let index = axesText.length - 1; index >= 0 ; index--) {
-  //   const textObject = axesText[index];
-  //   freeBalls(textObject);
-  //   scene.remove(textObject);
-  //   axesText.remove(textObject);
-  // }
   console.log(axesText.length);
    
   [axesText, font] = labelAxes( { scene , gridMax, gridStep, render: requestFrameIfNotRequested, axesText } );
@@ -339,7 +333,6 @@ document
           changeLevels( data.shiftLevel );
           requestFrameIfNotRequested();
           
-          // if (faucet) initBalls(balls, gridMax);
         } else {
           data[element.name] = parseInt(element.value);
           updateSurface();
@@ -381,9 +374,9 @@ if (debug) {
 
 
 {
-  const element = document.querySelector("input#frameBallVisible");
+  const element = document.querySelector("input#tanFrameVisible");
   element.oninput = () => {
-    frameBall.visible = element.checked;
+    tanFrame.visible = element.checked;
     requestFrameIfNotRequested();
   }
 }
@@ -689,7 +682,6 @@ for (let i = 0; i < surfs.length; i++) {
 
 
 
-const balls = new THREE.Object3D();
 const fieldMaterial = new THREE.MeshLambertMaterial( {color: 0x373765 } )
 const curlMaterial = new THREE.MeshLambertMaterial( {color: 0x653737 } )
 const trailMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, vertexColors: true } );
@@ -715,7 +707,7 @@ for (let i = 1; i <= heightResolution; i++) {
 
 
 
-function freeBalls(objectHolder) {
+function freeChildren(objectHolder) {
   for (let i = objectHolder.children.length - 1; i >= 0 ; i--) {
     const element = objectHolder.children[i];
     if (element.geometry.dispose) element.geometry.dispose();
@@ -740,25 +732,25 @@ function freeTrails() {
 
 
 // Select a point
-const frameBall = new THREE.Object3D();
+const tanFrame = new THREE.Object3D();
 const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh()};
 const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6};
 for (let key of Object.keys(arrows)) {
   arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
-  frameBall.add(arrows[key])
+  tanFrame.add(arrows[key])
 }
 
 const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
 const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
 
-frameBall.add(point);
+tanFrame.add(point);
 
-const planeBall = new THREE.Mesh();
-frameBall.add(planeBall);
+const planeShard = new THREE.Mesh();
+tanFrame.add(planeShard);
 
-frameBall.visible = false;
+tanFrame.visible = false;
 
-scene.add(frameBall);
+scene.add(tanFrame);
 
 function nFrame({f = (x,y,z) => rData.z.evaluate( {x,y,z} ), point = point, eps = 1e-4, du = 1, dv = 1 } = {} ) {
   
@@ -794,7 +786,7 @@ function tangentVectors( { point, eps = 1e-4, plane = true } = {} ) {
   arrow.lookAt(pos.add(n));
   
 
-  planeBall.geometry.dispose();
+  planeShard.geometry.dispose();
 
   if (plane) {
     const {a,b,c,d,e,f} = rData;
@@ -816,8 +808,8 @@ function tangentVectors( { point, eps = 1e-4, plane = true } = {} ) {
 
     // console.log(tangentPlaneGeometry);
 
-    planeBall.geometry = tangentPlaneGeometry;
-    planeBall.material = shardMaterial;
+    planeShard.geometry = tangentPlaneGeometry;
+    planeShard.material = shardMaterial;
   }
 }
 
@@ -866,7 +858,6 @@ window.addEventListener('keydown',(e) => {
     cancelAnimationFrame(myReq);
     frameRequested = true;
     myReq = requestAnimationFrame(animateLevel);
-    // frameBall.visible = true;
   }
 },false);
 window.addEventListener('keyup',(e) => {
@@ -875,7 +866,6 @@ window.addEventListener('keyup',(e) => {
     cancelAnimationFrame(myReq);
     frameRequested = false;
     last = null;
-    // frameBall.visible = false;
   }
 },false);
 
