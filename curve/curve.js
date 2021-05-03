@@ -295,9 +295,9 @@ if (debug) {
 
 
 {
-  const element = document.querySelector("input#frameBallVisible");
+  const element = document.querySelector("input#tanFrameVisible");
   element.oninput = () => {
-    frameBall.visible = element.checked;
+    tangentFrame.visible = element.checked;
     requestFrameIfNotRequested();
   }
 }
@@ -439,21 +439,21 @@ for (let i = 0; i < curveKeys.length; i++) {
 
 
 // Select a point
-const frameBall = new THREE.Object3D();
+const tangentFrame = new THREE.Object3D();
 const arrows = {u: new THREE.Mesh(), v: new THREE.Mesh(), n: new THREE.Mesh(), r: new THREE.Mesh()};
 const ruColors = {u: 0x992525, v: 0x252599, n: 0xb6b6b6, r: 0x121212};
 for (let key of Object.keys(arrows)) {
   arrows[key].material = new THREE.MeshBasicMaterial( {color: ruColors[key] });
-  frameBall.add(arrows[key])
+  tangentFrame.add(arrows[key])
 }
 
 const pointMaterial = new THREE.MeshLambertMaterial( { color: 0xffff33});
 const point = new THREE.Mesh( new THREE.SphereGeometry(gridStep/8, 16,16),pointMaterial);
 
-frameBall.add(point);
-frameBall.visible = false;
+tangentFrame.add(point);
+tangentFrame.visible = false;
 
-scene.add(frameBall);
+scene.add(tangentFrame);
 
 function tnbFrame({u = 0.5, dt = .001, du = 1, normalized = false } = {} ) {
   const {a,b,x,y,z} = rData;
@@ -567,7 +567,6 @@ window.addEventListener('keydown',(e) => {
     cancelAnimationFrame(myReq);
     frameRequested = true;
     myReq = requestAnimationFrame(animate);
-    // frameBall.visible = true;
   }
 },false);
 window.addEventListener('keyup',(e) => {
@@ -575,7 +574,6 @@ window.addEventListener('keyup',(e) => {
     selectNewPoint = false;
     cancelAnimationFrame(myReq);
     frameRequested = false;
-    // frameBall.visible = false;
   }
 },false);
 
@@ -651,10 +649,6 @@ function animate(time) {
     const element = document.querySelector("div#timeLog");
     timeLog.innerText = (Math.round((time - last)*1000)/1000).toString();
   }
-
-  // if (faucet) {
-  //   updateBalls(balls, fieldF, (time - last)*0.001 );
-  // }
 
   last = time;
 
