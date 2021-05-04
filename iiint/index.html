@@ -64,7 +64,8 @@
         <span class="menu-page-item" onclick="openPage('main')">integrand</span> |
         <span class="menu-page-item" onclick="openPage('rectangular')">rectangular</span> |
         <span class="menu-page-item" onclick="openPage('cylindrical')">cylindrical</span> |
-        <span class="menu-page-item" onclick="openPage('spherical')">spherical</span>
+        <span class="menu-page-item" onclick="openPage('spherical')">spherical</span> | 
+        <span class="menu-page-item" onclick="openPage('activecamera')">active camera</span>
         <!--| 
         <span class="menu-page-item" onclick="openPage('linear')">linearization</span> | 
         <span class="menu-page-item" onclick="openPage('gradient')">div &amp; curl</span> | 
@@ -321,6 +322,42 @@
 
     </div>
 
+
+  <!-- changing camera -->
+  <div class="page w3-container w3-animate-left w3-padding w3-hide" id="activecamera">
+    <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright">&otimes;</span>
+
+    <div class="interact">
+      <p>
+        Change camera from perspective to orthographic.
+      </p>
+    </div>
+
+    <p> </p>
+    <div class="setting-choice">
+      <div class="setting-label"><label for="ocam">orthographic camera : </label></div>
+      <div class="setting-thing">
+        <label class="switch">
+          <input type="checkbox" name="ocam" id="ocam">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    <div class="interact">
+      <p>
+        <b>Interact: </b>Project surface onto $xy$, $yz$, $xz$ planes.
+      </p>
+    </div>
+    <div class="noselect choice-row sans" id="surfaceMenu"></div>
+    <div class="w3-container" id="projections">  
+      <div class="menu-choice-pipe-separator">
+        <div class="setting-choice">
+            <div class="noselect choice-row sans" id="projectionsMenu"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
   <!-- integrand page -->
   <div class="page w3-container w3-animate-left w3-padding w3-hide" id="main">

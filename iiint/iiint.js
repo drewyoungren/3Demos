@@ -32,25 +32,33 @@ let gridMax = 1;
 let gridStep = gridMax / 10;
 const pi = Math.PI;
 
-
-
 const scene = new THREE.Scene();
 const canvas = document.querySelector("#c");
 const renderer = new THREE.WebGLRenderer({antialias: true, alpha : true,canvas: canvas});
 
 scene.background = new THREE.Color( 0xddddef );
 
-const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
+const pcamera = new THREE.PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
+const ocamera = new THREE.OrthographicCamera(canvas.clientWidth/-320, canvas.clientWidth/320, canvas.clientHeight/320, canvas.clientHeight/-320, -100, 1000);
 
-camera.position.x = gridMax*2/2;
-camera.position.y = -gridMax*3/2 ;
-camera.position.z = gridMax*4.5/2;
-camera.up.set(0,0,1);
-camera.lookAt( 0,0,0 );
+pcamera.position.x = gridMax*2/2;
+pcamera.position.y = -gridMax*3/2 ;
+pcamera.position.z = gridMax*4.5/2;
+pcamera.up.set(0,0,1);
+pcamera.lookAt(0,0,0);
+
+ocamera.position.x = gridMax*2/2;
+ocamera.position.y = -gridMax*3/2 ;
+ocamera.position.z = gridMax*4.5/2;
+ocamera.up.set(0,0,1);
+ocamera.lookAt(0,0,0);
+
+scene.add(pcamera);
+scene.add(ocamera);
+
+var camera = pcamera; //default 
 
 // Lights
-
-
 // soft white light
 scene.add( new THREE.AmbientLight( 0xA0A0A0 ) );
 
@@ -68,7 +76,10 @@ scene.add(chandelier);
 
 // controls 
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const pcontrols = new OrbitControls(pcamera, renderer.domElement);
+const ocontrols = new OrbitControls(ocamera, renderer.domElement);
+
+var controls = pcontrols; //default
 
 // controls.rotateSpeed = 1.0;
 // controls.zoomSpeed = 1.2;
@@ -139,6 +150,12 @@ const redLineMaterial = new THREE.LineBasicMaterial({color: 0xbb0000,linewidth: 
 const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe: true } );
 const minusMaterial = new THREE.MeshPhongMaterial({color: 0xff3232, shininess: 80, side: THREE.BackSide,vertexColors: false, transparent: true, opacity: 0.7});
 const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false, transparent: true, opacity: 0.7});
+
+const projections = {
+  $xy$: [0, 0, camera.position.z], 
+  $yz$: [camera.position.x, 0, 0],
+  $xz$: [0, camera.position.y, 0]
+};
 
 const densities = {
   linear: {
@@ -1157,6 +1174,22 @@ function updateSphericalSurface() {
 // scene.add(ghostMesh);
 
 {
+  const element = document.querySelector("input#ocam"); 
+  element.oninput = () => {
+    if (element.checked) {
+      camera = ocamera;
+      controls = ocontrols;
+    }
+    else {
+      camera = pcamera;
+      controls = pcontrols;  
+    }
+    renderer.render(scene, camera);
+    requestFrameIfNotRequested();
+  }
+}
+
+{
   const element = document.querySelector("input#surfaceVisible");
   element.oninput = () => {
     surfaceMesh.visible = element.checked;
@@ -1195,6 +1228,80 @@ function updateSphericalSurface() {
   }
 }
 
+function changeCamera(otherCamera, otherControls) //fix this
+{
+  if(otherCamera instanceof PerspectiveCamera){
+    pelement.checked = false;
+  }
+  camera = otherCamera;
+
+  camera.position.x = otherCamera.position.x;
+  camera.position.y = otherCamera.position.y;
+  camera.position.z = otherCamera.position.z;
+
+  controls = otherControls;
+  
+}
+
+{ //projections menu items
+  const planes = Object.keys(projections);
+  for (let i = 0; i < planes.length; i++) {
+    const plane = planes[i];
+    let element = document.getElementById(plane);
+
+    if (!element) {
+      element = document.createElement("span");
+      parent = document.querySelector("#projectionsMenu");
+      element.innerHTML = `<span id="${plane}">${plane}</span>`;
+      if (parent.children.length > 0) {
+        const pipeSpan = document.createElement("span");
+        pipeSpan.innerText = " | ";
+        parent.appendChild(pipeSpan);
+      }
+      parent.appendChild(element);
+    }
+
+    element.onclick = () => {
+      const planeCamera = new THREE.OrthographicCamera(canvas.clientWidth/-320, canvas.clientWidth/320, canvas.clientHeight/320, canvas.clientHeight/-320, -100, 1000);
+
+      const p = projections[plane];
+
+      planeCamera.position.x = p[0];
+      planeCamera.position.y = p[1];
+      planeCamera.position.z = p[2];
+
+      planeCamera.up.set(0,0,1);
+      planeCamera.lookAt(0,0,0);
+
+      scene.add(planeCamera);
+      renderer.render(scene, planeCamera); //projection buttons work
+
+      //const oldCamera = camera;
+      //const oldControls = controls;
+
+      //const pelement = document.querySelector("input#ocam"); 
+      //const oldChecked = pelement.checked;
+
+      pelement.checked = true; //changes camera to orthographic
+
+      camera = planeCamera; //planeCamera does not have controls so this cannot be manipulated
+      
+      //const planeControls = new OrbitControls(planeCamera, renderer.domElement);
+      //controls = planeControls;
+
+      camera.position.x = planeCamera.position.x;
+      camera.position.y = planeCamera.position.y;
+      camera.position.z = planeCamera.position.z;
+
+      renderer.render(scene, camera);
+
+      //reset still does not retain location when switching back to PerspectiveCamera 
+      //changeCamera(oldCamera, oldControls);
+
+      requestFrameIfNotRequested();
+    };
+  }
+}
 
 const surfs = Object.keys(surfaces);
 for (let i = 0; i < surfs.length; i++) {
