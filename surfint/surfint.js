@@ -1645,6 +1645,35 @@ colorFuncCheckbox.oninput = () => {
   updateSurface();
 }
 
+document.querySelector("button#settings").onclick = () => {
+  const els = document.querySelectorAll('.settings-box');
+  for (const el of els) {
+    if (el.id !== "settings-box") {
+      el.classList.add('w3-hide');
+    } else {
+      if (el.classList.contains('w3-hide')) {
+        el.classList.remove('w3-hide');
+      } else {
+        el.classList.add('w3-hide');
+      }
+    }
+  }
+}
+
+document.querySelector("button#presentation").onclick = () => {
+  const els = document.querySelectorAll('.settings-box');
+  for (const el of els) {
+    if (el.id !== "presentation-box") {
+      el.classList.add('w3-hide');
+    } else {
+      if (el.classList.contains('w3-hide')) {
+        el.classList.remove('w3-hide');
+      } else {
+        el.classList.add('w3-hide');
+      }
+    }
+  }
+}
 
 document.getElementById("encodeURL").onclick = () => {
     // console.log();
@@ -1681,6 +1710,47 @@ document.querySelector("#cameraReset").onclick = () => {
     });
   });
 }
+
+
+// sync across instances
+
+const socket = io('ws://localhost:8080');
+
+socket.on('message', text => {
+
+    // const el = document.createElement('li');
+    // el.innerHTML = text;
+    // document.querySelector('ul').appendChild(el)
+
+    console.log("inComing", text, rData);
+    for (const [key, value] of Object.entries(text)) {
+      let k = key[key.length - 1];
+      k = "PQRE".indexOf(k) < 0 ? k.toLowerCase() : k;
+      console.log(k, value);
+      rData[k] = math.parse(value).compile();
+    }
+    updateSurface();
+
+});
+
+function readInputData() {
+  const els = document.querySelectorAll("input.custom-input");
+  const out = {}
+  for (const el of els) {
+    const id = el.id;
+    out[id] = el.value;
+  }
+  return out
+}
+
+document.querySelector('button#presentationStartButton').onclick = () => {
+
+    // const text = document.querySelector('input').value;
+    // console.log(readInputData())
+    socket.emit('message', readInputData())
+    
+}
+
 
 // gui.domElement.style.zIndex = 2000;
 processURLSearch()

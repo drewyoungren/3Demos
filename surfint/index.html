@@ -330,10 +330,11 @@
     </div> 
   </div>
           <div class="function-tray">
-            <button class="w3-button  button" id="settings" onclick="openSettings()" title="Settings"><i class="fa fa-cog"></i></button>
+            <button class="w3-button  button" id="settings" title="Settings"><i class="fa fa-cog"></i></button>
             <button class="w3-button  button" id="encodeURL" title="Encode URL"><i class="fa fa-barcode"></i></button>
             <button class="w3-button  button" id="cameraReset" title="Reset camera"><i class="fa fa-video-camera"></i></button>
             <button class="w3-button  button" id="screenshot" title="Take screenshot"><i class="fa fa-camera"></i></button>
+            <button class="w3-button  button" id="presentation" title="Presentation mode"><i class="fa fa-television"></i></button>
           </div>
 
 
@@ -394,9 +395,29 @@
 
 </div>
 
+<div class="settings-box w3-hide" id="presentation-box">
+  <span onclick="this.parentElement.classList.add('w3-hide');" class="w3-button w3-display-topright button">&otimes;</span>
+  <header>
+    <div class="info-header-item title"> Presentation Mode </div>
+  </header>
+
+  <div class="setting-choice">
+    <div class="setting-label"><label for="presenterSwitch">presenter : </label></div>
+    <div class="setting-thing"><label class="switch">
+        <input type="checkbox" name="presenterSwitch" id="presenterSwitch">
+        <span class="slider round"></span>
+      </label></div>
+  </div>
+
+  <div class="setting-choice">
+    <button class="button w3-button sans button-border" id="presentationStartButton">Start</button>
+  </div>
+</div>
+
 
 </body>
 <script src="https://unpkg.com/stats.js@0.17.0/build/stats.min.js"></script>
+<script src="https://cdn.socket.io/4.0.2/socket.io.js"></script>
 <script type="module" src="./surfint.js"></script>
 
 </html>
