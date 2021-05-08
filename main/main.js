@@ -8,8 +8,9 @@ import {v4 as uuidv4} from '../base/uuid/index.js';
 
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
-import { GUI} from '../base/dat.gui.module.js';
+// import { GUI} from '../base/dat.gui.module.js';
 import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry, vMaxMin, gaussLegendre } from "../base/utils.js";
+import { addDemoObject } from "../base/models.js";
 
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
@@ -129,6 +130,30 @@ const wireMaterial = new THREE.MeshBasicMaterial( { color: 0x333333, wireframe: 
 const minusMaterial = new THREE.MeshPhongMaterial({color: 0xff3232, shininess: 80, side: THREE.BackSide,vertexColors: false, transparent: true, opacity: 0.7});
 const plusMaterial = new THREE.MeshPhongMaterial({color: 0x3232ff, shininess: 80, side: THREE.FrontSide,vertexColors: false, transparent: true, opacity: 0.7});
 
+
+
+// The DemoObjects
+// This will hold all the displayed object. 
+// The keys are uuids. The values are objects with 
+// demoType: "curve", "parsurf", "levsurf", "arrow", or "vfield"
+// params: object with paramenters used in construction
+// threeObject: reference to (top) THREE.Object3D instance
+// domElement: Element with controls for object
+
+const demoObjects = {};
+const objectsDomElement = document.querySelector("#objectsBox");
+
+document.querySelectorAll("span.addObject").forEach( (element) => {
+  const demoType = element.id;
+  const id = uuidv4();
+
+  element.onclick = () => {
+    const obj = addDemoObject({ demoType });
+    demoObjects[id] = obj;
+    objectsDomElement.appendChild(obj.domElement);
+    scene.add(obj.threeObject);
+  }
+})
 
 
 const surfaces = {
