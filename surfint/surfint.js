@@ -1540,7 +1540,7 @@ function updateShards(N=0) {
   }
   if (N < 1) return;
   const dt = 1/N;
-  const vec = new THREE.Vector3();
+  // const vec = new THREE.Vector3();
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       const {p,u,v} = ruFrame( {u: i*dt, v: j*dt, du: dt, dv: dt } );

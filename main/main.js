@@ -148,10 +148,11 @@ document.querySelectorAll("span.addObject").forEach( (element) => {
   const id = uuidv4();
 
   element.onclick = () => {
-    const obj = addDemoObject({ demoType });
+    const obj = addDemoObject({ demoType , renderFunction: requestFrameIfNotRequested});
     demoObjects[id] = obj;
     objectsDomElement.appendChild(obj.domElement);
     scene.add(obj.threeObject);
+    requestFrameIfNotRequested();
   }
 })
 
@@ -1740,24 +1741,24 @@ document.querySelector("#cameraReset").onclick = () => {
 
 // sync across instances
 
-const socket = io('ws://localhost:8080');
+// const socket = io('ws://localhost:8080');
 
-socket.on('message', text => {
+// socket.on('message', text => {
 
-    // const el = document.createElement('li');
-    // el.innerHTML = text;
-    // document.querySelector('ul').appendChild(el)
+//     // const el = document.createElement('li');
+//     // el.innerHTML = text;
+//     // document.querySelector('ul').appendChild(el)
 
-    console.log("inComing", text, rData);
-    for (const [key, value] of Object.entries(text)) {
-      let k = key[key.length - 1];
-      k = "PQRE".indexOf(k) < 0 ? k.toLowerCase() : k;
-      console.log(k, value);
-      rData[k] = math.parse(value).compile();
-    }
-    updateSurface();
+//     console.log("inComing", text, rData);
+//     for (const [key, value] of Object.entries(text)) {
+//       let k = key[key.length - 1];
+//       k = "PQRE".indexOf(k) < 0 ? k.toLowerCase() : k;
+//       console.log(k, value);
+//       rData[k] = math.parse(value).compile();
+//     }
+//     updateSurface();
 
-});
+// });
 
 function readInputData() {
   const els = document.querySelectorAll("input.custom-input");
