@@ -8,7 +8,7 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry, vMaxMin, gaussLegendre } from "../base/utils.js";
+import { ParametricGeometry, colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes, ArrowBufferGeometry, vMaxMin, gaussLegendre } from "../base/utils.js";
 
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
@@ -511,7 +511,7 @@ let surfaceMesh;
 function updateSurface() {
   const {a,b,c,d,x,y,z} = rData;
   const A = a.evaluate(), B = b.evaluate();
-  const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+  const geometry = new ParametricGeometry( (u,v,vec) => {
     const U = A + (B - A)*u;
     const params = {
       u: U,
@@ -712,7 +712,7 @@ function makeExercise() {
     r = surf.r(a,b);
 
     if (ghostMesh.geometry) ghostMesh.geometry.dispose();
-    ghostMesh.geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => vec.set(...surf.r(a,b)(u,v)), 16, 16) ;
+    ghostMesh.geometry = new ParametricGeometry( (u,v,vec) => vec.set(...surf.r(a,b)(u,v)), 16, 16) ;
     ghostMesh.visible = true;
   }
   {
@@ -1544,7 +1544,7 @@ function updateShards(N=0) {
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       const {p,u,v} = ruFrame( {u: i*dt, v: j*dt, du: dt, dv: dt } );
-      const geometry = new THREE.ParametricBufferGeometry( (x,y,vec) => {
+      const geometry = new ParametricGeometry( (x,y,vec) => {
         vec.copy(p);
         vec.add(u.clone().multiplyScalar(x)).add(v.clone().multiplyScalar(y));
         vec.z += 0.001;

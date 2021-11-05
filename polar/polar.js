@@ -4,6 +4,7 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import {color, GUI} from '../base/dat.gui.module.js';
+import {ParametricGeometry} from '../base/utils.js';
 
 /* Some constants */
 let nX = 30; // resolution for surfaces
@@ -261,7 +262,7 @@ function updateGraph() {
     const element = graphHolder.children[i];
     element.geometry.dispose();
   }
-  let graphGeometry = new THREE.ParametricBufferGeometry((u,v,vec) => {
+  let graphGeometry = new ParametricGeometry((u,v,vec) => {
     let xy = regionData[data.region].r(u,v);
     let x = xy[0];
     let y = xy[1];

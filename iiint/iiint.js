@@ -21,6 +21,7 @@ import {
   gaussLegendre,
   marchingSquares,
   marchingCubes,
+  ParametricGeometry,
 } from "../base/utils.js";
 
 // Make z the default up
@@ -776,7 +777,7 @@ function updateSurface() {
 
   // Top
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
       params[X] = U;
@@ -799,7 +800,7 @@ function updateSurface() {
 
   // Bottom
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -823,7 +824,7 @@ function updateSurface() {
 
   // "Front" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -846,7 +847,7 @@ function updateSurface() {
 
   // "Back" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -875,7 +876,7 @@ function updateSurface() {
     params[X] = A;
     const C = c.evaluate( params ), D = d.evaluate( params );
     if (D > C + 1e-10) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
         params[Y] = (1 - u)*C + u*D;
         params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
@@ -902,7 +903,7 @@ function updateSurface() {
     params[X] = B;
     const C = c.evaluate( params ), D = d.evaluate( params );
     if (D > C + 1e-10) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
 
         params[Y] = (1 - u)*C + u*D;
         params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
@@ -994,7 +995,7 @@ function updateSphericalSurface() {
 
   // Top
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
       params[X] = U;
@@ -1020,7 +1021,7 @@ function updateSphericalSurface() {
   // Bottom
   {
     if (e.toString() !== "0") {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
         const U = A + (B - A)*u;
         const params = {};
 
@@ -1046,7 +1047,7 @@ function updateSphericalSurface() {
 
   // "Front" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -1071,7 +1072,7 @@ function updateSphericalSurface() {
 
   // "Back" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -1102,7 +1103,7 @@ function updateSphericalSurface() {
     params[X] = A;
     const C = c.evaluate( params ), D = d.evaluate( params );
     if (D > C + 1e-10) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
         params[Y] = (1 - u)*C + u*D;
         params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
@@ -1132,7 +1133,7 @@ function updateSphericalSurface() {
     params[X] = B;
     const C = c.evaluate( params ), D = d.evaluate( params );
     if (D > C + 1e-10) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
 
         params[Y] = (1 - u)*C + u*D;
         params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
@@ -1413,7 +1414,7 @@ function updateCylindricalSurface() {
 
   // Top
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
       params[X] = U;
@@ -1439,7 +1440,7 @@ function updateCylindricalSurface() {
   // Bottom
   {
     if (true) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
         const U = A + (B - A)*u;
         const params = {};
 
@@ -1465,7 +1466,7 @@ function updateCylindricalSurface() {
 
   // "Front" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -1490,7 +1491,7 @@ function updateCylindricalSurface() {
 
   // "Back" 
   {
-    const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+    const geometry = new ParametricGeometry( (u,v,vec) => {
       const U = A + (B - A)*u;
       const params = {};
 
@@ -1521,7 +1522,7 @@ function updateCylindricalSurface() {
     params[X] = A;
     const C = c.evaluate( params ), D = d.evaluate( params );
     if (D > C + 1e-10) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
         params[Y] = (1 - u)*C + u*D;
         params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
 
@@ -1551,7 +1552,7 @@ function updateCylindricalSurface() {
     params[X] = B;
     const C = c.evaluate( params ), D = d.evaluate( params );
     if (D > C + 1e-10) {
-      const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+      const geometry = new ParametricGeometry( (u,v,vec) => {
 
         params[Y] = (1 - u)*C + u*D;
         params[Z] =  (1 - v)*e.evaluate( params ) + v*f.evaluate( params );
