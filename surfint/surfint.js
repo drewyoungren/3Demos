@@ -7,6 +7,7 @@ import { OrbitControls } from "https://unpkg.com/three@0.121.0/examples/jsm/cont
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI } from "../base/dat.gui.module.js";
 import {
+  ParametricGeometry,
   colorBufferVertices,
   blueUpRedDown,
   addColorBar,
@@ -590,7 +591,7 @@ function updateSurface() {
   const { a, b, c, d, x, y, z } = rData;
   const A = a.evaluate(),
     B = b.evaluate();
-  const geometry = new THREE.ParametricBufferGeometry(
+  const geometry = new ParametricGeometry(
     (u, v, vec) => {
       const U = A + (B - A) * u;
       const params = {
@@ -863,8 +864,8 @@ function makeExercise() {
     r = surf.r(a, b, c);
 
     if (ghostMesh.geometry) ghostMesh.geometry.dispose();
-    ghostMesh.geometry = new THREE.ParametricBufferGeometry(
-      (u, v, vec) => vec.set(...r(u, v)),
+    ghostMesh.geometry = new ParametricGeometry(
+      (u, v, vec) => vec.set(...surf.r(a, b)(u, v)),
       16,
       16
     );
@@ -1802,7 +1803,7 @@ function updateShards(N = 0) {
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       const { p, u, v } = ruFrame({ u: i * dt, v: j * dt, du: dt, dv: dt });
-      const geometry = new THREE.ParametricBufferGeometry(
+      const geometry = new ParametricGeometry(
         (x, y, vec) => {
           vec.copy(p);
           vec.add(u.clone().multiplyScalar(x)).add(v.clone().multiplyScalar(y));

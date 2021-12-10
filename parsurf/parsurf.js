@@ -7,7 +7,7 @@ import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/contro
 
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes } from "../base/utils.js";
+import { ParametricGeometry, colorBufferVertices, blueUpRedDown, addColorBar, marchingSegments, drawAxes, drawGrid, labelAxes } from "../base/utils.js";
 
 // Make z the default up
 THREE.Object3D.DefaultUp.set(0,0,1);
@@ -280,7 +280,7 @@ let surfaceMesh;
 function updateSurface() {
   const {a,b,c,d,x,y,z} = rData;
   const A = a.evaluate(), B = b.evaluate();
-  const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) => {
+  const geometry = new ParametricGeometry( (u,v,vec) => {
     const U = A + (B - A)*u;
     const params = {
       u: U,

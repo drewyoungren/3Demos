@@ -4,7 +4,7 @@ import * as THREE from 'https://unpkg.com/three@0.121.0/build/three.module.js';
 import {OrbitControls} from 'https://unpkg.com/three@0.121.0/examples/jsm/controls/OrbitControls.js';
 // import {Lut} from 'https://unpkg.com/three@0.121.0/examples/jsm/math/Lut.js';
 import { GUI} from '../base/dat.gui.module.js';
-import { colorBufferVertices, blueUpRedDown, addColorBar } from "../base/utils.js";
+import { ParametricGeometry, colorBufferVertices, blueUpRedDown, addColorBar } from "../base/utils.js";
 
 /* Some constants */
 const nX = 30; // resolution for surfaces
@@ -366,7 +366,7 @@ function updateCurve() {
 let zMesh;
 function updateZMesh() {
   const {func} = zFunctions[data.f];
-  const geometry = new THREE.ParametricBufferGeometry( (u,v,vec) =>{
+  const geometry = new ParametricGeometry( (u,v,vec) =>{
     const x = -2*gridMax + u*(4*gridMax);
     const y = -2*gridMax + v*(4*gridMax);
     vec.set(x,y,func(x,y));
@@ -510,7 +510,7 @@ graphWorld.add(walls[1]);
 function updateWall() {
   updateCurve();
   updateZMesh();
-  const geometry = new THREE.ParametricBufferGeometry( 
+  const geometry = new ParametricGeometry( 
     function(u,v,vec) {
       const {a,b,func} = curves[data.r];
       const t = a + data.sMode*u*(b - a);
