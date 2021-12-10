@@ -865,7 +865,7 @@ function makeExercise() {
 
     if (ghostMesh.geometry) ghostMesh.geometry.dispose();
     ghostMesh.geometry = new ParametricGeometry(
-      (u, v, vec) => vec.set(...surf.r(a, b)(u, v)),
+      (u, v, vec) => vec.set(...r(u, v)),
       16,
       16
     );
